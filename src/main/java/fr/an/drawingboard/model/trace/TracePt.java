@@ -24,6 +24,11 @@ public class TracePt {
 //	public final int rightSpeedx;
 //	public final int rightSpeedy;
 
+	public boolean isStopPointOrMergeStop() {
+		return isStopPoint || isMergeStopPoint;
+	}
+
+	
 	public static double distRoundedPixel(TracePt pt0, TracePt pt1) {
 		return distRoundedPixel(pt0.x, pt0.y, pt1.x, pt1.y); 
 	}

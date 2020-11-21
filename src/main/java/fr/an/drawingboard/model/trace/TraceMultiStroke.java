@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.scene.paint.Color;
+import lombok.val;
 
 public class TraceMultiStroke {
 
@@ -20,5 +21,15 @@ public class TraceMultiStroke {
 
 	public boolean isEmpty() {
 		return strokes.isEmpty();
+	}
+	
+	public TraceStroke getLast() {
+		return (strokes.isEmpty())? null : strokes.get(strokes.size() - 1);
+	}
+	
+	public TraceStroke appendNewStroke() {
+		val res = new TraceStroke();
+		strokes.add(res);
+		return res;
 	}
 }

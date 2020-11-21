@@ -5,6 +5,29 @@ import java.util.List;
 
 import lombok.val;
 
+/**
+ * <PRE>
+ * TraceMultiStrokeList
+ *   |
+ *   | multiStrokes
+ *   |
+ *   +----> *  TraceMultiStroke
+ *               |    strokes
+ *               |
+ *               +-----> * TraceStroke (rename Path ?)
+ *               		      |
+ *                            +-- startStopPoint, endStopPoint 
+ *                            |
+ *                            |    pathElements
+ *                            +-----> * TraceStrokePathElement
+ *                                         ( PolyLine, SimpleSegment, Quadratic/Cubic Bezier Curve, ..)
+ *                                         |
+ *                                         |    pts
+ *                                         +-----> * TracePt
+ *                                                      - (x, y)
+ *                                                      - t
+ * </PRE>
+ */
 public class TraceMultiStrokeList {
 
 	public List<TraceMultiStroke> multiStrokes = new ArrayList<>();

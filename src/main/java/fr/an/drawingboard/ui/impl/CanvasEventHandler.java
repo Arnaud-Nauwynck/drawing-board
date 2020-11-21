@@ -1,7 +1,5 @@
 package fr.an.drawingboard.ui.impl;
 
-import fr.an.drawingboard.model.trace.TraceMultiStroke;
-import fr.an.drawingboard.model.trace.TraceStroke;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TouchEvent;
