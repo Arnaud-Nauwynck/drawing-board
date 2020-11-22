@@ -1,7 +1,7 @@
 package fr.an.drawingboard.stddefs.shapedef;
 
+import fr.an.drawingboard.model.shapedef.RectExpr;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
-import fr.an.drawingboard.model.shapedef.ShapeDef.CoordRectExpr;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +20,7 @@ public class ShapeDefRegistryBuilder {
 
 	public void addRectangleDef() {
 		ShapeDef shapeDef = new ShapeDef("rectangle");
-		CoordRectExpr r = shapeDef.getCoordRectExpr();
+		RectExpr r = shapeDef.getCoordRectExpr();
 		// clock-wise gesture
 		//  PtUL -----> PtUR
 		//   /\          |
@@ -34,7 +34,7 @@ public class ShapeDefRegistryBuilder {
 	
 	public void addVCrossDef() {
 		ShapeDef crossDef = new ShapeDef("vcross");
-		CoordRectExpr r = crossDef.getCoordRectExpr();
+		RectExpr r = crossDef.getCoordRectExpr();
 		// gesture
 		//  PtUL    ->  PtUR
 		//       \ /      
@@ -47,7 +47,7 @@ public class ShapeDefRegistryBuilder {
 
 	public void addHCrossDef() {
 		ShapeDef hcrossDef = new ShapeDef("hcross");
-		CoordRectExpr r = hcrossDef.getCoordRectExpr();
+		RectExpr r = hcrossDef.getCoordRectExpr();
 		// gesture
 		//  PtUL      PtUR
 		//    /\  \ /      
@@ -60,7 +60,7 @@ public class ShapeDefRegistryBuilder {
 	
 	public void addZDef() {
 		ShapeDef zDef = new ShapeDef("z");
-		CoordRectExpr r = zDef.getCoordRectExpr();
+		RectExpr r = zDef.getCoordRectExpr();
 		// gesture
 		//  PtUL----+ PtUR
 		//         /      
@@ -72,7 +72,7 @@ public class ShapeDefRegistryBuilder {
 
 	public void addNDef() {
 		ShapeDef nDef = new ShapeDef("n");
-		CoordRectExpr r = nDef.getCoordRectExpr();
+		RectExpr r = nDef.getCoordRectExpr();
 		// gesture
 		//  PtUL      PtUR
 		//    /\ \     /\      

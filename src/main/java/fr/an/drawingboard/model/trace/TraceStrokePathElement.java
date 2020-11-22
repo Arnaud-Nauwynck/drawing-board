@@ -36,6 +36,9 @@ public abstract class TraceStrokePathElement {
 
 	public abstract StrokePathElementType getType();
 	
+	public abstract void visit(TraceStrokePathElementVisitor visitor);
+	public abstract <TRes,TParam> TRes visit(TraceStrokePathElementVisitor2<TRes,TParam> visitor, TParam p);
+	
 	// --------------------------------------------------------------------------------------------
 
 	public static class SegmentTraceStrokePathElement extends TraceStrokePathElement {
@@ -47,6 +50,16 @@ public abstract class TraceStrokePathElement {
 		@Override
 		public StrokePathElementType getType() {
 			return StrokePathElementType.Segment;
+		}
+
+		@Override
+		public void visit(TraceStrokePathElementVisitor visitor) {
+			visitor.caseSegment(this);
+		}
+
+		@Override
+		public <TRes,TParam> TRes visit(TraceStrokePathElementVisitor2<TRes,TParam> visitor, TParam p) {
+			return visitor.caseSegment(this, p);
 		}
 
 	}
@@ -65,6 +78,16 @@ public abstract class TraceStrokePathElement {
 		@Override
 		public StrokePathElementType getType() {
 			return StrokePathElementType.DiscretePoints;
+		}
+
+		@Override
+		public void visit(TraceStrokePathElementVisitor visitor) {
+			visitor.caseDiscretePts(this);
+		}
+
+		@Override
+		public <TRes,TParam> TRes visit(TraceStrokePathElementVisitor2<TRes,TParam> visitor, TParam p) {
+			return visitor.caseDiscretePts(this, p);
 		}
 
 		public int tracePtCount() {
@@ -98,6 +121,15 @@ public abstract class TraceStrokePathElement {
 			return StrokePathElementType.QuadBezier;
 		}
 
+		@Override
+		public void visit(TraceStrokePathElementVisitor visitor) {
+			visitor.caseQuadBezier(this);
+		}
+
+		@Override
+		public <TRes,TParam> TRes visit(TraceStrokePathElementVisitor2<TRes,TParam> visitor, TParam p) {
+			return visitor.caseQuadBezier(this, p);
+		}
 	}
 
 
@@ -124,6 +156,16 @@ public abstract class TraceStrokePathElement {
 		@Override
 		public StrokePathElementType getType() {
 			return StrokePathElementType.CubicBezier;
+		}
+
+		@Override
+		public void visit(TraceStrokePathElementVisitor visitor) {
+			visitor.caseCubicBezier(this);
+		}
+
+		@Override
+		public <TRes,TParam> TRes visit(TraceStrokePathElementVisitor2<TRes,TParam> visitor, TParam p) {
+			return visitor.caseCubicBezier(this, p);
 		}
 
 	}

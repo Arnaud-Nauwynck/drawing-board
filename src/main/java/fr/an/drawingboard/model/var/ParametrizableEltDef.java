@@ -3,6 +3,7 @@ package fr.an.drawingboard.model.var;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import fr.an.drawingboard.model.expr.Expr.ParamDefExpr;
 import lombok.Getter;
 
 public abstract class ParametrizableEltDef {
@@ -35,5 +36,8 @@ public abstract class ParametrizableEltDef {
 		return params.get(name);
 	}
 
+	public ParamDefExpr getParamExpr(String name) {
+		return getParam(name).expr;
+	}
 
 }

@@ -3,8 +3,11 @@ package fr.an.drawingboard.model.shapedef;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.an.drawingboard.model.expr.Expr;
+import fr.an.drawingboard.model.expr.ExprBuilder;
 import fr.an.drawingboard.model.trace.StrokePathElementType;
 import fr.an.drawingboard.model.var.ParametrizableEltDef;
+import fr.an.drawingboard.util.DrawingValidationUtils;
 
 public abstract class StrokePathElementDef extends ParametrizableEltDef {
 
@@ -18,6 +21,10 @@ public abstract class StrokePathElementDef extends ParametrizableEltDef {
 
 	public abstract StrokePathElementType getType();
 	
+	public abstract PtExpr ptExprAtAbscissExpr(Expr exprS, Expr expr1minusS);
+
+	public abstract PtExpr ptExprAtAbsciss(double s);
+
 	// --------------------------------------------------------------------------------------------
 
 	public static class SegmentStrokePathElementDef extends StrokePathElementDef {
@@ -29,6 +36,25 @@ public abstract class StrokePathElementDef extends ParametrizableEltDef {
 		@Override
 		public StrokePathElementType getType() {
 			return StrokePathElementType.Segment;
+		}
+
+		@Override
+		public PtExpr ptExprAtAbscissExpr(Expr s, Expr expr1minusS) {
+			ExprBuilder b = ExprBuilder.INSTANCE;
+			// pt = s * startPt + (1-s) * endPt
+			Expr x = b.sum(b.mult(s, startPt.x), b.mult(expr1minusS, endPt.x));
+			Expr y = b.sum(b.mult(s, startPt.y), b.mult(expr1minusS, endPt.y));
+			return new PtExpr(x, y);
+		}
+
+		@Override
+		public PtExpr ptExprAtAbsciss(double s) {
+			double val1minusS = 1.0 - s;
+			ExprBuilder b = ExprBuilder.INSTANCE;
+			// pt = s * startPt + (1-s) * endPt
+			Expr x = b.sum(b.mult(s, startPt.x), b.mult(val1minusS, endPt.x));
+			Expr y = b.sum(b.mult(s, startPt.y), b.mult(val1minusS, endPt.y));
+			return new PtExpr(x, y);
 		}
 
 	}
@@ -57,6 +83,16 @@ public abstract class StrokePathElementDef extends ParametrizableEltDef {
 			return ptExprs.get(index);
 		}
 
+		@Override
+		public PtExpr ptExprAtAbscissExpr(Expr s, Expr expr1minusS) {
+			throw DrawingValidationUtils.notImplYet();
+		}
+
+		@Override
+		public PtExpr ptExprAtAbsciss(double s) {
+			throw DrawingValidationUtils.notImplYet();
+		}
+
 	}
 
 	// --------------------------------------------------------------------------------------------
@@ -78,6 +114,16 @@ public abstract class StrokePathElementDef extends ParametrizableEltDef {
 		@Override
 		public StrokePathElementType getType() {
 			return StrokePathElementType.QuadBezier;
+		}
+
+		@Override
+		public PtExpr ptExprAtAbscissExpr(Expr s, Expr expr1minusS) {
+			throw DrawingValidationUtils.notImplYet();
+		}
+
+		@Override
+		public PtExpr ptExprAtAbsciss(double s) {
+			throw DrawingValidationUtils.notImplYet();
 		}
 
 	}
@@ -108,6 +154,16 @@ public abstract class StrokePathElementDef extends ParametrizableEltDef {
 			return StrokePathElementType.CubicBezier;
 		}
 
+		@Override
+		public PtExpr ptExprAtAbscissExpr(Expr s, Expr expr1minusS) {
+			throw DrawingValidationUtils.notImplYet();
+		}
+
+		@Override
+		public PtExpr ptExprAtAbsciss(double s) {
+			throw DrawingValidationUtils.notImplYet();
+		}
+		
 	}
 
 }
