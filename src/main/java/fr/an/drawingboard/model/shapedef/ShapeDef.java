@@ -6,6 +6,7 @@ import java.util.List;
 
 import fr.an.drawingboard.model.var.ParamDef;
 import fr.an.drawingboard.model.var.ParametrizableEltDef;
+import fr.an.drawingboard.recognizer.shape.InitialParamForMultiStrokeEstimator;
 import lombok.AllArgsConstructor;
 
 public class ShapeDef extends ParametrizableEltDef {
@@ -26,18 +27,18 @@ public class ShapeDef extends ParametrizableEltDef {
 
 	// --------------------------------------------------------------------------------------------
 	
-	public MultiStrokeDef addGesture() {
-		MultiStrokeDef res = new MultiStrokeDef(this);
+	public MultiStrokeDef addGesture(InitialParamForMultiStrokeEstimator initalParamEstimator) {
+		MultiStrokeDef res = new MultiStrokeDef(this, initalParamEstimator);
 		gestures.add(res);
 		return res;
 	}
 
-	public MultiStrokeDef addGesture_Segments(PtExpr... pts) {
-		return addGesture_Segments(Arrays.asList(pts));
+	public MultiStrokeDef addGesture_Segments(InitialParamForMultiStrokeEstimator initalParamEstimator, PtExpr... pts) {
+		return addGesture_Segments(initalParamEstimator, Arrays.asList(pts));
 	}
 	
-	public MultiStrokeDef addGesture_Segments(List<PtExpr> pts) {
-		MultiStrokeDef res = addGesture();
+	public MultiStrokeDef addGesture_Segments(InitialParamForMultiStrokeEstimator initalParamEstimator, List<PtExpr> pts) {
+		MultiStrokeDef res = addGesture(initalParamEstimator);
 		PtExpr prevPt = pts.get(0);
 		for(int i = 1; i < pts.size(); i++) {
 			PtExpr pt = pts.get(i);

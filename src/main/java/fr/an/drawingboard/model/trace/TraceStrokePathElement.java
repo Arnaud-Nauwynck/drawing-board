@@ -62,6 +62,9 @@ public abstract class TraceStrokePathElement {
 			return visitor.caseSegment(this, p);
 		}
 
+		public double pathDistLength() {
+			return TracePt.dist(startPt, endPt);
+		}
 	}
 	
 	// --------------------------------------------------------------------------------------------
@@ -98,6 +101,21 @@ public abstract class TraceStrokePathElement {
 			return tracePts.get(index);
 		}
 
+		public double pathDistLength() {
+			int count = tracePts.size();
+			if (count == 0) {
+				return 0.0;
+			}
+			double res = 0.0;
+			TracePt prevPt = tracePts.get(0);
+			for(int i = 1; i < count; i++) {
+				TracePt pt = tracePts.get(i);
+				res += TracePt.dist(prevPt, pt);
+				prevPt = pt;
+			}
+			return res;
+		}
+
 	}
 
 	// --------------------------------------------------------------------------------------------
@@ -129,6 +147,13 @@ public abstract class TraceStrokePathElement {
 		@Override
 		public <TRes,TParam> TRes visit(TraceStrokePathElementVisitor2<TRes,TParam> visitor, TParam p) {
 			return visitor.caseQuadBezier(this, p);
+		}
+		
+		public double estimePathDistLength() {
+			// TOCHANGE estimation only..
+			double d1 = TracePt.dist(startPt, controlPt);
+			double d2 = TracePt.dist(controlPt, endPt);
+			return 0.5 * (d1 + d2);
 		}
 	}
 
@@ -166,6 +191,14 @@ public abstract class TraceStrokePathElement {
 		@Override
 		public <TRes,TParam> TRes visit(TraceStrokePathElementVisitor2<TRes,TParam> visitor, TParam p) {
 			return visitor.caseCubicBezier(this, p);
+		}
+
+		public double estimePathDistLength() {
+			// TOCHANGE estimation only..
+			double d1 = TracePt.dist(startPt, controlPt1);
+			double d2 = TracePt.dist(controlPt1, controlPt2);
+			double d3 = TracePt.dist(controlPt2, endPt);
+			return 1.0/3.0 * (d1 + d2 + d3);
 		}
 
 	}

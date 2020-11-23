@@ -33,7 +33,11 @@ public abstract class ParametrizableEltDef {
 	}
 	
 	public ParamDef getParam(String name) {
-		return params.get(name);
+		ParamDef res = params.get(name);
+		if (res == null && parent != null) {
+			res = parent.getParam(name);
+		}
+		return res;
 	}
 
 	public ParamDefExpr getParamExpr(String name) {

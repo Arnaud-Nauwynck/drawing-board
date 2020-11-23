@@ -207,7 +207,10 @@ public class DrawingBoardUi {
 				flushStopPointOrMouseReleased();
 				currPathElementBuilder = null;
 				currStroke = null;
-				currMultiStroke = null;
+				if (currMultiStroke != null) {
+					currMultiStroke.updatePtCoefs();
+					currMultiStroke = null;
+				}
 				
 				// remove too small lines ?
 				

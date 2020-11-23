@@ -9,14 +9,23 @@ import fr.an.drawingboard.model.shapedef.StrokePathElementDef.DiscretePointsStro
 import fr.an.drawingboard.model.shapedef.StrokePathElementDef.QuadBezierStrokePathElementDef;
 import fr.an.drawingboard.model.shapedef.StrokePathElementDef.SegmentStrokePathElementDef;
 import fr.an.drawingboard.model.var.ParametrizableEltDef;
+import fr.an.drawingboard.recognizer.shape.InitialParamForMultiStrokeEstimator;
 
 public class MultiStrokeDef extends ParametrizableEltDef {
 
 	public List<StrokeDef> strokes = new ArrayList<>();
 
-	public MultiStrokeDef(ParametrizableEltDef parent) {
+	public InitialParamForMultiStrokeEstimator initalParamEstimator;
+	
+	// --------------------------------------------------------------------------------------------
+
+	public MultiStrokeDef(ParametrizableEltDef parent,
+			InitialParamForMultiStrokeEstimator initalParamEstimator) {
 		super(parent);
+		this.initalParamEstimator = initalParamEstimator;
 	}
+
+	// --------------------------------------------------------------------------------------------
 
 	public StrokeDef addStroke(List<StrokePathElementDef> pathElements) {
 		StrokeDef res = new StrokeDef(pathElements);

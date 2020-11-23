@@ -15,6 +15,8 @@ public class TracePt {
 		
 	public final double strokeCurveAbsciss;
 
+	public double coefInMultiStroke; // set from 
+	
 	boolean isStopPoint;
 	boolean isMergeStopPoint;
 
@@ -36,8 +38,8 @@ public class TracePt {
 	public static double distRoundedPixel(int x0, int y0, int x1, int y1) {
 		double dx = Math.abs(x1 - x0);
 		double dy = Math.abs(y1 - y0);
-		double roundDx = Math.max(0, dx-0.5);
-		double roundDy = Math.max(0, dy-0.5);
+		double roundDx = Math.max(0, dx - 0.5);
+		double roundDy = Math.max(0, dy - 0.5);
 		double res = Math.sqrt(roundDx * roundDx + roundDy * roundDy);
 		return res;
 	}
@@ -46,7 +48,19 @@ public class TracePt {
 		return dist(pt0.x, pt0.y, pt1.x, pt1.y); 
 	}
 
-	public static double dist(int x0, int y0, int x1, int y1) {
+	public static double dist(TracePt pt0, Pt2D pt1) {
+		return dist(pt0.x, pt0.y, pt1.x, pt1.y); 
+	}
+
+	public static double dist(Pt2D pt0, TracePt pt1) {
+		return dist(pt0.x, pt0.y, pt1.x, pt1.y); 
+	}
+
+	public static double dist(Pt2D pt0, Pt2D pt1) {
+		return dist(pt0.x, pt0.y, pt1.x, pt1.y); 
+	}
+
+	public static double dist(double x0, double y0, double x1, double y1) {
 		double dx = x1 - x0;
 		double dy = y1 - y0;
 		double res = Math.sqrt(dx * dx + dy * dy);

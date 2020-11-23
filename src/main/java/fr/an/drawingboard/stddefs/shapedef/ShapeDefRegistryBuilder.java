@@ -3,6 +3,8 @@ package fr.an.drawingboard.stddefs.shapedef;
 import fr.an.drawingboard.model.shapedef.RectExpr;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
+import fr.an.drawingboard.recognizer.initialParamEstimators.StdInitialParamEstimators;
+import fr.an.drawingboard.recognizer.shape.InitialParamForMultiStrokeEstimator;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -26,8 +28,9 @@ public class ShapeDefRegistryBuilder {
 		//   /\          |
 		//   |           \/
 		//  PtDL <----- PtDR
-		shapeDef.addGesture_Segments(r.ptUL, r.ptUR, r.ptDR, r.ptDL, r.ptUL);
-		shapeDef.addGesture_Segments(r.ptDL, r.ptUL, r.ptUR, r.ptDR, r.ptDL);
+		InitialParamForMultiStrokeEstimator paramEstimator = rectParamEstimator();
+		shapeDef.addGesture_Segments(paramEstimator, r.ptUL, r.ptUR, r.ptDR, r.ptDL, r.ptUL);
+		shapeDef.addGesture_Segments(paramEstimator, r.ptDL, r.ptUL, r.ptUR, r.ptDR, r.ptDL);
 		
 		dest.addShapeDef(shapeDef);
 	}
@@ -42,7 +45,8 @@ public class ShapeDefRegistryBuilder {
 		//       / \
 		//      /   |     
 		//  PtDL <--+ PtDR
-		crossDef.addGesture_Segments(r.ptUL, r.ptDR, r.ptDL, r.ptUR);
+		InitialParamForMultiStrokeEstimator paramEstimator = rectParamEstimator();
+		crossDef.addGesture_Segments(paramEstimator, r.ptUL, r.ptDR, r.ptDL, r.ptUR);
 	}
 
 	public void addHCrossDef() {
@@ -55,7 +59,8 @@ public class ShapeDefRegistryBuilder {
 		//    |   / \
 		//    |  /   >     
 		//  PtDL      PtDR
-		hcrossDef.addGesture_Segments(r.ptUR, r.ptDL, r.ptUL, r.ptDR);
+		InitialParamForMultiStrokeEstimator paramEstimator = rectParamEstimator();
+		hcrossDef.addGesture_Segments(paramEstimator, r.ptUR, r.ptDL, r.ptUL, r.ptDR);
 	}
 	
 	public void addZDef() {
@@ -67,7 +72,8 @@ public class ShapeDefRegistryBuilder {
 		//        / 
 		//       /        
 		//  PtDL+----> PtDR
-		zDef.addGesture_Segments(r.ptUL, r.ptUR, r.ptDL, r.ptDR);
+		InitialParamForMultiStrokeEstimator paramEstimator = rectParamEstimator();
+		zDef.addGesture_Segments(paramEstimator, r.ptUL, r.ptUR, r.ptDL, r.ptDR);
 	}
 
 	public void addNDef() {
@@ -79,7 +85,14 @@ public class ShapeDefRegistryBuilder {
 		//    |   \    |
 		//    |    \   |        
 		//  PtDL    > PtDR
-		nDef.addGesture_Segments(r.ptDL, r.ptUL, r.ptDR, r.ptUR);
+		InitialParamForMultiStrokeEstimator paramEstimator = rectParamEstimator();
+		nDef.addGesture_Segments(paramEstimator, r.ptDL, r.ptUL, r.ptDR, r.ptUR);
 	}
+
+	
+	private InitialParamForMultiStrokeEstimator rectParamEstimator() {
+		return StdInitialParamEstimators.rectParamEstimator();
+	}
+
 
 }
