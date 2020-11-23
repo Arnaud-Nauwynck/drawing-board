@@ -5,55 +5,61 @@ import java.util.List;
 
 import fr.an.drawingboard.model.expr.Expr;
 import fr.an.drawingboard.model.expr.ExprBuilder;
-import fr.an.drawingboard.model.trace.StrokePathElementType;
+import fr.an.drawingboard.model.trace.TracePathElementType;
 import fr.an.drawingboard.model.var.ParametrizableEltDef;
 import fr.an.drawingboard.util.DrawingValidationUtils;
 
-public abstract class StrokePathElementDef extends ParametrizableEltDef {
+/**
+ * definition (algebric expr) of a path element
+ * similar to javafx.scene.shape.PathElement
+ *
+ * 
+ */
+public abstract class PathElementDef extends ParametrizableEltDef {
 
 	public PtExpr startPt;
 	public PtExpr endPt;
 
-	public StrokePathElementDef(PtExpr startPt, PtExpr endPt) {
+	public PathElementDef(PtExpr startPt, PtExpr endPt) {
 		this.startPt = startPt;
 		this.endPt = endPt;
 	}
 
-	public abstract StrokePathElementType getType();
+	public abstract TracePathElementType getType();
 	
 	public abstract PtExpr ptExprAtAbscissExpr(Expr exprS, Expr expr1minusS);
 
 	public abstract PtExpr ptExprAtAbsciss(double s);
 
-	public abstract void accept(StrokePathElementDefVisitor visitor);
+	public abstract void accept(PathElementDefVisitor visitor);
 	
-	public static abstract class StrokePathElementDefVisitor {
+	public static abstract class PathElementDefVisitor {
 
-		public abstract void caseSegmentDef(SegmentStrokePathElementDef def);
+		public abstract void caseSegmentDef(SegmentPathElementDef def);
 
-		public abstract void caseDiscretePointsDef(DiscretePointsStrokePathElementDef def);
+		public abstract void caseDiscretePointsDef(DiscretePointsPathElementDef def);
 
-		public abstract void caseQuadBezierDef(QuadBezierStrokePathElementDef def);
+		public abstract void caseQuadBezierDef(QuadBezierPathElementDef def);
 
-		public abstract void caseCubicBezierDef(CubicBezierStrokePathElementDef def);
+		public abstract void caseCubicBezierDef(CubicBezierPathElementDef def);
 		
 	}
 	
 	// --------------------------------------------------------------------------------------------
 
-	public static class SegmentStrokePathElementDef extends StrokePathElementDef {
+	public static class SegmentPathElementDef extends PathElementDef {
 
-		public SegmentStrokePathElementDef(PtExpr startPt, PtExpr endPt) {
+		public SegmentPathElementDef(PtExpr startPt, PtExpr endPt) {
 			super(startPt, endPt);
 		}
 	
 		@Override
-		public StrokePathElementType getType() {
-			return StrokePathElementType.Segment;
+		public TracePathElementType getType() {
+			return TracePathElementType.Segment;
 		}
 
 		@Override
-		public void accept(StrokePathElementDefVisitor visitor) {
+		public void accept(PathElementDefVisitor visitor) {
 			visitor.caseSegmentDef(this);
 		}
 
@@ -80,22 +86,22 @@ public abstract class StrokePathElementDef extends ParametrizableEltDef {
 	
 	// --------------------------------------------------------------------------------------------
 
-	public static class DiscretePointsStrokePathElementDef extends StrokePathElementDef {
+	public static class DiscretePointsPathElementDef extends PathElementDef {
 
 		public final List<PtExpr> ptExprs;
 
-		public DiscretePointsStrokePathElementDef(List<PtExpr> ptExprs) {
+		public DiscretePointsPathElementDef(List<PtExpr> ptExprs) {
 			super(ptExprs.get(0), ptExprs.get(ptExprs.size()-1));
 			this.ptExprs = new ArrayList<>(ptExprs);
 		}
 
 		@Override
-		public StrokePathElementType getType() {
-			return StrokePathElementType.DiscretePoints;
+		public TracePathElementType getType() {
+			return TracePathElementType.DiscretePoints;
 		}
 
 		@Override
-		public void accept(StrokePathElementDefVisitor visitor) {
+		public void accept(PathElementDefVisitor visitor) {
 			visitor.caseDiscretePointsDef(this);
 		}
 
@@ -126,22 +132,22 @@ public abstract class StrokePathElementDef extends ParametrizableEltDef {
 	 * 
 	 * similar to javafx.scene.shape.QuadCurveTo
 	 */
-	public static class QuadBezierStrokePathElementDef extends StrokePathElementDef {
+	public static class QuadBezierPathElementDef extends PathElementDef {
 
 		public PtExpr controlPt;
 
-		public QuadBezierStrokePathElementDef(PtExpr startPt, PtExpr controlPt, PtExpr endPt) {
+		public QuadBezierPathElementDef(PtExpr startPt, PtExpr controlPt, PtExpr endPt) {
 			super(startPt, endPt);
 			this.controlPt = controlPt;
 		}
 
 		@Override
-		public StrokePathElementType getType() {
-			return StrokePathElementType.QuadBezier;
+		public TracePathElementType getType() {
+			return TracePathElementType.QuadBezier;
 		}
 
 		@Override
-		public void accept(StrokePathElementDefVisitor visitor) {
+		public void accept(PathElementDefVisitor visitor) {
 			visitor.caseQuadBezierDef(this);
 		}
 
@@ -165,12 +171,12 @@ public abstract class StrokePathElementDef extends ParametrizableEltDef {
 	 * 
 	 * similar to javafx.scene.shape.CubicCurveTo
 	 */
-	public static class CubicBezierStrokePathElementDef extends StrokePathElementDef {
+	public static class CubicBezierPathElementDef extends PathElementDef {
 
 		public PtExpr controlPt1;
 		public PtExpr controlPt2;
 
-		public CubicBezierStrokePathElementDef(PtExpr startPt, 
+		public CubicBezierPathElementDef(PtExpr startPt, 
 				PtExpr controlPt1, PtExpr controlPt2,
 				PtExpr endPt) {
 			super(startPt, endPt);
@@ -179,12 +185,12 @@ public abstract class StrokePathElementDef extends ParametrizableEltDef {
 		}
 
 		@Override
-		public StrokePathElementType getType() {
-			return StrokePathElementType.CubicBezier;
+		public TracePathElementType getType() {
+			return TracePathElementType.CubicBezier;
 		}
 
 		@Override
-		public void accept(StrokePathElementDefVisitor visitor) {
+		public void accept(PathElementDefVisitor visitor) {
 			visitor.caseCubicBezierDef(this);
 		}
 

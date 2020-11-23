@@ -5,19 +5,20 @@ import java.util.List;
 
 import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
 import fr.an.drawingboard.model.shape.Shape;
-import fr.an.drawingboard.model.shapedef.MultiStrokeDef;
+import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
-import fr.an.drawingboard.model.trace.TraceMultiStroke;
-import fr.an.drawingboard.model.trace.TraceMultiStrokeList;
+import fr.an.drawingboard.model.trace.TraceGesturePathes;
+import fr.an.drawingboard.model.trace.TraceShape;
 import fr.an.drawingboard.model.trace.TracePt;
-import fr.an.drawingboard.model.trace.TraceStroke;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement.DiscretePointsTraceStrokePathElement;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement.SegmentTraceStrokePathElement;
-import fr.an.drawingboard.model.trace.TraceStrokePathElementBuilder;
+import fr.an.drawingboard.model.trace.TracePath;
+import fr.an.drawingboard.model.trace.TracePathElement;
+import fr.an.drawingboard.model.trace.TracePathElement.DiscretePointsTracePathElement;
+import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
+import fr.an.drawingboard.model.trace2shape.DiscreteTimesToAbsciss;
+import fr.an.drawingboard.model.trace.TracePathElementBuilder;
 import fr.an.drawingboard.recognizer.trace.StopPointDetector;
-import fr.an.drawingboard.recognizer.trace.TraceStrokePathElementDetector;
+import fr.an.drawingboard.recognizer.trace.TracePathElementDetector;
 import fr.an.drawingboard.stddefs.shapedef.ShapeDefRegistryBuilder;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -46,15 +47,15 @@ public class DrawingBoardUi {
 	
 	Parent root;
 	ToolBar toolbar;
-	CheckBox checkBoxDebugStroke;
-	CheckBox checkBoxDebugStrokeStopPoints;
+	CheckBox checkBoxDebugTrace;
+	CheckBox checkBoxDebugTraceStopPoints;
 	CheckBox checkBoxDebugVerboseStopPointDetector;
 	CheckBox checkBoxDebugMatchShape;
 	
 	Button matchRectButton;
 	Button matchCrossButton;
 
-	Color currStrokeColor = Color.BLACK;
+	Color currLineColor = Color.BLACK;
 	
 	CanvasEventHandler drawCanvasEventHandler = new InnerDrawCanvasEventHandler();
 	
@@ -62,26 +63,27 @@ public class DrawingBoardUi {
 	
 
 	// model
-	private TraceMultiStrokeList multiStrokeList = new TraceMultiStrokeList();
+	private TraceShape traceShape = new TraceShape();
 
 	private List<Shape> shapes = new ArrayList<>();
 	
 	StopPointDetector stopPointDetector = new StopPointDetector();
-	TraceStrokePathElementDetector pathElementDetector = new TraceStrokePathElementDetector();
+	TracePathElementDetector pathElementDetector = new TracePathElementDetector();
 	
 	boolean showSettingsStopPointDetector = false;
 	
 	// 
-	private double currStrokeLineWidth = 2;
+	private double currLineWidth = 2;
 	
-	private TraceMultiStroke currMultiStroke;
-	private TraceStroke currStroke;
-	private TraceStrokePathElementBuilder currPathElementBuilder;
+	private TraceGesturePathes currGesture;
+	private TracePath currPath;
+	private TracePathElementBuilder currPathElementBuilder;
 
 	private ShapeDefRegistry shapeDefRegistry;
 
+	private DiscreteTimesToAbsciss currMatchIndexToAbsciss;
 	private Shape currMatchShape;
-
+	
 	// --------------------------------------------------------------------------------------------
 
 	public DrawingBoardUi() {
@@ -139,27 +141,29 @@ public class DrawingBoardUi {
 		Button button = new Button("Del");
 		toolbarItems.add(button);
 		button.setOnAction(event -> {
-			// remove last stroke
-			TraceMultiStroke lastMultiStroke = multiStrokeList.getLast();
-			if (lastMultiStroke != null) {
-				lastMultiStroke.removeLastStroke();
-				if (lastMultiStroke.isEmpty()) {
-					multiStrokeList.remove(lastMultiStroke);
+			// remove last
+			TraceGesturePathes lastGesture = traceShape.getLast();
+			if (lastGesture != null) {
+				lastGesture.removeLastPath();
+				if (lastGesture.isEmpty()) {
+					traceShape.remove(lastGesture);
 				}
 			}
 			if (currMatchShape != null) {
 				currMatchShape = null;
 			}
+			currMatchIndexToAbsciss = null;
+			
 			paintCanvas();
 		});
 		
-		checkBoxDebugStroke = new CheckBox("show pt");
-		checkBoxDebugStroke.setSelected(false);
-		toolbarItems.add(checkBoxDebugStroke);
+		checkBoxDebugTrace = new CheckBox("show pt");
+		checkBoxDebugTrace.setSelected(false);
+		toolbarItems.add(checkBoxDebugTrace);
 
-		checkBoxDebugStrokeStopPoints = new CheckBox("show stop-pt");
-		checkBoxDebugStrokeStopPoints.setSelected(true);
-		toolbarItems.add(checkBoxDebugStrokeStopPoints);
+		checkBoxDebugTraceStopPoints = new CheckBox("show stop-pt");
+		checkBoxDebugTraceStopPoints.setSelected(true);
+		toolbarItems.add(checkBoxDebugTraceStopPoints);
 		
 		checkBoxDebugVerboseStopPointDetector = new CheckBox("debug stop-pt");
 		checkBoxDebugVerboseStopPointDetector.setSelected(stopPointDetector.isDebugPrint());
@@ -228,8 +232,8 @@ public class DrawingBoardUi {
 			System.out.println("mouse pressed " + e.getClickCount());
 			canvas.requestFocus(); // otherwise KeyEvent not captured by canvas
 
-			currOrAppendStroke();
-			currPathElementBuilder = new TraceStrokePathElementBuilder();
+			currOrAppendPath();
+			currPathElementBuilder = new TracePathElementBuilder();
 		}
 		@Override
 		public void onMouseReleased(MouseEvent e) {
@@ -238,10 +242,10 @@ public class DrawingBoardUi {
 			if (currPathElementBuilder != null) {
 				flushStopPointOrMouseReleased();
 				currPathElementBuilder = null;
-				currStroke = null;
-				if (currMultiStroke != null) {
-					currMultiStroke.updatePtCoefs();
-					currMultiStroke = null;
+				currPath = null;
+				if (currGesture != null) {
+					currGesture.updatePtCoefs();
+					currGesture = null;
 				}
 				
 				// remove too small lines ?
@@ -267,7 +271,7 @@ public class DrawingBoardUi {
 			if (currPathElementBuilder != null) {
 				TracePt prevPt = currPathElementBuilder.lastPt();
 
-				// append point to current stroke
+				// append point to current pathElement
 				int pressure = 1; // not managed yet
 				int x = (int) (e.getSceneX() - canvas.getLayoutX());
 				int y = (int) (e.getSceneY() - canvas.getLayoutY());
@@ -287,17 +291,17 @@ public class DrawingBoardUi {
 		}
 		private void flushStopPointOrMouseReleased() {
 			// recognize segment, discrete points curve, or quad/cubic bezier...
-			TraceStrokePathElement pathElement = pathElementDetector.recognizePathElement(currPathElementBuilder);
+			TracePathElement pathElement = pathElementDetector.recognizePathElement(currPathElementBuilder);
 			
 			if (pathElement != null) {
-				// append a new pathElement(Builder) to current stroke
-				if (currStroke == null) { 
-					currStroke = currOrAppendStroke(); // should not occur?
+				// append a new pathElement(Builder) to current path
+				if (currPath == null) { 
+					currPath = currOrAppendPath(); // should not occur?
 				}
-				currStroke.add(pathElement);
+				currPath.add(pathElement);
 				val pt = currPathElementBuilder.lastPt();
 				if (pt != null) {
-					currPathElementBuilder = new TraceStrokePathElementBuilder(pt);
+					currPathElementBuilder = new TracePathElementBuilder(pt);
 				}
 			} else {
 				// do not add small lines? .. convert to point (or circle / disk)
@@ -307,18 +311,18 @@ public class DrawingBoardUi {
 	}
 	
 
-	private TraceMultiStroke currOrAppendMultiStroke() { 
-		 if (currMultiStroke == null) {
-			 currMultiStroke = multiStrokeList.appendNewMultiStroke();
+	private TraceGesturePathes currOrAppendGesture() { 
+		 if (currGesture == null) {
+			 currGesture = traceShape.appendNewGesture();
 		 }
-		 return currMultiStroke;
+		 return currGesture;
 	}
-	private TraceStroke currOrAppendStroke() { 
-		 if (currStroke == null) {
-			 TraceMultiStroke multiStroke = currOrAppendMultiStroke();
-			 currStroke = multiStroke.appendNewStroke();
+	private TracePath currOrAppendPath() { 
+		 if (currPath == null) {
+			 TraceGesturePathes gesture = currOrAppendGesture();
+			 currPath = gesture.appendNewPath();
 		 }
-		 return currStroke;
+		 return currPath;
 	}
 
 	// Match recognizer
@@ -335,24 +339,33 @@ public class DrawingBoardUi {
 	}
 
 	private void tryMatchShape(ShapeDef currMatchShapeDef) {
-		MultiStrokeDef gestureDef = currMatchShapeDef.gestures.get(0);
-		TraceMultiStroke matchMultiStroke = multiStrokeList.getLast();
-		if (matchMultiStroke == null) {
+		GesturePathesDef gestureDef = currMatchShapeDef.gestures.get(0);
+		TraceGesturePathes matchGesture = traceShape.getLast();
+		if (matchGesture == null) {
 			return;
 		}
-//		if (lastMultiStroke.recognizedShape != null) {
+//		if (matchGesture.recognizedShape != null) {
 //			return; // ??
 //		}
 
 		NumericExprEvalCtx currInitialParamCtx = new NumericExprEvalCtx();
 		
 		gestureDef.initalParamEstimator.estimateInitialParamsFor(
-				matchMultiStroke, gestureDef, currInitialParamCtx);
+				matchGesture, gestureDef, currInitialParamCtx);
 		
+		// check same number of path (stop points) in trace and in gestureDef
+		if (gestureDef.pathes.size() == matchGesture.pathes.size()) {
+			// int gesturePtsCount = gestureDef.
+			// TODO currMatchIndexToAbsciss = new DiscreteTimesToAbsciss();
+			
+		} else {
+			//?? return;
+		}
 		// TODO .. choice + optim steps
 		
+		
 		currMatchShape = new Shape(currMatchShapeDef, currInitialParamCtx.paramValues);
-		matchMultiStroke.recognizedShape = currMatchShape;
+		matchGesture.recognizedShape = currMatchShape;
 		
 		paintCanvas();
 	}
@@ -372,19 +385,19 @@ public class DrawingBoardUi {
 //		currDisplayText = "";
 //		gc.fillText(currDisplayText, 10, 50);
 
-		gc.setLineWidth(currStrokeLineWidth);
-		gc.setStroke(currStrokeColor);
-		for(val multiStroke : multiStrokeList.multiStrokes) {
+		gc.setLineWidth(currLineWidth);
+		gc.setStroke(currLineColor);
+		for(val gesture : traceShape.gestures) {
 //			gc.setStroke(multiStroke.color);
-//			gc.setLineWidth(multiStroke.lineWidth);
+//			gc.setLineWidth(gesture.lineWidth);
 
-			for (val stroke : multiStroke.strokes) {
-				drawStroke(gc, stroke);
+			for (val path : gesture.pathes) {
+				drawPath(gc, path);
 			}
 		}
 
-		gc.setLineWidth(currStrokeLineWidth);
-		gc.setStroke(currStrokeColor);
+		gc.setLineWidth(currLineWidth);
+		gc.setStroke(currLineColor);
 		
 		if (currPathElementBuilder != null) {
 			drawDiscretePoints(gc, currPathElementBuilder.tracePts);
@@ -400,14 +413,14 @@ public class DrawingBoardUi {
 		
 	}
 
-	private void drawStroke(GraphicsContext gc, TraceStroke stroke) {
-		for(TraceStrokePathElement pathElement : stroke.pathElements) {
+	private void drawPath(GraphicsContext gc, TracePath path) {
+		for(TracePathElement pathElement : path.pathElements) {
 			switch(pathElement.getType()) {
 			case Segment:
-				drawSegment(gc, (SegmentTraceStrokePathElement) pathElement);
+				drawSegment(gc, (SegmentTracePathElement) pathElement);
 				break;
 			case DiscretePoints:
-				drawDiscretePoints(gc, (DiscretePointsTraceStrokePathElement) pathElement);
+				drawDiscretePoints(gc, (DiscretePointsTracePathElement) pathElement);
 				break;
 			case QuadBezier:
 				break;
@@ -417,14 +430,14 @@ public class DrawingBoardUi {
 		}
 	}
 	
-	private void drawSegment(GraphicsContext gc, SegmentTraceStrokePathElement segment) {
+	private void drawSegment(GraphicsContext gc, SegmentTracePathElement segment) {
 		gc.beginPath();
 		gc.moveTo(segment.startPt.x, segment.startPt.y);
 		gc.lineTo(segment.endPt.x, segment.endPt.y);
 		gc.stroke();
 	}
 
-	private void drawDiscretePoints(GraphicsContext gc, DiscretePointsTraceStrokePathElement curve) {
+	private void drawDiscretePoints(GraphicsContext gc, DiscretePointsTracePathElement curve) {
 		drawDiscretePoints(gc, curve.tracePts);
 	}
 	
@@ -441,33 +454,31 @@ public class DrawingBoardUi {
 			gc.stroke();
 			
 			// debug
-			val debugStroke = checkBoxDebugStroke.isSelected();
-			val dbgStrokeStopPoint = checkBoxDebugStrokeStopPoints.isSelected();
-			val dbgStrokeEndPoint = false;
-			if (dbgStrokeEndPoint) {
+			val debugTrace = checkBoxDebugTrace.isSelected();
+			val dbgTraceStopPoint = checkBoxDebugTraceStopPoints.isSelected();
+			val dbgTraceEndPoint = false;
+			if (dbgTraceEndPoint) {
 				gc.strokeOval(pt0.x, pt0.y, 5, 5);
 			}
 			TracePt prevDisplayIndexPt = null;
 			for(int i = 1; i < tracePtsLen; i++) {
 				val pt = tracePts.get(i);
-				if (dbgStrokeStopPoint && pt.isStopPoint()) {
+				if (dbgTraceStopPoint && pt.isStopPoint()) {
 					gc.strokeOval(pt.x-5, pt.y-5, 10, 10);
 				}
-				if (debugStroke) {
+				if (debugTrace) {
 					if (prevDisplayIndexPt == null || TracePt.dist(pt, prevDisplayIndexPt) > 20) {
 						gc.strokeText("" + i, pt.x, pt.y + 10);
 						prevDisplayIndexPt = pt;
 					}
 				}
 			}
-			if (dbgStrokeEndPoint) {
+			if (dbgTraceEndPoint) {
 				val lastPt = tracePts.get(tracePtsLen - 1);
 				gc.strokeOval(lastPt.x-3, lastPt.y-3, 6, 6);
 			}
 			
 		}
 	}
-
-	
 
 }

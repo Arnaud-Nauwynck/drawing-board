@@ -7,19 +7,19 @@ import lombok.val;
 
 /**
  * <PRE>
- * TraceMultiStrokeList
+ * TraceShape
  *   |
- *   | multiStrokes
+ *   | gestures
  *   |
- *   +----> *  TraceMultiStroke
- *               |    strokes
+ *   +----> *  TraceGesturePathes
+ *               |    pathes
  *               |
- *               +-----> * TraceStroke (rename Path ?)
+ *               +-----> * TracePath
  *               		      |
  *                            +-- startStopPoint, endStopPoint 
  *                            |
  *                            |    pathElements
- *                            +-----> * TraceStrokePathElement
+ *                            +-----> * TracePathElement
  *                                         ( PolyLine, SimpleSegment, Quadratic/Cubic Bezier Curve, ..)
  *                                         |
  *                                         |    pts
@@ -28,22 +28,22 @@ import lombok.val;
  *                                                      - t
  * </PRE>
  */
-public class TraceMultiStrokeList {
+public class TraceShape {
 
-	public List<TraceMultiStroke> multiStrokes = new ArrayList<>();
+	public List<TraceGesturePathes> gestures = new ArrayList<>();
 
-	public TraceMultiStroke appendNewMultiStroke() {
-		val res = new TraceMultiStroke();
-		multiStrokes.add(res);
+	public TraceGesturePathes appendNewGesture() {
+		val res = new TraceGesturePathes();
+		gestures.add(res);
 		return res;
 	}
 
-	public TraceMultiStroke getLast() {
-		return (multiStrokes.isEmpty())? null : multiStrokes.get(multiStrokes.size() - 1);
+	public TraceGesturePathes getLast() {
+		return (gestures.isEmpty())? null : gestures.get(gestures.size() - 1);
 	}
 
-	public void remove(TraceMultiStroke p) {
-		this.multiStrokes.remove(p);
+	public void remove(TraceGesturePathes p) {
+		this.gestures.remove(p);
 	}
 
 }

@@ -6,14 +6,14 @@ import java.util.List;
 
 import fr.an.drawingboard.model.var.ParamDef;
 import fr.an.drawingboard.model.var.ParametrizableEltDef;
-import fr.an.drawingboard.recognizer.shape.InitialParamForMultiStrokeEstimator;
+import fr.an.drawingboard.recognizer.shape.InitialParamForShapeEstimator;
 import lombok.AllArgsConstructor;
 
 public class ShapeDef extends ParametrizableEltDef {
 
 	public final String name;
 	
-	public final List<MultiStrokeDef> gestures = new ArrayList<>();
+	public final List<GesturePathesDef> gestures = new ArrayList<>();
 
 	// --------------------------------------------------------------------------------------------
 
@@ -27,22 +27,22 @@ public class ShapeDef extends ParametrizableEltDef {
 
 	// --------------------------------------------------------------------------------------------
 	
-	public MultiStrokeDef addGesture(InitialParamForMultiStrokeEstimator initalParamEstimator) {
-		MultiStrokeDef res = new MultiStrokeDef(this, initalParamEstimator);
+	public GesturePathesDef addGesture(InitialParamForShapeEstimator initalParamEstimator) {
+		GesturePathesDef res = new GesturePathesDef(this, initalParamEstimator);
 		gestures.add(res);
 		return res;
 	}
 
-	public MultiStrokeDef addGesture_Segments(InitialParamForMultiStrokeEstimator initalParamEstimator, PtExpr... pts) {
+	public GesturePathesDef addGesture_Segments(InitialParamForShapeEstimator initalParamEstimator, PtExpr... pts) {
 		return addGesture_Segments(initalParamEstimator, Arrays.asList(pts));
 	}
 	
-	public MultiStrokeDef addGesture_Segments(InitialParamForMultiStrokeEstimator initalParamEstimator, List<PtExpr> pts) {
-		MultiStrokeDef res = addGesture(initalParamEstimator);
+	public GesturePathesDef addGesture_Segments(InitialParamForShapeEstimator initalParamEstimator, List<PtExpr> pts) {
+		GesturePathesDef res = addGesture(initalParamEstimator);
 		PtExpr prevPt = pts.get(0);
 		for(int i = 1; i < pts.size(); i++) {
 			PtExpr pt = pts.get(i);
-			res.addStroke_Segment(prevPt, pt);
+			res.addPath_Segment(prevPt, pt);
 			prevPt = pt;
 		}
 		return res;

@@ -3,10 +3,10 @@ package fr.an.drawingboard.model.shape;
 import java.util.HashMap;
 import java.util.Map;
 
-import fr.an.drawingboard.model.shapedef.MultiStrokeDef;
+import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.var.ParamDef;
-import fr.an.drawingboard.ui.impl.MultiStrokeDefGcRenderer;
+import fr.an.drawingboard.ui.impl.ShapeDefGcRenderer;
 import javafx.scene.canvas.GraphicsContext;
 import lombok.val;
 
@@ -22,9 +22,9 @@ public class Shape {
 	}
 
 	public void draw(GraphicsContext gc) {
-		MultiStrokeDef multiStrokeDef = shapeDef.gestures.get(0);
-		val gcRenderer = new MultiStrokeDefGcRenderer(gc);
-		gcRenderer.draw(multiStrokeDef, paramValues);
+		GesturePathesDef gestureDef = shapeDef.gestures.get(0);
+		val gcRenderer = new ShapeDefGcRenderer(gc);
+		gcRenderer.draw(gestureDef, paramValues);
 	}
 	
 	// --------------------------------------------------------------------------------------------

@@ -4,16 +4,15 @@ import java.util.List;
 import java.util.Map;
 
 import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
-import fr.an.drawingboard.model.shape.ParamValue;
-import fr.an.drawingboard.model.shapedef.MultiStrokeDef;
+import fr.an.drawingboard.model.shapedef.GesturePathesDef;
+import fr.an.drawingboard.model.shapedef.PathDef;
+import fr.an.drawingboard.model.shapedef.PathElementDef;
+import fr.an.drawingboard.model.shapedef.PathElementDef.CubicBezierPathElementDef;
+import fr.an.drawingboard.model.shapedef.PathElementDef.DiscretePointsPathElementDef;
+import fr.an.drawingboard.model.shapedef.PathElementDef.QuadBezierPathElementDef;
+import fr.an.drawingboard.model.shapedef.PathElementDef.SegmentPathElementDef;
+import fr.an.drawingboard.model.shapedef.PathElementDef.PathElementDefVisitor;
 import fr.an.drawingboard.model.shapedef.PtExpr;
-import fr.an.drawingboard.model.shapedef.StrokeDef;
-import fr.an.drawingboard.model.shapedef.StrokePathElementDef;
-import fr.an.drawingboard.model.shapedef.StrokePathElementDef.CubicBezierStrokePathElementDef;
-import fr.an.drawingboard.model.shapedef.StrokePathElementDef.DiscretePointsStrokePathElementDef;
-import fr.an.drawingboard.model.shapedef.StrokePathElementDef.QuadBezierStrokePathElementDef;
-import fr.an.drawingboard.model.shapedef.StrokePathElementDef.SegmentStrokePathElementDef;
-import fr.an.drawingboard.model.shapedef.StrokePathElementDef.StrokePathElementDefVisitor;
 import fr.an.drawingboard.model.trace.Pt2D;
 import fr.an.drawingboard.model.var.ParamDef;
 import fr.an.drawingboard.util.DrawingValidationUtils;
@@ -22,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.val;
 
 @RequiredArgsConstructor
-public class MultiStrokeDefGcRenderer {
+public class ShapeDefGcRenderer {
 
 	protected final GraphicsContext gc;
 
@@ -34,45 +33,45 @@ public class MultiStrokeDefGcRenderer {
 		return res;
 	}
 	
-	public void draw(MultiStrokeDef multiStrokeDef, Map<ParamDef, Double> paramValues) {
+	public void draw(GesturePathesDef gestureDef, Map<ParamDef, Double> paramValues) {
 		NumericExprEvalCtx exprCtx = toExprEvalCtx(paramValues);
-		draw(multiStrokeDef, exprCtx);
+		draw(gestureDef, exprCtx);
 	}
 	
-	public void draw(MultiStrokeDef multiStrokeDef, NumericExprEvalCtx varCtx) {
-		for(StrokeDef stroke : multiStrokeDef.strokes) {
-			draw(stroke, varCtx);
+	public void draw(GesturePathesDef gestureDef, NumericExprEvalCtx varCtx) {
+		for(PathDef path : gestureDef.pathes) {
+			draw(path, varCtx);
 		}
 	}
 
-	public void draw(StrokeDef stroke, NumericExprEvalCtx varCtx) {
-		for(StrokePathElementDef pathElement : stroke.pathElements) {
+	public void draw(PathDef path, NumericExprEvalCtx varCtx) {
+		for(PathElementDef pathElement : path.pathElements) {
 			drawPathElementDef(pathElement, varCtx);
 		}
 	}
 
-	public void drawPathElementDef(StrokePathElementDef pathElement, NumericExprEvalCtx varCtx) {
-		pathElement.accept(new StrokePathElementDefVisitor() {
+	public void drawPathElementDef(PathElementDef pathElement, NumericExprEvalCtx varCtx) {
+		pathElement.accept(new PathElementDefVisitor() {
 			@Override
-			public void caseSegmentDef(SegmentStrokePathElementDef def) {
+			public void caseSegmentDef(SegmentPathElementDef def) {
 				drawSegmentDef(def, varCtx);
 			}
 			@Override
-			public void caseDiscretePointsDef(DiscretePointsStrokePathElementDef def) {
+			public void caseDiscretePointsDef(DiscretePointsPathElementDef def) {
 				drawDiscretePointsDef(def, varCtx);
 			}
 			@Override
-			public void caseQuadBezierDef(QuadBezierStrokePathElementDef def) {
+			public void caseQuadBezierDef(QuadBezierPathElementDef def) {
 				throw DrawingValidationUtils.notImplYet();
 			}
 			@Override
-			public void caseCubicBezierDef(CubicBezierStrokePathElementDef def) {
+			public void caseCubicBezierDef(CubicBezierPathElementDef def) {
 				throw DrawingValidationUtils.notImplYet();
 			}
 		});
 	}
 
-	public void drawSegmentDef(SegmentStrokePathElementDef def, NumericExprEvalCtx varCtx) {
+	public void drawSegmentDef(SegmentPathElementDef def, NumericExprEvalCtx varCtx) {
 		Pt2D startPt = evalPt(def.startPt, varCtx);
 		Pt2D endPt = evalPt(def.endPt, varCtx);
 		gc.beginPath();
@@ -81,7 +80,7 @@ public class MultiStrokeDefGcRenderer {
 		gc.stroke();
 	}
 
-	public void drawDiscretePointsDef(DiscretePointsStrokePathElementDef def, NumericExprEvalCtx varCtx) {
+	public void drawDiscretePointsDef(DiscretePointsPathElementDef def, NumericExprEvalCtx varCtx) {
 		drawLinePoints(def.ptExprs, varCtx);
 	}
 	

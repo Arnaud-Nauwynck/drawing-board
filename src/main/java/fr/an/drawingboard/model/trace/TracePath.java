@@ -5,11 +5,11 @@ import java.util.List;
 
 import lombok.val;
 
-public class TraceStroke {
+public class TracePath {
 
-	public List<TraceStrokePathElement> pathElements = new ArrayList<>();
+	public List<TracePathElement> pathElements = new ArrayList<>();
 
-	public void add(TraceStrokePathElement pathElement) {
+	public void add(TracePathElement pathElement) {
 		this.pathElements.add(pathElement);
 	}
 
@@ -17,7 +17,7 @@ public class TraceStroke {
 	public double pathDistLength() {
 		double res = 0.0;
 		for(val pathElt : pathElements) {
-			double pathDistLen = pathElt.endPt.strokeCurveAbsciss - pathElt.startPt.strokeCurveAbsciss; 
+			double pathDistLen = pathElt.endPt.pathAbsciss - pathElt.startPt.pathAbsciss; 
 			res += pathDistLen;
 		}
 		return res;

@@ -7,34 +7,34 @@ import fr.an.drawingboard.model.expr.Expr;
 import fr.an.drawingboard.model.expr.ExprBuilder;
 import fr.an.drawingboard.model.expr.Expr.SumExpr;
 import fr.an.drawingboard.model.shapedef.PtExpr;
-import fr.an.drawingboard.model.shapedef.StrokeDef;
-import fr.an.drawingboard.model.shapedef.StrokePathElementDef;
-import fr.an.drawingboard.model.stroke2shape.DiscreteTimesToAbsciss;
+import fr.an.drawingboard.model.shapedef.PathDef;
+import fr.an.drawingboard.model.shapedef.PathElementDef;
 import fr.an.drawingboard.model.trace.TracePt;
-import fr.an.drawingboard.model.trace.TraceStroke;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement.CubicBezierTraceStrokePathElement;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement.DiscretePointsTraceStrokePathElement;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement.QuadBezierTraceStrokePathElement;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement.SegmentTraceStrokePathElement;
-import fr.an.drawingboard.model.trace.TraceStrokePathElementVisitor2;
+import fr.an.drawingboard.model.trace.TracePath;
+import fr.an.drawingboard.model.trace.TracePathElement;
+import fr.an.drawingboard.model.trace.TracePathElement.CubicBezierTracePathElement;
+import fr.an.drawingboard.model.trace.TracePathElement.DiscretePointsTracePathElement;
+import fr.an.drawingboard.model.trace.TracePathElement.QuadBezierTracePathElement;
+import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
+import fr.an.drawingboard.model.trace2shape.DiscreteTimesToAbsciss;
+import fr.an.drawingboard.model.trace.TracePathElementVisitor2;
 import fr.an.drawingboard.util.DrawingValidationUtils;
 
-public class StrokeDefToCostExprBuilder {
+public class MatchShapeToCostExprBuilder {
 
-	public Expr costStrokeToStrokeDefWithAbsciss(
-			TraceStroke stroke,
-			StrokeDef strokeDef, 
+	public Expr costMatchPathWithAbsciss(
+			TracePath path,
+			PathDef pathDef, 
 			DiscreteTimesToAbsciss indexToAbsciss
 			) {
-		int pathDefCount = strokeDef.pathElements.size();
+		int pathDefCount = pathDef.pathElements.size();
 		List<Expr> pathCostExprs = new ArrayList<>(pathDefCount);
-		int pathCount = stroke.pathElements.size();
+		int pathCount = path.pathElements.size();
 		if (pathDefCount == pathCount) {
 			int startPtIndex = 0;
 			for(int pathIndex = 0; pathIndex < pathCount; pathIndex++) {
-				TraceStrokePathElement pathElement = stroke.pathElements.get(pathIndex);
-				StrokePathElementDef pathElementDef = strokeDef.pathElements.get(pathIndex);
+				TracePathElement pathElement = path.pathElements.get(pathIndex);
+				PathElementDef pathElementDef = pathDef.pathElements.get(pathIndex);
 
 				Expr pathCostExpr = costPathEltToPathEltDefWithAbsciss(pathElement, pathElementDef, indexToAbsciss, startPtIndex);
 				pathCostExprs.add(pathCostExpr);
@@ -50,35 +50,35 @@ public class StrokeDefToCostExprBuilder {
 
 
 	public Expr costPathEltToPathEltDefWithAbsciss(
-			TraceStrokePathElement pathElement,
-			StrokePathElementDef pathElementDef, 
+			TracePathElement pathElement,
+			PathElementDef pathElementDef, 
 			DiscreteTimesToAbsciss indexToAbsciss,
 			int startPtIndex
 			) {
-		return (Expr) pathElement.visit(new TraceStrokePathElementVisitor2<Expr,Void>() {
+		return (Expr) pathElement.visit(new TracePathElementVisitor2<Expr,Void>() {
 			@Override
-			public Expr caseSegment(SegmentTraceStrokePathElement elt, Void p) {
-				return costPathEltToPathEltDefWithAbsciss_Segment(elt, pathElementDef, indexToAbsciss, startPtIndex);
+			public Expr caseSegment(SegmentTracePathElement elt, Void p) {
+				return costMatchPathEltWithAbsciss_Segment(elt, pathElementDef, indexToAbsciss, startPtIndex);
 			}
 			@Override
-			public Expr caseDiscretePts(DiscretePointsTraceStrokePathElement elt, Void p) {
-				return costPathEltToPathEltDefWithAbsciss_DiscretePts(elt, pathElementDef, indexToAbsciss, startPtIndex);
+			public Expr caseDiscretePts(DiscretePointsTracePathElement elt, Void p) {
+				return costMatchPathEltWithAbsciss_DiscretePts(elt, pathElementDef, indexToAbsciss, startPtIndex);
 			}
 			@Override
-			public Expr caseQuadBezier(QuadBezierTraceStrokePathElement elt, Void p) {
-				return costPathEltToPathEltDefWithAbsciss_QuadBezier(elt, pathElementDef, indexToAbsciss, startPtIndex);
+			public Expr caseQuadBezier(QuadBezierTracePathElement elt, Void p) {
+				return costMatchPathEltWithAbsciss_QuadBezier(elt, pathElementDef, indexToAbsciss, startPtIndex);
 			}
 			@Override
-			public Expr caseCubicBezier(CubicBezierTraceStrokePathElement elt, Void p) {
-				return costPathEltToPathEltDefWithAbsciss_CubicBezier(elt, pathElementDef, indexToAbsciss, startPtIndex);
+			public Expr caseCubicBezier(CubicBezierTracePathElement elt, Void p) {
+				return costMatchPathEltWithAbsciss_CubicBezier(elt, pathElementDef, indexToAbsciss, startPtIndex);
 			}
 		}, null);
 	}
 
 
-	public Expr costPathEltToPathEltDefWithAbsciss_Segment( //
-			SegmentTraceStrokePathElement pathElement, //
-			StrokePathElementDef pathElementDef, //
+	public Expr costMatchPathEltWithAbsciss_Segment( //
+			SegmentTracePathElement pathElement, //
+			PathElementDef pathElementDef, //
 			DiscreteTimesToAbsciss indexToAbsciss, int startPtIndex
 			) {
 		TracePt pathStartPt = pathElement.startPt, pathEndPt = pathElement.endPt;
@@ -89,17 +89,17 @@ public class StrokeDefToCostExprBuilder {
 		return b.sum(squareDistStart, squareDistEnd);
 	}
 	
-	public Expr costPathEltToPathEltDefWithAbsciss_DiscretePts( //
-			DiscretePointsTraceStrokePathElement elt, //
-			StrokePathElementDef pathElementDef, // 
+	public Expr costMatchPathEltWithAbsciss_DiscretePts( //
+			DiscretePointsTracePathElement elt, //
+			PathElementDef pathElementDef, // 
 			DiscreteTimesToAbsciss indexToAbsciss, int startPtIndex) {
-		return costListTracePtsToPathEltDefWithAbsciss(elt.tracePts, pathElementDef, indexToAbsciss, startPtIndex);
+		return costMatchListTracePtsWithAbsciss(elt.tracePts, pathElementDef, indexToAbsciss, startPtIndex);
 	}
 
 
-	private Expr costListTracePtsToPathEltDefWithAbsciss( //
+	private Expr costMatchListTracePtsWithAbsciss( //
 			List<TracePt> tracePts, //
-			StrokePathElementDef pathElementDef, //
+			PathElementDef pathElementDef, //
 			DiscreteTimesToAbsciss indexToAbsciss, int startPtIndex) {
 		final int ptsCount = tracePts.size();
 		List<Expr> ptCostExprs = new ArrayList<>(ptsCount);
@@ -134,12 +134,12 @@ public class StrokeDefToCostExprBuilder {
 			ptCoefs[ptsCount-1] = renormDist * (abscissTracePt[ptsCount-1] - abscissTracePt[ptsCount-2]);
 		}
 		
-		final double startAbsciss = indexToAbsciss.values[startPtIndex];
+		final double startAbsciss = indexToAbsciss.ptToPathAbsciss[startPtIndex];
 		ExprBuilder b = ExprBuilder.INSTANCE;
 		for(int i = 0; i < ptsCount; i++) {
 			TracePt tracePt = tracePts.get(i);
 			int ptIndex = startPtIndex + i;
-			double relAbsciss = indexToAbsciss.values[ptIndex] - startAbsciss;
+			double relAbsciss = indexToAbsciss.ptToPathAbsciss[ptIndex] - startAbsciss;
 			
 			PtExpr ptiExpr = pathElementDef.ptExprAtAbsciss(relAbsciss);
 			
@@ -155,17 +155,17 @@ public class StrokeDefToCostExprBuilder {
 		return new SumExpr(ptCostExprs);
 	}
 
-	public Expr costPathEltToPathEltDefWithAbsciss_QuadBezier( //
-			QuadBezierTraceStrokePathElement elt, //
-			StrokePathElementDef pathElementDef, //
+	public Expr costMatchPathEltWithAbsciss_QuadBezier( //
+			QuadBezierTracePathElement elt, //
+			PathElementDef pathElementDef, //
 			DiscreteTimesToAbsciss indexToAbsciss, int startPtIndex) {
 		// discretize trace quad bezier to N points... then fall costListTracePtsToPathEltDefWithAbsciss(tracePts, ..)
 		throw DrawingValidationUtils.notImplYet();
 	}
 
-	public Expr costPathEltToPathEltDefWithAbsciss_CubicBezier( //
-			CubicBezierTraceStrokePathElement elt, //
-			StrokePathElementDef pathElementDef, //
+	public Expr costMatchPathEltWithAbsciss_CubicBezier( //
+			CubicBezierTracePathElement elt, //
+			PathElementDef pathElementDef, //
 			DiscreteTimesToAbsciss indexToAbsciss, int startPtIndex) {
 		// discretize trace quad bezier to N points... then fall costListTracePtsToPathEltDefWithAbsciss(tracePts, ..)
 		throw DrawingValidationUtils.notImplYet();

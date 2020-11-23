@@ -9,9 +9,9 @@ import java.util.List;
  * similar to javafx.scene.shape.PathElement
  * 
  * <PRE> 
- *    TraceStrokePathElement
- *                 - startPt
- *                 - endPoint
+ *    TracePathElement
+ *         - startPt
+ *         - endPoint
  *             /\
  *             |
  *     --------------------------------------------  
@@ -24,41 +24,41 @@ import java.util.List;
  *                          - t
  * </PRE>
  */
-public abstract class TraceStrokePathElement {
+public abstract class TracePathElement {
 
 	public TracePt startPt;
 	public TracePt endPt;
 	
-	public TraceStrokePathElement(TracePt startPt, TracePt endPt) {
+	public TracePathElement(TracePt startPt, TracePt endPt) {
 		this.startPt = startPt;
 		this.endPt = endPt;
 	}
 
-	public abstract StrokePathElementType getType();
+	public abstract TracePathElementType getType();
 	
-	public abstract void visit(TraceStrokePathElementVisitor visitor);
-	public abstract <TRes,TParam> TRes visit(TraceStrokePathElementVisitor2<TRes,TParam> visitor, TParam p);
+	public abstract void visit(TracePathElementVisitor visitor);
+	public abstract <TRes,TParam> TRes visit(TracePathElementVisitor2<TRes,TParam> visitor, TParam p);
 	
 	// --------------------------------------------------------------------------------------------
 
-	public static class SegmentTraceStrokePathElement extends TraceStrokePathElement {
+	public static class SegmentTracePathElement extends TracePathElement {
 
-		public SegmentTraceStrokePathElement(TracePt startPt, TracePt endPt) {
+		public SegmentTracePathElement(TracePt startPt, TracePt endPt) {
 			super(startPt, endPt);
 		}
 	
 		@Override
-		public StrokePathElementType getType() {
-			return StrokePathElementType.Segment;
+		public TracePathElementType getType() {
+			return TracePathElementType.Segment;
 		}
 
 		@Override
-		public void visit(TraceStrokePathElementVisitor visitor) {
+		public void visit(TracePathElementVisitor visitor) {
 			visitor.caseSegment(this);
 		}
 
 		@Override
-		public <TRes,TParam> TRes visit(TraceStrokePathElementVisitor2<TRes,TParam> visitor, TParam p) {
+		public <TRes,TParam> TRes visit(TracePathElementVisitor2<TRes,TParam> visitor, TParam p) {
 			return visitor.caseSegment(this, p);
 		}
 
@@ -69,27 +69,27 @@ public abstract class TraceStrokePathElement {
 	
 	// --------------------------------------------------------------------------------------------
 
-	public static class DiscretePointsTraceStrokePathElement extends TraceStrokePathElement {
+	public static class DiscretePointsTracePathElement extends TracePathElement {
 
 		public final List<TracePt> tracePts;
 
-		public DiscretePointsTraceStrokePathElement(List<TracePt> tracePts) {
+		public DiscretePointsTracePathElement(List<TracePt> tracePts) {
 			super(tracePts.get(0), tracePts.get(tracePts.size()-1));
 			this.tracePts = new ArrayList<>(tracePts);
 		}
 
 		@Override
-		public StrokePathElementType getType() {
-			return StrokePathElementType.DiscretePoints;
+		public TracePathElementType getType() {
+			return TracePathElementType.DiscretePoints;
 		}
 
 		@Override
-		public void visit(TraceStrokePathElementVisitor visitor) {
+		public void visit(TracePathElementVisitor visitor) {
 			visitor.caseDiscretePts(this);
 		}
 
 		@Override
-		public <TRes,TParam> TRes visit(TraceStrokePathElementVisitor2<TRes,TParam> visitor, TParam p) {
+		public <TRes,TParam> TRes visit(TracePathElementVisitor2<TRes,TParam> visitor, TParam p) {
 			return visitor.caseDiscretePts(this, p);
 		}
 
@@ -125,27 +125,27 @@ public abstract class TraceStrokePathElement {
 	 * 
 	 * similar to javafx.scene.shape.QuadCurveTo
 	 */
-	public static class QuadBezierTraceStrokePathElement extends TraceStrokePathElement {
+	public static class QuadBezierTracePathElement extends TracePathElement {
 
 		public Pt2D controlPt;
 
-		public QuadBezierTraceStrokePathElement(TracePt startPt, Pt2D controlPt, TracePt endPt) {
+		public QuadBezierTracePathElement(TracePt startPt, Pt2D controlPt, TracePt endPt) {
 			super(startPt, endPt);
 			this.controlPt = controlPt;
 		}
 
 		@Override
-		public StrokePathElementType getType() {
-			return StrokePathElementType.QuadBezier;
+		public TracePathElementType getType() {
+			return TracePathElementType.QuadBezier;
 		}
 
 		@Override
-		public void visit(TraceStrokePathElementVisitor visitor) {
+		public void visit(TracePathElementVisitor visitor) {
 			visitor.caseQuadBezier(this);
 		}
 
 		@Override
-		public <TRes,TParam> TRes visit(TraceStrokePathElementVisitor2<TRes,TParam> visitor, TParam p) {
+		public <TRes,TParam> TRes visit(TracePathElementVisitor2<TRes,TParam> visitor, TParam p) {
 			return visitor.caseQuadBezier(this, p);
 		}
 		
@@ -165,12 +165,12 @@ public abstract class TraceStrokePathElement {
 	 * 
 	 * similar to javafx.scene.shape.CubicCurveTo
 	 */
-	public static class CubicBezierTraceStrokePathElement extends TraceStrokePathElement {
+	public static class CubicBezierTracePathElement extends TracePathElement {
 
 		public Pt2D controlPt1;
 		public Pt2D controlPt2;
 
-		public CubicBezierTraceStrokePathElement(TracePt startPt, 
+		public CubicBezierTracePathElement(TracePt startPt, 
 				Pt2D controlPt1, Pt2D controlPt2,
 				TracePt endPt) {
 			super(startPt, endPt);
@@ -179,17 +179,17 @@ public abstract class TraceStrokePathElement {
 		}
 
 		@Override
-		public StrokePathElementType getType() {
-			return StrokePathElementType.CubicBezier;
+		public TracePathElementType getType() {
+			return TracePathElementType.CubicBezier;
 		}
 
 		@Override
-		public void visit(TraceStrokePathElementVisitor visitor) {
+		public void visit(TracePathElementVisitor visitor) {
 			visitor.caseCubicBezier(this);
 		}
 
 		@Override
-		public <TRes,TParam> TRes visit(TraceStrokePathElementVisitor2<TRes,TParam> visitor, TParam p) {
+		public <TRes,TParam> TRes visit(TracePathElementVisitor2<TRes,TParam> visitor, TParam p) {
 			return visitor.caseCubicBezier(this, p);
 		}
 

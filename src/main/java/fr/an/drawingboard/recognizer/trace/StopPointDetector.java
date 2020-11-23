@@ -1,7 +1,7 @@
 package fr.an.drawingboard.recognizer.trace;
 
 import fr.an.drawingboard.model.trace.TracePt;
-import fr.an.drawingboard.model.trace.TraceStrokePathElementBuilder;
+import fr.an.drawingboard.model.trace.TracePathElementBuilder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -50,13 +50,13 @@ public class StopPointDetector {
 	@Getter @Setter
 	private boolean debugPrint = false;
 	
-	public boolean onNewTracePt(TraceStrokePathElementBuilder curr, TracePt pt) {
+	public boolean onNewTracePt(TracePathElementBuilder curr, TracePt pt) {
 		int count = curr.tracePtCount();
 		if (count <= 1 ) {
 			return false;
 		}
 		TracePt prevPt = curr.tracePt(count - 2);
-		double dist = (pt.strokeCurveAbsciss - prevPt.strokeCurveAbsciss);
+		double dist = (pt.pathAbsciss - prevPt.pathAbsciss);
 //		if (dist < distMergeStopPoint && prevPt.isStopPoint()) {
 //			return false;
 //		}
@@ -127,7 +127,7 @@ public class StopPointDetector {
 			for(int i = count-2; i >= toIndex; i--) {
 				TracePt pastPt = curr.tracePt(i);
 				boolean wasStop = pastPt.isStopPoint() || pastPt.isMergeStopPoint();
-				if (wasStop && (pt.strokeCurveAbsciss - pastPt.strokeCurveAbsciss < distMergeStopPoint)) {
+				if (wasStop && (pt.pathAbsciss - pastPt.pathAbsciss < distMergeStopPoint)) {
 					mergeStopPoint = true;
 					stopPoint = false;
 					break;

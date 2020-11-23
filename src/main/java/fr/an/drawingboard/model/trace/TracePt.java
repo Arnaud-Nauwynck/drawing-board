@@ -13,9 +13,9 @@ public class TracePt {
 	public final long time;
 	public final int pressure;
 		
-	public final double strokeCurveAbsciss;
+	public final double pathAbsciss;
 
-	public double coefInMultiStroke; // set from 
+	public double coefInPathes; // set from 
 	
 	boolean isStopPoint;
 	boolean isMergeStopPoint;

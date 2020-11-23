@@ -1,5 +1,5 @@
 package fr.an.drawingboard.model.trace;
 
-public enum StrokePathElementType {
+public enum TracePathElementType {
 	Segment, DiscretePoints, QuadBezier, CubicBezier
 }

@@ -5,30 +5,30 @@ import java.util.List;
 
 import lombok.Getter;
 
-public class TraceStrokePathElementBuilder {
+public class TracePathElementBuilder {
 
 	public final List<TracePt> tracePts = new ArrayList<>();
 
 	@Getter
 	private int computedStopPointUpTo = 0;
 	
-	public TraceStrokePathElementBuilder() {
+	public TracePathElementBuilder() {
 	}
 
-	public TraceStrokePathElementBuilder(TracePt startPt) {
+	public TracePathElementBuilder(TracePt startPt) {
 		this.tracePts.add(startPt);
 	}
 
 	
 	public TracePt appendTracePt(int x, int y, long time, int pressure) {
-		double strokeCurveAbsciss;
+		double pathAbsciss;
 		if (tracePts.isEmpty()) {
-			strokeCurveAbsciss = 0;
+			pathAbsciss = 0;
 		} else {
 			TracePt last = lastPt(); 
-			strokeCurveAbsciss = last.getStrokeCurveAbsciss() + TracePt.distRoundedPixel(last.x,  last.y, x, y);
+			pathAbsciss = last.getPathAbsciss() + TracePt.distRoundedPixel(last.x,  last.y, x, y);
 		}
-		TracePt pt = new TracePt(x, y, time, pressure, strokeCurveAbsciss);
+		TracePt pt = new TracePt(x, y, time, pressure, pathAbsciss);
 		tracePts.add(pt);
 		return pt;
 	}

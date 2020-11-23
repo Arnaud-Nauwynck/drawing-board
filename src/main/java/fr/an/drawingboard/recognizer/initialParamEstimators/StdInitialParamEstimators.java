@@ -1,30 +1,30 @@
 package fr.an.drawingboard.recognizer.initialParamEstimators;
 
 import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
-import fr.an.drawingboard.model.shapedef.MultiStrokeDef;
+import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.trace.Pt2D;
-import fr.an.drawingboard.model.trace.TraceMultiStroke;
+import fr.an.drawingboard.model.trace.TraceGesturePathes;
 import fr.an.drawingboard.model.trace.TracePt;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement.CubicBezierTraceStrokePathElement;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement.DiscretePointsTraceStrokePathElement;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement.QuadBezierTraceStrokePathElement;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement.SegmentTraceStrokePathElement;
+import fr.an.drawingboard.model.trace.TracePathElement.CubicBezierTracePathElement;
+import fr.an.drawingboard.model.trace.TracePathElement.DiscretePointsTracePathElement;
+import fr.an.drawingboard.model.trace.TracePathElement.QuadBezierTracePathElement;
+import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
 import fr.an.drawingboard.model.var.ParamDef;
-import fr.an.drawingboard.recognizer.shape.InitialParamForMultiStrokeEstimator;
+import fr.an.drawingboard.recognizer.shape.InitialParamForShapeEstimator;
 import lombok.val;
 
 public class StdInitialParamEstimators {
 
-	public static InitialParamForMultiStrokeEstimator rectParamEstimator() {
-		return (traceMultiStroke, multiStrokeDef, res) -> estimateRectInitialParamsFor(traceMultiStroke, multiStrokeDef, res);
+	public static InitialParamForShapeEstimator rectParamEstimator() {
+		return (gestureDef, gesture, res) -> estimateRectInitialParamsFor(gestureDef, gesture, res);
 	}
 
 	public static void estimateRectInitialParamsFor( //
-			TraceMultiStroke traceMultiStroke,
-			MultiStrokeDef multiStrokeDef,
+			TraceGesturePathes gestureDef,
+			GesturePathesDef gesture,
 			NumericExprEvalCtx res) {
 		// ensure coefs per points are computed
-		traceMultiStroke.updatePtCoefs(); // useless?
+		gestureDef.updatePtCoefs(); // useless?
 		
 		final double avgX, avgY;
 		final double minX, maxX, minY, maxY;
@@ -32,13 +32,13 @@ public class StdInitialParamEstimators {
 			double sumX = 0, sumY = 0;
 			double currMinX = Double.MAX_VALUE, currMaxX = Double.MIN_VALUE;
 			double currMinY = Double.MAX_VALUE, currMaxY = Double.MIN_VALUE;
-			for(val stroke : traceMultiStroke.strokes) {
-				for(val pathElement : stroke.pathElements) {
+			for(val path : gestureDef.pathes) {
+				for(val pathElement : path.pathElements) {
 					switch (pathElement.getType()) {
 					case Segment: {
-						SegmentTraceStrokePathElement elt = (SegmentTraceStrokePathElement) pathElement;
+						SegmentTracePathElement elt = (SegmentTracePathElement) pathElement;
 						TracePt startPt = elt.startPt, endPt = elt.endPt;
-						double coefStart = startPt.coefInMultiStroke, coefEnd = endPt.coefInMultiStroke; 
+						double coefStart = startPt.coefInPathes, coefEnd = endPt.coefInPathes; 
 						sumX += coefStart * startPt.x;
 						sumY += coefStart * startPt.y;
 						sumX += coefEnd * endPt.x;
@@ -50,9 +50,9 @@ public class StdInitialParamEstimators {
 						currMaxY = Math.max(currMaxY, Math.max(startPt.y, endPt.y));
 					} break;
 					case DiscretePoints: {
-						DiscretePointsTraceStrokePathElement elt = (DiscretePointsTraceStrokePathElement) pathElement;
+						DiscretePointsTracePathElement elt = (DiscretePointsTracePathElement) pathElement;
 						for (val pt : elt.tracePts) {
-							double coef = pt.coefInMultiStroke;
+							double coef = pt.coefInPathes;
 							sumX += coef * pt.x;
 							sumY += coef * pt.y;
 
@@ -63,10 +63,10 @@ public class StdInitialParamEstimators {
 						}
 					} break;
 					case QuadBezier: {
-						QuadBezierTraceStrokePathElement elt = (QuadBezierTraceStrokePathElement) pathElement;
+						QuadBezierTracePathElement elt = (QuadBezierTracePathElement) pathElement;
 						TracePt startPt = elt.startPt, endPt = elt.endPt;
 						Pt2D controlPt = elt.controlPt;
-						double coef = startPt.coefInMultiStroke;
+						double coef = startPt.coefInPathes;
 						sumX += coef * ( startPt.x + controlPt.x + endPt.x); 
 						sumY += coef * ( startPt.y + controlPt.y + endPt.y); 
 
@@ -81,10 +81,10 @@ public class StdInitialParamEstimators {
 						currMaxY = Math.max(currMaxY, controlPt.y);
 					} break;
 					case CubicBezier: {
-						CubicBezierTraceStrokePathElement elt = (CubicBezierTraceStrokePathElement) pathElement;
+						CubicBezierTracePathElement elt = (CubicBezierTracePathElement) pathElement;
 						TracePt startPt = elt.startPt, endPt = elt.endPt;
 						Pt2D controlPt1 = elt.controlPt1, controlPt2 = elt.controlPt2;
-						double coef = startPt.coefInMultiStroke;
+						double coef = startPt.coefInPathes;
 						sumX += coef * ( startPt.x + controlPt1.x + controlPt2.x + endPt.x); 
 						sumY += coef * ( startPt.y + controlPt1.y + controlPt2.y + endPt.y); 
 
@@ -130,10 +130,10 @@ public class StdInitialParamEstimators {
 		double estimH = maxY - minY;
 
 		// fill in <code>res</code>
-		ParamDef paramX = multiStrokeDef.getParam("x");
-		ParamDef paramY = multiStrokeDef.getParam("y");
-		ParamDef paramW = multiStrokeDef.getParam("w");
-		ParamDef paramH = multiStrokeDef.getParam("h");
+		ParamDef paramX = gesture.getParam("x");
+		ParamDef paramY = gesture.getParam("y");
+		ParamDef paramW = gesture.getParam("w");
+		ParamDef paramH = gesture.getParam("h");
 		res.putParamValue(paramX, estimX);
 		res.putParamValue(paramY, estimY);
 		res.putParamValue(paramW, estimW);

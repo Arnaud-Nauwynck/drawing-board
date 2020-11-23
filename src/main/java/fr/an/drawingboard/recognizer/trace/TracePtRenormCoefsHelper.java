@@ -3,83 +3,83 @@ package fr.an.drawingboard.recognizer.trace;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.an.drawingboard.model.trace.TraceMultiStroke;
-import fr.an.drawingboard.model.trace.TraceStroke;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement.CubicBezierTraceStrokePathElement;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement.DiscretePointsTraceStrokePathElement;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement.QuadBezierTraceStrokePathElement;
-import fr.an.drawingboard.model.trace.TraceStrokePathElement.SegmentTraceStrokePathElement;
-import fr.an.drawingboard.model.trace.TraceStrokePathElementVisitor2;
+import fr.an.drawingboard.model.trace.TraceGesturePathes;
+import fr.an.drawingboard.model.trace.TracePath;
+import fr.an.drawingboard.model.trace.TracePathElement.CubicBezierTracePathElement;
+import fr.an.drawingboard.model.trace.TracePathElement.DiscretePointsTracePathElement;
+import fr.an.drawingboard.model.trace.TracePathElement.QuadBezierTracePathElement;
+import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
+import fr.an.drawingboard.model.trace.TracePathElementVisitor2;
 import lombok.val;
 
 public class TracePtRenormCoefsHelper {
 
-	public static List<Integer> countPts(TraceMultiStroke multiStroke) {
-		List<Integer> res = new ArrayList<>(multiStroke.strokes.size());
-		for(val stroke : multiStroke.strokes) {
-			res.add(countPts(stroke));
+	public static List<Integer> countPts(TraceGesturePathes gesture) {
+		List<Integer> res = new ArrayList<>(gesture.pathes.size());
+		for(val path : gesture.pathes) {
+			res.add(countPts(path));
 		}
 		return res;
 	}
 	
-	private static class TraceStrokePathElementPtsCounter extends TraceStrokePathElementVisitor2<Integer,Void> {
-		public static final TraceStrokePathElementPtsCounter INSTANCE = new TraceStrokePathElementPtsCounter();
-		private TraceStrokePathElementPtsCounter() {}
+	private static class TracePathElementPtsCounter extends TracePathElementVisitor2<Integer,Void> {
+		public static final TracePathElementPtsCounter INSTANCE = new TracePathElementPtsCounter();
+		private TracePathElementPtsCounter() {}
 
 		@Override
-		public Integer caseSegment(SegmentTraceStrokePathElement elt, Void p) {
+		public Integer caseSegment(SegmentTracePathElement elt, Void p) {
 			return 2;
 		}
 		@Override
-		public Integer caseDiscretePts(DiscretePointsTraceStrokePathElement elt, Void p) {
+		public Integer caseDiscretePts(DiscretePointsTracePathElement elt, Void p) {
 			return elt.tracePtCount();
 		}
 		@Override
-		public Integer caseQuadBezier(QuadBezierTraceStrokePathElement elt, Void p) {
+		public Integer caseQuadBezier(QuadBezierTracePathElement elt, Void p) {
 			return 2; // 3?
 		}
 		@Override
-		public Integer caseCubicBezier(CubicBezierTraceStrokePathElement elt, Void p) {
+		public Integer caseCubicBezier(CubicBezierTracePathElement elt, Void p) {
 			return 2; // 4?
 		}
 	}
 
-	public static int countPts(TraceStroke stroke) {
+	public static int countPts(TracePath path) {
 		int res = 0;
-		for(val pathElt : stroke.pathElements) {
-			res += pathElt.visit(TraceStrokePathElementPtsCounter.INSTANCE, null);
+		for(val pathElt : path.pathElements) {
+			res += pathElt.visit(TracePathElementPtsCounter.INSTANCE, null);
 		}
 		return res;
 	}
 	
 
-//	@Deprecated // ?? cf TraceStrokePathElement.endPoint.strokeCurveAbsciss - TraceStrokePathElement.startPoint.strokeCurveAbsciss 
-//	private static class TraceStrokePathElementDistCalculator extends TraceStrokePathElementVisitor2<Double,Void> {
-//		public static final TraceStrokePathElementDistCalculator INSTANCE = new TraceStrokePathElementDistCalculator();
-//		private TraceStrokePathElementDistCalculator() {}
+//	@Deprecated // ?? cf TracePathElement.endPoint.pathAbsciss - TracePathElement.startPoint.pathAbsciss 
+//	private static class TracePathElementDistCalculator extends TracePathElementVisitor2<Double,Void> {
+//		public static final TracePathElementDistCalculator INSTANCE = new TracePathElementDistCalculator();
+//		private TracePathElementDistCalculator() {}
 //
 //		@Override
-//		public Double caseSegment(SegmentTraceStrokePathElement elt, Void p) {
+//		public Double caseSegment(SegmentTracePathElement elt, Void p) {
 //			return elt.pathDistLength();
 //		}
 //		@Override
-//		public Double caseDiscretePts(DiscretePointsTraceStrokePathElement elt, Void p) {
+//		public Double caseDiscretePts(DiscretePointsTracePathElement elt, Void p) {
 //			return elt.pathDistLength();
 //		}
 //		@Override
-//		public Double caseQuadBezier(QuadBezierTraceStrokePathElement elt, Void p) {
+//		public Double caseQuadBezier(QuadBezierTracePathElement elt, Void p) {
 //			return elt.estimePathDistLength();
 //		}
 //		@Override
-//		public Double caseCubicBezier(CubicBezierTraceStrokePathElement elt, Void p) {
+//		public Double caseCubicBezier(CubicBezierTracePathElement elt, Void p) {
 //			return elt.estimePathDistLength();
 //		}
 //	}
 //
-//	public static double pathElementsDistLength(TraceStroke stroke) {
+//	public static double pathElementsDistLength(TracePath path) {
 //		double res = 0.0;
-//		for(val pathElt : stroke.pathElements) {
-//			res += pathElt.visit(TraceStrokePathElementDistCalculator.INSTANCE, null);
+//		for(val pathElt : path.pathElements) {
+//			res += pathElt.visit(TracePathElementDistCalculator.INSTANCE, null);
 //		}
 //		return res;
 //	}
