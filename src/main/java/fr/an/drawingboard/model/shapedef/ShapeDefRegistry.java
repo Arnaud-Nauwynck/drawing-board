@@ -11,4 +11,8 @@ public class ShapeDefRegistry {
 		shapeDefs.put(shapeDef.name, shapeDef);
 	}
 
+	public ShapeDef getShapeDef(String name) {
+		return shapeDefs.get(name);
+	}
+
 }

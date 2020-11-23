@@ -30,8 +30,8 @@ public class StdInitialParamEstimators {
 		final double minX, maxX, minY, maxY;
 		{ // compute avgX, avgY, minX, maxX, minY, maxY
 			double sumX = 0, sumY = 0;
-			int currMinX = Integer.MAX_VALUE, currMaxX = Integer.MAX_VALUE;
-			int currMinY = Integer.MAX_VALUE, currMaxY = Integer.MAX_VALUE;
+			double currMinX = Double.MAX_VALUE, currMaxX = Double.MIN_VALUE;
+			double currMinY = Double.MAX_VALUE, currMaxY = Double.MIN_VALUE;
 			for(val stroke : traceMultiStroke.strokes) {
 				for(val pathElement : stroke.pathElements) {
 					switch (pathElement.getType()) {
@@ -121,8 +121,11 @@ public class StdInitialParamEstimators {
 		// TODO
 		
 		// finalize parameter estimations from computed values
-		double estimX = avgX;
-		double estimY = avgY;
+//		double estimX = avgX;
+//		double estimY = avgY;
+
+		double estimX = 0.5 * (maxX + minX);
+		double estimY = 0.5 * (maxY + minY);
 		double estimW = maxX - minX;
 		double estimH = maxY - minY;
 

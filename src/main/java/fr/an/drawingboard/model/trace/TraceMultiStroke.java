@@ -3,6 +3,7 @@ package fr.an.drawingboard.model.trace;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.an.drawingboard.model.shape.Shape;
 import fr.an.drawingboard.model.trace.TraceStrokePathElement.CubicBezierTraceStrokePathElement;
 import fr.an.drawingboard.model.trace.TraceStrokePathElement.DiscretePointsTraceStrokePathElement;
 import fr.an.drawingboard.model.trace.TraceStrokePathElement.QuadBezierTraceStrokePathElement;
@@ -16,6 +17,8 @@ public class TraceMultiStroke {
 	public int lineWidth;
 	
 	public List<TraceStroke> strokes = new ArrayList<>();
+	
+	public Shape recognizedShape;
 	
 	public void removeLastStroke() {
 		if (! strokes.isEmpty()) {

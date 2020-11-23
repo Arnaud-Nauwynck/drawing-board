@@ -25,6 +25,20 @@ public abstract class StrokePathElementDef extends ParametrizableEltDef {
 
 	public abstract PtExpr ptExprAtAbsciss(double s);
 
+	public abstract void accept(StrokePathElementDefVisitor visitor);
+	
+	public static abstract class StrokePathElementDefVisitor {
+
+		public abstract void caseSegmentDef(SegmentStrokePathElementDef def);
+
+		public abstract void caseDiscretePointsDef(DiscretePointsStrokePathElementDef def);
+
+		public abstract void caseQuadBezierDef(QuadBezierStrokePathElementDef def);
+
+		public abstract void caseCubicBezierDef(CubicBezierStrokePathElementDef def);
+		
+	}
+	
 	// --------------------------------------------------------------------------------------------
 
 	public static class SegmentStrokePathElementDef extends StrokePathElementDef {
@@ -36,6 +50,11 @@ public abstract class StrokePathElementDef extends ParametrizableEltDef {
 		@Override
 		public StrokePathElementType getType() {
 			return StrokePathElementType.Segment;
+		}
+
+		@Override
+		public void accept(StrokePathElementDefVisitor visitor) {
+			visitor.caseSegmentDef(this);
 		}
 
 		@Override
@@ -73,6 +92,11 @@ public abstract class StrokePathElementDef extends ParametrizableEltDef {
 		@Override
 		public StrokePathElementType getType() {
 			return StrokePathElementType.DiscretePoints;
+		}
+
+		@Override
+		public void accept(StrokePathElementDefVisitor visitor) {
+			visitor.caseDiscretePointsDef(this);
 		}
 
 		public int ptExprCount() {
@@ -117,6 +141,11 @@ public abstract class StrokePathElementDef extends ParametrizableEltDef {
 		}
 
 		@Override
+		public void accept(StrokePathElementDefVisitor visitor) {
+			visitor.caseQuadBezierDef(this);
+		}
+
+		@Override
 		public PtExpr ptExprAtAbscissExpr(Expr s, Expr expr1minusS) {
 			throw DrawingValidationUtils.notImplYet();
 		}
@@ -152,6 +181,11 @@ public abstract class StrokePathElementDef extends ParametrizableEltDef {
 		@Override
 		public StrokePathElementType getType() {
 			return StrokePathElementType.CubicBezier;
+		}
+
+		@Override
+		public void accept(StrokePathElementDefVisitor visitor) {
+			visitor.caseCubicBezierDef(this);
 		}
 
 		@Override

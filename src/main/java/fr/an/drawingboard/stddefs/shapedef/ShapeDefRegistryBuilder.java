@@ -36,8 +36,8 @@ public class ShapeDefRegistryBuilder {
 	}
 	
 	public void addVCrossDef() {
-		ShapeDef crossDef = new ShapeDef("vcross");
-		RectExpr r = crossDef.getCoordRectExpr();
+		ShapeDef shapeDef = new ShapeDef("vcross");
+		RectExpr r = shapeDef.getCoordRectExpr();
 		// gesture
 		//  PtUL    ->  PtUR
 		//       \ /      
@@ -46,12 +46,14 @@ public class ShapeDefRegistryBuilder {
 		//      /   |     
 		//  PtDL <--+ PtDR
 		InitialParamForMultiStrokeEstimator paramEstimator = rectParamEstimator();
-		crossDef.addGesture_Segments(paramEstimator, r.ptUL, r.ptDR, r.ptDL, r.ptUR);
+		shapeDef.addGesture_Segments(paramEstimator, r.ptUL, r.ptDR, r.ptDL, r.ptUR);
+
+		dest.addShapeDef(shapeDef);
 	}
 
 	public void addHCrossDef() {
-		ShapeDef hcrossDef = new ShapeDef("hcross");
-		RectExpr r = hcrossDef.getCoordRectExpr();
+		ShapeDef shapeDef = new ShapeDef("hcross");
+		RectExpr r = shapeDef.getCoordRectExpr();
 		// gesture
 		//  PtUL      PtUR
 		//    /\  \ /      
@@ -60,12 +62,13 @@ public class ShapeDefRegistryBuilder {
 		//    |  /   >     
 		//  PtDL      PtDR
 		InitialParamForMultiStrokeEstimator paramEstimator = rectParamEstimator();
-		hcrossDef.addGesture_Segments(paramEstimator, r.ptUR, r.ptDL, r.ptUL, r.ptDR);
+		shapeDef.addGesture_Segments(paramEstimator, r.ptUR, r.ptDL, r.ptUL, r.ptDR);
+		dest.addShapeDef(shapeDef);
 	}
 	
 	public void addZDef() {
-		ShapeDef zDef = new ShapeDef("z");
-		RectExpr r = zDef.getCoordRectExpr();
+		ShapeDef shapeDef = new ShapeDef("z");
+		RectExpr r = shapeDef.getCoordRectExpr();
 		// gesture
 		//  PtUL----+ PtUR
 		//         /      
@@ -73,12 +76,13 @@ public class ShapeDefRegistryBuilder {
 		//       /        
 		//  PtDL+----> PtDR
 		InitialParamForMultiStrokeEstimator paramEstimator = rectParamEstimator();
-		zDef.addGesture_Segments(paramEstimator, r.ptUL, r.ptUR, r.ptDL, r.ptDR);
+		shapeDef.addGesture_Segments(paramEstimator, r.ptUL, r.ptUR, r.ptDL, r.ptDR);
+		dest.addShapeDef(shapeDef);
 	}
 
 	public void addNDef() {
-		ShapeDef nDef = new ShapeDef("n");
-		RectExpr r = nDef.getCoordRectExpr();
+		ShapeDef shapeDef = new ShapeDef("n");
+		RectExpr r = shapeDef.getCoordRectExpr();
 		// gesture
 		//  PtUL      PtUR
 		//    /\ \     /\      
@@ -86,7 +90,8 @@ public class ShapeDefRegistryBuilder {
 		//    |    \   |        
 		//  PtDL    > PtDR
 		InitialParamForMultiStrokeEstimator paramEstimator = rectParamEstimator();
-		nDef.addGesture_Segments(paramEstimator, r.ptDL, r.ptUL, r.ptDR, r.ptUR);
+		shapeDef.addGesture_Segments(paramEstimator, r.ptDL, r.ptUL, r.ptDR, r.ptUR);
+		dest.addShapeDef(shapeDef);
 	}
 
 	

@@ -1,7 +1,13 @@
 package fr.an.drawingboard.ui.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
+import fr.an.drawingboard.model.shape.Shape;
+import fr.an.drawingboard.model.shapedef.MultiStrokeDef;
+import fr.an.drawingboard.model.shapedef.ShapeDef;
+import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
 import fr.an.drawingboard.model.trace.TraceMultiStroke;
 import fr.an.drawingboard.model.trace.TraceMultiStrokeList;
 import fr.an.drawingboard.model.trace.TracePt;
@@ -12,6 +18,7 @@ import fr.an.drawingboard.model.trace.TraceStrokePathElement.SegmentTraceStrokeP
 import fr.an.drawingboard.model.trace.TraceStrokePathElementBuilder;
 import fr.an.drawingboard.recognizer.trace.StopPointDetector;
 import fr.an.drawingboard.recognizer.trace.TraceStrokePathElementDetector;
+import fr.an.drawingboard.stddefs.shapedef.ShapeDefRegistryBuilder;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -20,7 +27,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Slider;
-import javafx.scene.control.TextField;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyEvent;
@@ -43,10 +49,23 @@ public class DrawingBoardUi {
 	CheckBox checkBoxDebugStroke;
 	CheckBox checkBoxDebugStrokeStopPoints;
 	CheckBox checkBoxDebugVerboseStopPointDetector;
+	CheckBox checkBoxDebugMatchShape;
 	
+	Button matchRectButton;
+	Button matchCrossButton;
+
+	Color currStrokeColor = Color.BLACK;
+	
+	CanvasEventHandler drawCanvasEventHandler = new InnerDrawCanvasEventHandler();
+	
+	CanvasEventHandler currCanvasEventHandler = drawCanvasEventHandler;
+	
+
 	// model
 	private TraceMultiStrokeList multiStrokeList = new TraceMultiStrokeList();
 
+	private List<Shape> shapes = new ArrayList<>();
+	
 	StopPointDetector stopPointDetector = new StopPointDetector();
 	TraceStrokePathElementDetector pathElementDetector = new TraceStrokePathElementDetector();
 	
@@ -58,17 +77,17 @@ public class DrawingBoardUi {
 	private TraceMultiStroke currMultiStroke;
 	private TraceStroke currStroke;
 	private TraceStrokePathElementBuilder currPathElementBuilder;
-	
-	
-	Color currStrokeColor = Color.BLACK;
-	
-	CanvasEventHandler drawCanvasEventHandler = new InnerDrawCanvasEventHandler();
-	
-	CanvasEventHandler currCanvasEventHandler = drawCanvasEventHandler;
-	
+
+	private ShapeDefRegistry shapeDefRegistry;
+
+	private Shape currMatchShape;
+
 	// --------------------------------------------------------------------------------------------
 
 	public DrawingBoardUi() {
+		shapeDefRegistry = new ShapeDefRegistry();
+		new ShapeDefRegistryBuilder(shapeDefRegistry).addStdShapes();
+		
 		toolbar = new ToolBar();
 		createToolbar();
 
@@ -117,10 +136,6 @@ public class DrawingBoardUi {
 			}
 		}
 		
-		final TextField nameText = new TextField();
-		nameText.setText("");
-		toolbarItems.add(nameText);
-		
 		Button button = new Button("Del");
 		toolbarItems.add(button);
 		button.setOnAction(event -> {
@@ -131,6 +146,9 @@ public class DrawingBoardUi {
 				if (lastMultiStroke.isEmpty()) {
 					multiStrokeList.remove(lastMultiStroke);
 				}
+			}
+			if (currMatchShape != null) {
+				currMatchShape = null;
 			}
 			paintCanvas();
 		});
@@ -150,8 +168,22 @@ public class DrawingBoardUi {
 		});
 		toolbarItems.add(checkBoxDebugVerboseStopPointDetector);
 		
-	}
+		checkBoxDebugMatchShape = new CheckBox("debug match");
+		toolbarItems.add(checkBoxDebugMatchShape);
+		
+//		final TextField nameText = new TextField();
+//		nameText.setText("");
+//		toolbarItems.add(nameText);
 
+		matchRectButton = new Button("Rect");
+		matchRectButton.setOnAction(e -> onClickMatchRect());
+		toolbarItems.add(matchRectButton);
+
+		matchCrossButton = new Button("Cross");
+		matchCrossButton.setOnAction(e -> onClickMatchHCross());
+		toolbarItems.add(matchCrossButton);
+
+	}
 
 	private void installCanvasHandler() {
 		canvas.setFocusTraversable(true);
@@ -288,9 +320,43 @@ public class DrawingBoardUi {
 		 }
 		 return currStroke;
 	}
-	
-	
-	
+
+	// Match recognizer
+	// --------------------------------------------------------------------------------------------
+
+	private void onClickMatchRect() {
+		ShapeDef currMatchShapeDef = shapeDefRegistry.getShapeDef("rectangle");
+		tryMatchShape(currMatchShapeDef);
+	}
+
+	private void onClickMatchHCross() {
+		ShapeDef currMatchShapeDef = shapeDefRegistry.getShapeDef("hcross");
+		tryMatchShape(currMatchShapeDef);
+	}
+
+	private void tryMatchShape(ShapeDef currMatchShapeDef) {
+		MultiStrokeDef gestureDef = currMatchShapeDef.gestures.get(0);
+		TraceMultiStroke matchMultiStroke = multiStrokeList.getLast();
+		if (matchMultiStroke == null) {
+			return;
+		}
+//		if (lastMultiStroke.recognizedShape != null) {
+//			return; // ??
+//		}
+
+		NumericExprEvalCtx currInitialParamCtx = new NumericExprEvalCtx();
+		
+		gestureDef.initalParamEstimator.estimateInitialParamsFor(
+				matchMultiStroke, gestureDef, currInitialParamCtx);
+		
+		// TODO .. choice + optim steps
+		
+		currMatchShape = new Shape(currMatchShapeDef, currInitialParamCtx.paramValues);
+		matchMultiStroke.recognizedShape = currMatchShape;
+		
+		paintCanvas();
+	}
+
 	// --------------------------------------------------------------------------------------------
 
 	public void paintCanvas() {
@@ -323,6 +389,15 @@ public class DrawingBoardUi {
 		if (currPathElementBuilder != null) {
 			drawDiscretePoints(gc, currPathElementBuilder.tracePts);
 		}
+		
+		for(val shape : shapes) {
+			shape.draw(gc);
+		}
+		
+		if (currMatchShape != null) {
+			currMatchShape.draw(gc);
+		}
+		
 	}
 
 	private void drawStroke(GraphicsContext gc, TraceStroke stroke) {
@@ -392,5 +467,7 @@ public class DrawingBoardUi {
 			
 		}
 	}
+
 	
+
 }
