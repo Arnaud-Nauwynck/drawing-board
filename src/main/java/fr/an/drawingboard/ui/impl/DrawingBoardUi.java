@@ -3,20 +3,22 @@ package fr.an.drawingboard.ui.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.an.drawingboard.model.expr.Expr;
 import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
 import fr.an.drawingboard.model.shape.Shape;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
 import fr.an.drawingboard.model.trace.TraceGesturePathes;
-import fr.an.drawingboard.model.trace.TraceShape;
-import fr.an.drawingboard.model.trace.TracePt;
 import fr.an.drawingboard.model.trace.TracePath;
 import fr.an.drawingboard.model.trace.TracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.DiscretePointsTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
-import fr.an.drawingboard.model.trace2shape.DiscreteTimesToAbsciss;
 import fr.an.drawingboard.model.trace.TracePathElementBuilder;
+import fr.an.drawingboard.model.trace.TracePt;
+import fr.an.drawingboard.model.trace.TraceShape;
+import fr.an.drawingboard.model.trace2shape.DiscreteTimesToAbsciss;
+import fr.an.drawingboard.recognizer.shape.MatchShapeToCostExprBuilder;
 import fr.an.drawingboard.recognizer.trace.StopPointDetector;
 import fr.an.drawingboard.recognizer.trace.TracePathElementDetector;
 import fr.an.drawingboard.stddefs.shapedef.ShapeDefRegistryBuilder;
@@ -69,6 +71,7 @@ public class DrawingBoardUi {
 	
 	StopPointDetector stopPointDetector = new StopPointDetector();
 	TracePathElementDetector pathElementDetector = new TracePathElementDetector();
+	MatchShapeToCostExprBuilder matchShapeToCostExprBuilder = new MatchShapeToCostExprBuilder();
 	
 	boolean showSettingsStopPointDetector = false;
 	
@@ -356,8 +359,17 @@ public class DrawingBoardUi {
 		// check same number of path (stop points) in trace and in gestureDef
 		if (gestureDef.pathes.size() == matchGesture.pathes.size()) {
 			// int gesturePtsCount = gestureDef.
+
 			// TODO currMatchIndexToAbsciss = new DiscreteTimesToAbsciss();
 			
+			Expr costExpr = matchShapeToCostExprBuilder.costMatchGestureWithAbsciss(
+					matchGesture,
+					gestureDef, 
+					currMatchIndexToAbsciss);
+
+			// TODO ..
+			
+					
 		} else {
 			//?? return;
 		}

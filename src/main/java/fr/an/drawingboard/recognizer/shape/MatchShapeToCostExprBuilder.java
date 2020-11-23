@@ -4,24 +4,38 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.an.drawingboard.model.expr.Expr;
-import fr.an.drawingboard.model.expr.ExprBuilder;
 import fr.an.drawingboard.model.expr.Expr.SumExpr;
-import fr.an.drawingboard.model.shapedef.PtExpr;
+import fr.an.drawingboard.model.expr.ExprBuilder;
+import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.PathDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef;
-import fr.an.drawingboard.model.trace.TracePt;
+import fr.an.drawingboard.model.shapedef.PtExpr;
+import fr.an.drawingboard.model.trace.TraceGesturePathes;
 import fr.an.drawingboard.model.trace.TracePath;
 import fr.an.drawingboard.model.trace.TracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.CubicBezierTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.DiscretePointsTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.QuadBezierTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
-import fr.an.drawingboard.model.trace2shape.DiscreteTimesToAbsciss;
 import fr.an.drawingboard.model.trace.TracePathElementVisitor2;
+import fr.an.drawingboard.model.trace.TracePt;
+import fr.an.drawingboard.model.trace2shape.DiscreteTimesToAbsciss;
 import fr.an.drawingboard.util.DrawingValidationUtils;
 
 public class MatchShapeToCostExprBuilder {
 
+	public Expr costMatchGestureWithAbsciss(
+			TraceGesturePathes gesture,
+			GesturePathesDef gestureDef, 
+			DiscreteTimesToAbsciss indexToAbsciss
+			) {
+	
+		
+		throw DrawingValidationUtils.notImplYet();
+
+	
+	}
+	
 	public Expr costMatchPathWithAbsciss(
 			TracePath path,
 			PathDef pathDef, 
