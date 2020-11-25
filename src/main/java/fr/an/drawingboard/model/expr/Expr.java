@@ -25,6 +25,8 @@ public abstract class Expr {
 	
 	public abstract <TRes,TParam> TRes accept(ExprVisitor2<TRes,TParam> visitor, TParam param);
 
+	public abstract <TRes> TRes accept(ExprVisitor3<TRes> visitor);
+
 	// --------------------------------------------------------------------------------------------
 
 	/**
@@ -45,6 +47,10 @@ public abstract class Expr {
 			return visitor.caseLiteral(this, param);
 		}
 		
+		@Override
+		public <TRes> TRes accept(ExprVisitor3<TRes> visitor) {
+			return visitor.caseLiteral(this);
+		}
 		
 		public static final LiteralDoubleExpr VAL_0 = new LiteralDoubleExpr(0);
 		public static final LiteralDoubleExpr VAL_1 = new LiteralDoubleExpr(1);
@@ -112,6 +118,12 @@ public abstract class Expr {
 		public <TRes,TParam> TRes accept(ExprVisitor2<TRes,TParam> visitor, TParam param) {
 			return visitor.caseSum(this, param);
 		}
+
+		@Override
+		public <TRes> TRes accept(ExprVisitor3<TRes> visitor) {
+			return visitor.caseSum(this);
+		}
+
 		@Override
 		public int hashCode() {
 			final int prime = 31;
@@ -160,6 +172,12 @@ public abstract class Expr {
 		public <TRes,TParam> TRes accept(ExprVisitor2<TRes,TParam> visitor, TParam param) {
 			return visitor.caseMult(this, param);
 		}
+		
+		@Override
+		public <TRes> TRes accept(ExprVisitor3<TRes> visitor) {
+			return visitor.caseMult(this);
+		}
+
 		@Override
 		public int hashCode() {
 			final int prime = 31;
@@ -210,6 +228,11 @@ public abstract class Expr {
 		}
 
 		@Override
+		public <TRes> TRes accept(ExprVisitor3<TRes> visitor) {
+			return visitor.caseVariable(this);
+		}
+
+		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
@@ -257,6 +280,11 @@ public abstract class Expr {
 		@Override
 		public <TRes, TParam> TRes accept(ExprVisitor2<TRes,TParam> visitor, TParam param) {
 			return visitor.caseParamDef(this, param);
+		}
+
+		@Override
+		public <TRes> TRes accept(ExprVisitor3<TRes> visitor) {
+			return visitor.caseParamDef(this);
 		}
 
 		@Override

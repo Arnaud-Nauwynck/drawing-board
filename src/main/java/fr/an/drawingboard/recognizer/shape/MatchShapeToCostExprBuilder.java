@@ -29,11 +29,28 @@ public class MatchShapeToCostExprBuilder {
 			GesturePathesDef gestureDef, 
 			DiscreteTimesToAbsciss indexToAbsciss
 			) {
-	
-		
-		throw DrawingValidationUtils.notImplYet();
+		// simple case: matching exactly one by one
+		// should implement more advanced mapping of split fragment / merge !!
+		// path 1 <-> pathDef 1
+		// path 2 <-> pathDef 2
+		// ..
+		// path count <-> pathDef count
+		int pathCount = gesture.pathes.size();
+		int pathDefCount = gestureDef.pathes.size();
+		List<Expr> pathCostExprs = new ArrayList<>(pathDefCount);
+		if (pathDefCount == pathCount) {
+			for(int pathIndex = 0; pathIndex < pathCount; pathIndex++) {
+				TracePath path = gesture.pathes.get(pathIndex);
+				PathDef pathDef = gestureDef.pathes.get(pathIndex);
 
-	
+				Expr pathCostExpr = costMatchPathWithAbsciss(path, pathDef, indexToAbsciss);
+				pathCostExprs.add(pathCostExpr);
+			}
+		} else {
+			throw new UnsupportedOperationException("not impl yet..");
+		}
+
+		return new SumExpr(pathCostExprs);
 	}
 	
 	public Expr costMatchPathWithAbsciss(
@@ -41,17 +58,24 @@ public class MatchShapeToCostExprBuilder {
 			PathDef pathDef, 
 			DiscreteTimesToAbsciss indexToAbsciss
 			) {
-		int pathDefCount = pathDef.pathElements.size();
-		List<Expr> pathCostExprs = new ArrayList<>(pathDefCount);
-		int pathCount = path.pathElements.size();
-		if (pathDefCount == pathCount) {
+		int pathEltDefCount = pathDef.pathElements.size();
+		List<Expr> pathEltCostExprs = new ArrayList<>(pathEltDefCount);
+		int pathEltCount = path.pathElements.size();
+		// simple case: matching exactly one by one
+		// should implement more advanced mapping of split fragment / merge !!
+		// pathElt 1 <-> pathElementDef 1
+		// pathElt 2 <-> pathElementDef 2
+		// .. 
+		// pathElt ncount <-> pathElementDef count
+		if (pathEltDefCount == pathEltCount) {
 			int startPtIndex = 0;
-			for(int pathIndex = 0; pathIndex < pathCount; pathIndex++) {
+			for(int pathIndex = 0; pathIndex < pathEltCount; pathIndex++) {
 				TracePathElement pathElement = path.pathElements.get(pathIndex);
 				PathElementDef pathElementDef = pathDef.pathElements.get(pathIndex);
 
-				Expr pathCostExpr = costPathEltToPathEltDefWithAbsciss(pathElement, pathElementDef, indexToAbsciss, startPtIndex);
-				pathCostExprs.add(pathCostExpr);
+				Expr pathCostExpr = costPathEltToPathEltDefWithAbsciss(pathElement, pathElementDef, 
+						indexToAbsciss, startPtIndex);
+				pathEltCostExprs.add(pathCostExpr);
 				startPtIndex += DiscreteTimesToAbsciss.countPathElementPoint(pathElement);
 			}
 			
@@ -59,7 +83,7 @@ public class MatchShapeToCostExprBuilder {
 			throw new UnsupportedOperationException("not impl yet..");
 		}
 
-		return new SumExpr(pathCostExprs);
+		return new SumExpr(pathEltCostExprs);
 	}
 
 
