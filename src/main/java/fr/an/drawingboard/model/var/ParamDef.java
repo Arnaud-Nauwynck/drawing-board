@@ -47,7 +47,9 @@ public class ParamDef {
 
 	@Override
 	public String toString() {
-		return "${" + owner + "." + name + "}";
+		return "${" 
+				// + owner + "." 
+				+ name + "}";
 	}
 
 }

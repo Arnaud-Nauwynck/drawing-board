@@ -4,6 +4,8 @@ import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.trace.Pt2D;
 import fr.an.drawingboard.model.trace.TraceGesture;
+import fr.an.drawingboard.model.trace.TracePath;
+import fr.an.drawingboard.model.trace.TracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.CubicBezierTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.DiscretePointsTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.QuadBezierTracePathElement;
@@ -16,16 +18,85 @@ import lombok.val;
 
 public class StdInitialParamEstimators {
 
+	public static InitialParamForShapeEstimator lineParamEstimator() {
+		return (gestureDef, gesture, res) -> estimateLineInitialParamsFor(gestureDef, gesture, res);
+	}
+
+	public static InitialParamForShapeEstimator line2ParamEstimator() {
+		return (gestureDef, gesture, res) -> estimateLine2InitialParamsFor(gestureDef, gesture, res);
+	}
+
 	public static InitialParamForShapeEstimator rectParamEstimator() {
 		return (gestureDef, gesture, res) -> estimateRectInitialParamsFor(gestureDef, gesture, res);
 	}
 
+	public static void estimateLineInitialParamsFor( //
+			TraceGesture gesture,
+			GesturePathesDef gestureDef,
+			NumericExprEvalCtx res) {
+		double estimX, estimY, estimW, estimH;
+		if (! gesture.pathes.isEmpty()) {
+			TracePath firstPath = gesture.pathes.get(0);
+			TracePathElement firstPathElt = firstPath.pathElements.get(0);
+			TracePt startPt = firstPathElt.startPt;
+			TracePath lastPath = gesture.getLast();
+			TracePathElement lastPathElt = lastPath.getLastPathElement();
+			TracePt endPt = lastPathElt.endPt;
+			
+			estimX = 0.5 * (startPt.x + endPt.x);
+			estimY = 0.5 * (startPt.y + endPt.y);
+			estimW = endPt.x - startPt.x;
+			estimH = endPt.y - startPt.y;
+		} else {
+			estimX = estimY = estimW = estimH = 0.0;
+		}
+		// fill in <code>res</code>
+		fillRectParam(res, gestureDef, estimX, estimY, estimW, estimH);
+	}
+
+	public static void estimateLine2InitialParamsFor( //
+			TraceGesture gesture,
+			GesturePathesDef gestureDef,
+			NumericExprEvalCtx res) {
+		estimateLineInitialParamsFor(gesture, gestureDef, res);
+		// estimate mid point
+		// find stop point if any, otherwise half distance (TODO)
+		Pt2D controlPt;
+		TracePath path0 = gesture.pathes.get(0);
+		if (path0.pathElements.size() == 2) {
+			controlPt = path0.pathElements.get(0).endPt.pt2DCopy();
+		} else {
+			// TODO
+			controlPt = path0.pathElements.get(0).endPt.pt2DCopy();
+		}
+		// fill res ctx
+		ParamDef ctrlPtX = gestureDef.getParam("ctrlPtX");
+		ParamDef ctrlPtY = gestureDef.getParam("ctrlPtY");
+		res.putParamValue(ctrlPtX, controlPt.x);
+		res.putParamValue(ctrlPtY, controlPt.y);
+	}
+	
+	private static void fillRectParam(
+			NumericExprEvalCtx res, // 
+			GesturePathesDef gestureDef, //  
+			double estimX, double estimY, double estimW, double estimH) {
+		ParamDef paramX = gestureDef.getParam("x");
+		ParamDef paramY = gestureDef.getParam("y");
+		ParamDef paramW = gestureDef.getParam("w");
+		ParamDef paramH = gestureDef.getParam("h");
+		res.putParamValue(paramX, estimX);
+		res.putParamValue(paramY, estimY);
+		res.putParamValue(paramW, estimW);
+		res.putParamValue(paramH, estimH);
+	}
+	
+	
 	public static void estimateRectInitialParamsFor( //
-			TraceGesture gestureDef,
-			GesturePathesDef gesture,
+			TraceGesture gesture,
+			GesturePathesDef gestureDef,
 			NumericExprEvalCtx res) {
 		// ensure coefs per points are computed
-		WeightedDiscretizationPathPtsBuilder.updatePtCoefs(gestureDef); // redundant useless?
+		WeightedDiscretizationPathPtsBuilder.updatePtCoefs(gesture); // redundant useless?
 		
 		final double avgX, avgY;
 		final double minX, maxX, minY, maxY;
@@ -33,7 +104,7 @@ public class StdInitialParamEstimators {
 			double sumX = 0, sumY = 0;
 			double currMinX = Double.MAX_VALUE, currMaxX = Double.MIN_VALUE;
 			double currMinY = Double.MAX_VALUE, currMaxY = Double.MIN_VALUE;
-			for(val path : gestureDef.pathes) {
+			for(val path : gesture.pathes) {
 				for(val pathElement : path.pathElements) {
 					switch (pathElement.getType()) {
 					case Segment: {
@@ -130,15 +201,8 @@ public class StdInitialParamEstimators {
 		double estimW = maxX - minX;
 		double estimH = maxY - minY;
 
-		// fill in <code>res</code>
-		ParamDef paramX = gesture.getParam("x");
-		ParamDef paramY = gesture.getParam("y");
-		ParamDef paramW = gesture.getParam("w");
-		ParamDef paramH = gesture.getParam("h");
-		res.putParamValue(paramX, estimX);
-		res.putParamValue(paramY, estimY);
-		res.putParamValue(paramW, estimW);
-		res.putParamValue(paramH, estimH);
+		fillRectParam(res, gestureDef, estimX, estimY, estimW, estimH);
 	}
+
 	
 }

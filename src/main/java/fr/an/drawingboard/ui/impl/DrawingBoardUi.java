@@ -3,12 +3,13 @@ package fr.an.drawingboard.ui.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.an.drawingboard.model.expr.Expr;
 import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
 import fr.an.drawingboard.model.shape.Shape;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
+import fr.an.drawingboard.model.shapedef.PtExpr;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
+import fr.an.drawingboard.model.trace.Pt2D;
 import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePath;
 import fr.an.drawingboard.model.trace.TracePathElement;
@@ -40,6 +41,7 @@ import javafx.scene.input.ZoomEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import lombok.val;
 
 public class DrawingBoardUi {
@@ -54,10 +56,8 @@ public class DrawingBoardUi {
 	CheckBox checkBoxDebugTraceStopPoints;
 	CheckBox checkBoxDebugVerboseStopPointDetector;
 	CheckBox checkBoxDebugMatchShape;
+	CheckBox checkBoxDebugMatchPtToAbsciss;
 	
-	Button matchRectButton;
-	Button matchCrossButton;
-
 	Color currLineColor = Color.BLACK;
 	
 	CanvasEventHandler drawCanvasEventHandler = new InnerDrawCanvasEventHandler();
@@ -73,6 +73,7 @@ public class DrawingBoardUi {
 	StopPointDetector stopPointDetector = new StopPointDetector();
 	TracePathElementDetector pathElementDetector = new TracePathElementDetector();
 	MatchShapeToCostExprBuilder matchShapeToCostExprBuilder = new MatchShapeToCostExprBuilder();
+	int discretizationPrecision = 30;
 	
 	boolean showSettingsStopPointDetector = false;
 	
@@ -85,8 +86,9 @@ public class DrawingBoardUi {
 
 	private ShapeDefRegistry shapeDefRegistry;
 
-	private GesturePtToAbscissMatch currMatchIndexToAbsciss;
 	private Shape currMatchShape;
+	private NumericExprEvalCtx currMatchParamCtx;
+	private GesturePtToAbscissMatch currGesturePtToAbscissMatch;
 	
 	// --------------------------------------------------------------------------------------------
 
@@ -156,41 +158,52 @@ public class DrawingBoardUi {
 			if (currMatchShape != null) {
 				currMatchShape = null;
 			}
-			currMatchIndexToAbsciss = null;
+			currGesturePtToAbscissMatch = null;
 			
 			paintCanvas();
 		});
 		
 		checkBoxDebugTrace = new CheckBox("show pt");
 		checkBoxDebugTrace.setSelected(false);
+		checkBoxDebugTrace.setOnAction(e -> paintCanvas());
 		toolbarItems.add(checkBoxDebugTrace);
 
 		checkBoxDebugTraceStopPoints = new CheckBox("show stop-pt");
 		checkBoxDebugTraceStopPoints.setSelected(true);
+		checkBoxDebugTraceStopPoints.setOnAction(e -> paintCanvas());
 		toolbarItems.add(checkBoxDebugTraceStopPoints);
 		
 		checkBoxDebugVerboseStopPointDetector = new CheckBox("debug stop-pt");
 		checkBoxDebugVerboseStopPointDetector.setSelected(stopPointDetector.isDebugPrint());
 		checkBoxDebugVerboseStopPointDetector.setOnAction(e -> {
 			stopPointDetector.setDebugPrint(checkBoxDebugVerboseStopPointDetector.isSelected());
+			paintCanvas();
 		});
 		toolbarItems.add(checkBoxDebugVerboseStopPointDetector);
 		
 		checkBoxDebugMatchShape = new CheckBox("debug match");
+		checkBoxDebugMatchShape.setOnAction(e -> paintCanvas());
 		toolbarItems.add(checkBoxDebugMatchShape);
+		
+		checkBoxDebugMatchPtToAbsciss = new CheckBox("debug absciss");
+		checkBoxDebugMatchPtToAbsciss.setOnAction(e -> paintCanvas());
+		toolbarItems.add(checkBoxDebugMatchPtToAbsciss);
 		
 //		final TextField nameText = new TextField();
 //		nameText.setText("");
 //		toolbarItems.add(nameText);
 
-		matchRectButton = new Button("Rect");
-		matchRectButton.setOnAction(e -> onClickMatchRect());
-		toolbarItems.add(matchRectButton);
-
-		matchCrossButton = new Button("Cross");
-		matchCrossButton.setOnAction(e -> onClickMatchHCross());
-		toolbarItems.add(matchCrossButton);
-
+		toolbarItems.add(createMatchShapeButton("Line", "line", 0));
+		toolbarItems.add(createMatchShapeButton("Line2", "line2", 0));
+		toolbarItems.add(createMatchShapeButton("Rect", "rectangle", 0));
+		toolbarItems.add(createMatchShapeButton("R(DL->UR..)", "rectangle", 1));
+		toolbarItems.add(createMatchShapeButton("HCross", "hcross", 0));
+	}
+	
+	private Button createMatchShapeButton(String label, String shapeName, int gestureIndex) {
+		Button button = new Button(label);
+		button.setOnAction(e -> onClickMatchShapeDef(shapeName, gestureIndex));
+		return button;
 	}
 
 	private void installCanvasHandler() {
@@ -332,18 +345,13 @@ public class DrawingBoardUi {
 	// Match recognizer
 	// --------------------------------------------------------------------------------------------
 
-	private void onClickMatchRect() {
-		ShapeDef currMatchShapeDef = shapeDefRegistry.getShapeDef("rectangle");
-		tryMatchShape(currMatchShapeDef);
+	private void onClickMatchShapeDef(String shapeName, int gestureIndex) {
+		ShapeDef shapeDef = shapeDefRegistry.getShapeDef(shapeName);
+		tryMatchShape(shapeDef, gestureIndex);
 	}
-
-	private void onClickMatchHCross() {
-		ShapeDef currMatchShapeDef = shapeDefRegistry.getShapeDef("hcross");
-		tryMatchShape(currMatchShapeDef);
-	}
-
-	private void tryMatchShape(ShapeDef currMatchShapeDef) {
-		GesturePathesDef gestureDef = currMatchShapeDef.gestures.get(0);
+	
+	private void tryMatchShape(ShapeDef currMatchShapeDef, int gestureIndex) {
+		GesturePathesDef gestureDef = currMatchShapeDef.gestures.get(gestureIndex);
 		TraceGesture matchGesture = traceShape.getLast();
 		if (matchGesture == null) {
 			return;
@@ -352,16 +360,14 @@ public class DrawingBoardUi {
 //			return; // ??
 //		}
 
-		NumericExprEvalCtx currInitialParamCtx = new NumericExprEvalCtx();
+		this.currMatchParamCtx = new NumericExprEvalCtx();
 		
 		gestureDef.initalParamEstimator.estimateInitialParamsFor(
-				matchGesture, gestureDef, currInitialParamCtx);
-		
-		// check same number of path (stop points) in trace and in gestureDef
-		if (gestureDef.pathes.size() == matchGesture.pathes.size()) {
-			// int gesturePtsCount = gestureDef.
+				matchGesture, gestureDef, currMatchParamCtx);
 
-			// TODO currMatchIndexToAbsciss = new DiscreteTimesToAbsciss();
+		this.currGesturePtToAbscissMatch = new GesturePtToAbscissMatch(matchGesture, gestureDef, 
+				discretizationPrecision, 
+				currMatchParamCtx);
 			
 //			Expr costExpr = matchShapeToCostExprBuilder.costMatchGestureWithAbsciss(
 //					matchGesture,
@@ -371,13 +377,10 @@ public class DrawingBoardUi {
 			// TODO ..
 			
 					
-		} else {
-			//?? return;
-		}
 		// TODO .. choice + optim steps
 		
 		
-		currMatchShape = new Shape(currMatchShapeDef, currInitialParamCtx.paramValues);
+		this.currMatchShape = new Shape(currMatchShapeDef, currMatchParamCtx.paramValues);
 		matchGesture.recognizedShape = currMatchShape;
 		
 		paintCanvas();
@@ -422,8 +425,12 @@ public class DrawingBoardUi {
 		
 		if (currMatchShape != null) {
 			currMatchShape.draw(gc);
+			if (checkBoxDebugMatchPtToAbsciss.isSelected()) {
+				if (currGesturePtToAbscissMatch != null) {
+					drawPtToAbscissMatch(gc, currGesturePtToAbscissMatch);
+				}
+			}
 		}
-		
 	}
 
 	private void drawPath(GraphicsContext gc, TracePath path) {
@@ -444,12 +451,26 @@ public class DrawingBoardUi {
 	}
 	
 	private void drawSegment(GraphicsContext gc, SegmentTracePathElement segment) {
+		drawSegment(gc, segment.startPt, segment.endPt);
+	}
+	private void drawSegment(GraphicsContext gc, TracePt startPt, TracePt endPt) {
+		drawSegment(gc, startPt.pt2DCopy(), endPt.pt2DCopy());
+	}
+	private void drawSegment(GraphicsContext gc, Pt2D startPt, Pt2D endPt) {
 		gc.beginPath();
-		gc.moveTo(segment.startPt.x, segment.startPt.y);
-		gc.lineTo(segment.endPt.x, segment.endPt.y);
+		gc.moveTo(startPt.x, startPt.y);
+		gc.lineTo(endPt.x, endPt.y);
 		gc.stroke();
 	}
 
+	@SuppressWarnings("unused")
+	private void drawSegment(GraphicsContext gc, double startX, double startY, double endX, double endY) {
+		gc.beginPath();
+		gc.moveTo(startX, startY);
+		gc.lineTo(endX, endY);
+		gc.stroke();
+	}
+	
 	private void drawDiscretePoints(GraphicsContext gc, DiscretePointsTracePathElement curve) {
 		drawDiscretePoints(gc, curve.tracePts);
 	}
@@ -471,13 +492,13 @@ public class DrawingBoardUi {
 			val dbgTraceStopPoint = checkBoxDebugTraceStopPoints.isSelected();
 			val dbgTraceEndPoint = false;
 			if (dbgTraceEndPoint) {
-				gc.strokeOval(pt0.x, pt0.y, 5, 5);
+				drawPtCircle(gc, pt0, 5);
 			}
 			TracePt prevDisplayIndexPt = null;
 			for(int i = 1; i < tracePtsLen; i++) {
 				val pt = tracePts.get(i);
 				if (dbgTraceStopPoint && pt.isStopPoint()) {
-					gc.strokeOval(pt.x-5, pt.y-5, 10, 10);
+					drawPtCircle(gc, pt, 5);
 				}
 				if (debugTrace) {
 					if (prevDisplayIndexPt == null || TracePt.dist(pt, prevDisplayIndexPt) > 20) {
@@ -488,10 +509,36 @@ public class DrawingBoardUi {
 			}
 			if (dbgTraceEndPoint) {
 				val lastPt = tracePts.get(tracePtsLen - 1);
-				gc.strokeOval(lastPt.x-3, lastPt.y-3, 6, 6);
+				drawPtCircle(gc, lastPt, 3);
 			}
 			
 		}
+	}
+
+	private void drawPtToAbscissMatch(GraphicsContext gc, GesturePtToAbscissMatch ptToAbscissMatch) {
+		Paint prevStroke = gc.getStroke();
+		gc.setStroke(Color.RED);
+		for (val matchPt : ptToAbscissMatch.gestureMatchDiscretizedPts) {
+			TracePt pt = matchPt.weighedPt().pt;
+			PtExpr ptDefExpr = matchPt.currMatchPtExpr.build();
+			Pt2D ptDef = currMatchParamCtx.evalPtExpr(ptDefExpr);
+
+			// drawPtCircle(gc, pt, 3);
+			drawSegment(gc, pt.pt2DCopy(), ptDef);
+			// drawPtCircle(gc, ptDef, 3);
+			
+		}
+		gc.setStroke(prevStroke);
+	}
+
+	private void drawPtCircle(GraphicsContext gc, Pt2D pt, int r) {
+		drawPtCircle(gc, pt.x, pt.y, r);
+	}
+	private void drawPtCircle(GraphicsContext gc, TracePt pt, int r) {
+		drawPtCircle(gc, pt.x, pt.y, r);
+	}
+	private void drawPtCircle(GraphicsContext gc, double x, double y, int r) {
+		gc.strokeOval(x-r, y-r, r+r, r+r);
 	}
 
 }

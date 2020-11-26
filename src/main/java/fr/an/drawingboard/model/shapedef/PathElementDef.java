@@ -85,9 +85,9 @@ public abstract class PathElementDef extends ParametrizableEltDef {
 		@Override
 		public PtExpr ptExprAtAbscissExpr(Expr s, Expr expr1minusS) {
 			ExprBuilder b = ExprBuilder.INSTANCE;
-			// pt = s * startPt + (1-s) * endPt
-			Expr x = b.sum(b.mult(s, startPt.x), b.mult(expr1minusS, endPt.x));
-			Expr y = b.sum(b.mult(s, startPt.y), b.mult(expr1minusS, endPt.y));
+			// pt = (1-s) * startPt + s * endPt
+			Expr x = b.sum(b.mult(expr1minusS, startPt.x), b.mult(s, endPt.x));
+			Expr y = b.sum(b.mult(expr1minusS, startPt.y), b.mult(s, endPt.y));
 			return new PtExpr(x, y);
 		}
 
@@ -95,9 +95,9 @@ public abstract class PathElementDef extends ParametrizableEltDef {
 		public PtExpr ptExprAtAbsciss(double s) {
 			double val1minusS = 1.0 - s;
 			ExprBuilder b = ExprBuilder.INSTANCE;
-			// pt = s * startPt + (1-s) * endPt
-			Expr x = b.sum(b.mult(s, startPt.x), b.mult(val1minusS, endPt.x));
-			Expr y = b.sum(b.mult(s, startPt.y), b.mult(val1minusS, endPt.y));
+			// pt = (1-s) * startPt + s * endPt
+			Expr x = b.sum(b.mult(val1minusS, startPt.x), b.mult(s, endPt.x));
+			Expr y = b.sum(b.mult(val1minusS, startPt.y), b.mult(s, endPt.y));
 			return new PtExpr(x, y);
 		}
 

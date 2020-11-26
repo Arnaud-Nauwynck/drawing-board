@@ -2,6 +2,7 @@ package fr.an.drawingboard.model.shapedef;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import fr.an.drawingboard.model.shapedef.PathElementDef.CubicBezierPathElementDef;
@@ -10,6 +11,7 @@ import fr.an.drawingboard.model.shapedef.PathElementDef.QuadBezierPathElementDef
 import fr.an.drawingboard.model.shapedef.PathElementDef.SegmentPathElementDef;
 import fr.an.drawingboard.model.var.ParametrizableEltDef;
 import fr.an.drawingboard.recognizer.shape.InitialParamForShapeEstimator;
+import fr.an.drawingboard.util.DrawingValidationUtils;
 
 /**
  * a multipath is a definiton (algebric expr) of a single gesture, 
@@ -61,4 +63,45 @@ public class GesturePathesDef extends ParametrizableEltDef {
 		return addPath(new CubicBezierPathElementDef(startPt, controlPt1, controlPt2, endPt));
 	}
 
+	
+
+	public static class PathDefWithElement {
+		public PathDef path;
+		public PathElementDef pathElement;
+	}
+	
+	public Iterator<PathDefWithElement> iteratorPathDefWithElement() {
+		return new PathDefWithElementIterator(pathes.iterator());
+	}
+	
+	private static class PathDefWithElementIterator implements Iterator<PathDefWithElement> {
+		final PathDefWithElement curr = new PathDefWithElement();
+		final Iterator<PathDef> pathIter;
+		Iterator<PathElementDef> pathElementIter;
+
+		private PathDefWithElementIterator(Iterator<PathDef> pathIter) {
+			this.pathIter = pathIter;
+		}
+
+		@Override
+		public boolean hasNext() {
+			if (pathElementIter != null && pathElementIter.hasNext()) {
+				return true;
+			}
+			return pathIter.hasNext();
+		}
+
+		@Override
+		public PathDefWithElement next() {
+			if (pathElementIter == null || !pathElementIter.hasNext()) {
+				DrawingValidationUtils.checkTrue(pathIter.hasNext(), "hasNext");
+				curr.path = pathIter.next();
+				this.pathElementIter = curr.path.pathElements.iterator(); 
+			}
+			curr.pathElement = pathElementIter.next();
+			return curr;
+		}
+		
+	}
+	
 }

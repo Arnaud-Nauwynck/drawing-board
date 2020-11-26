@@ -2,6 +2,12 @@ package fr.an.drawingboard.util;
 
 public class DrawingValidationUtils {
 
+	public static void checkTrue(boolean actual, String msg) {
+		if (!actual) {
+			throw new IllegalArgumentException("expected true " + msg);
+		}
+	}
+
 	public static void checkEquals(int expected, int actual) {
 		if (expected != actual) {
 			throw new IllegalArgumentException("wrong value " + actual + ", expected " + expected);

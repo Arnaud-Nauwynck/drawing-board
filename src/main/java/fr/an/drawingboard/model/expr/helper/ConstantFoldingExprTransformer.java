@@ -11,9 +11,9 @@ import fr.an.drawingboard.model.expr.Expr.SumExpr;
 import fr.an.drawingboard.model.expr.Expr.VariableExpr;
 import fr.an.drawingboard.model.expr.ExprBuilder;
 import lombok.val;
-import fr.an.drawingboard.model.expr.ExprFunc1Visitor;
+import fr.an.drawingboard.model.expr.ExprFunc1;
 
-public class ConstantFoldingExprTransformer extends ExprFunc1Visitor<Expr, Void> {
+public class ConstantFoldingExprTransformer extends ExprFunc1<Expr, Void> {
 
 	private static final ExprBuilder b = ExprBuilder.INSTANCE;
 	

@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 
+import fr.an.drawingboard.model.expr.helper.ExprPrinter;
 import fr.an.drawingboard.model.var.ParamDef;
 import fr.an.drawingboard.model.var.VarDef;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +24,15 @@ public abstract class Expr {
 
 	public abstract void accept(ExprVisitor visitor);
 	
-	public abstract <TRes,TParam> TRes accept(ExprFunc1Visitor<TRes,TParam> visitor, TParam param);
+	public abstract <TRes,TParam> TRes accept(ExprFunc1<TRes,TParam> visitor, TParam param);
 
-	public abstract <TRes> TRes accept(ExprFuncVisitor<TRes> visitor);
+	public abstract <TRes> TRes accept(ExprFunc0<TRes> visitor);
 
+	@Override
+	public String toString() {
+		return ExprPrinter.exprToString(this);
+	}
+	
 	// --------------------------------------------------------------------------------------------
 
 	/**
@@ -43,12 +49,12 @@ public abstract class Expr {
 		}
 
 		@Override
-		public <TRes,TParam> TRes accept(ExprFunc1Visitor<TRes,TParam> visitor, TParam param) {
+		public <TRes,TParam> TRes accept(ExprFunc1<TRes,TParam> visitor, TParam param) {
 			return visitor.caseLiteral(this, param);
 		}
 		
 		@Override
-		public <TRes> TRes accept(ExprFuncVisitor<TRes> visitor) {
+		public <TRes> TRes accept(ExprFunc0<TRes> visitor) {
 			return visitor.caseLiteral(this);
 		}
 		
@@ -115,12 +121,12 @@ public abstract class Expr {
 		}
 
 		@Override
-		public <TRes,TParam> TRes accept(ExprFunc1Visitor<TRes,TParam> visitor, TParam param) {
+		public <TRes,TParam> TRes accept(ExprFunc1<TRes,TParam> visitor, TParam param) {
 			return visitor.caseSum(this, param);
 		}
 
 		@Override
-		public <TRes> TRes accept(ExprFuncVisitor<TRes> visitor) {
+		public <TRes> TRes accept(ExprFunc0<TRes> visitor) {
 			return visitor.caseSum(this);
 		}
 
@@ -169,12 +175,12 @@ public abstract class Expr {
 		}
 
 		@Override
-		public <TRes,TParam> TRes accept(ExprFunc1Visitor<TRes,TParam> visitor, TParam param) {
+		public <TRes,TParam> TRes accept(ExprFunc1<TRes,TParam> visitor, TParam param) {
 			return visitor.caseMult(this, param);
 		}
 		
 		@Override
-		public <TRes> TRes accept(ExprFuncVisitor<TRes> visitor) {
+		public <TRes> TRes accept(ExprFunc0<TRes> visitor) {
 			return visitor.caseMult(this);
 		}
 
@@ -223,12 +229,12 @@ public abstract class Expr {
 		}
 
 		@Override
-		public <TRes,TParam> TRes accept(ExprFunc1Visitor<TRes,TParam> visitor, TParam param) {
+		public <TRes,TParam> TRes accept(ExprFunc1<TRes,TParam> visitor, TParam param) {
 			return visitor.caseVariable(this, param);
 		}
 
 		@Override
-		public <TRes> TRes accept(ExprFuncVisitor<TRes> visitor) {
+		public <TRes> TRes accept(ExprFunc0<TRes> visitor) {
 			return visitor.caseVariable(this);
 		}
 
@@ -278,12 +284,12 @@ public abstract class Expr {
 		}
 
 		@Override
-		public <TRes, TParam> TRes accept(ExprFunc1Visitor<TRes,TParam> visitor, TParam param) {
+		public <TRes, TParam> TRes accept(ExprFunc1<TRes,TParam> visitor, TParam param) {
 			return visitor.caseParamDef(this, param);
 		}
 
 		@Override
-		public <TRes> TRes accept(ExprFuncVisitor<TRes> visitor) {
+		public <TRes> TRes accept(ExprFunc0<TRes> visitor) {
 			return visitor.caseParamDef(this);
 		}
 

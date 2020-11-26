@@ -11,7 +11,7 @@ import fr.an.drawingboard.model.expr.Expr.MultExpr;
 import fr.an.drawingboard.model.expr.Expr.ParamDefExpr;
 import fr.an.drawingboard.model.expr.Expr.SumExpr;
 import fr.an.drawingboard.model.expr.Expr.VariableExpr;
-import fr.an.drawingboard.model.expr.ExprFunc1Visitor;
+import fr.an.drawingboard.model.expr.ExprFunc1;
 import fr.an.drawingboard.model.var.ParamDef;
 import fr.an.drawingboard.model.var.VarDef;
 import lombok.val;
@@ -40,7 +40,7 @@ public class SubstitueExprCtx {
 	/**
 	 *
 	 */
-	public static final class SubstituteExprVisitor extends ExprFunc1Visitor<Expr, SubstitueExprCtx> {
+	public static final class SubstituteExprVisitor extends ExprFunc1<Expr, SubstitueExprCtx> {
 
 		public static final SubstituteExprVisitor INSTANCE = new SubstituteExprVisitor();
 

@@ -13,6 +13,9 @@ public class TracePath {
 		this.pathElements.add(pathElement);
 	}
 
+	public TracePathElement getLastPathElement() {
+		return (pathElements.isEmpty())? null : pathElements.get(pathElements.size()-1); 
+	}
 	
 	public double pathDistLength() {
 		double res = 0.0;

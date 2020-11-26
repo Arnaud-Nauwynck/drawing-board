@@ -4,12 +4,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fr.an.drawingboard.model.expr.Expr;
-import fr.an.drawingboard.model.expr.ExprFunc1Visitor;
 import fr.an.drawingboard.model.expr.Expr.LiteralDoubleExpr;
 import fr.an.drawingboard.model.expr.Expr.MultExpr;
 import fr.an.drawingboard.model.expr.Expr.ParamDefExpr;
 import fr.an.drawingboard.model.expr.Expr.SumExpr;
 import fr.an.drawingboard.model.expr.Expr.VariableExpr;
+import fr.an.drawingboard.model.expr.ExprFunc1;
+import fr.an.drawingboard.model.shapedef.PtExpr;
+import fr.an.drawingboard.model.trace.Pt2D;
 import fr.an.drawingboard.model.var.ParamDef;
 import fr.an.drawingboard.model.var.VarDef;
 import lombok.RequiredArgsConstructor;
@@ -63,13 +65,19 @@ public class NumericExprEvalCtx {
 		return resCtx.value;
 	}
 
+	public Pt2D evalPtExpr(PtExpr ptExpr) {
+		double x = evalExpr(ptExpr.x);
+		double y = evalExpr(ptExpr.y);
+		return new Pt2D(x, y);
+	}
+
 	@RequiredArgsConstructor
 	public static class ResCtx {
 		public final NumericExprEvalCtx ctx;
 		public double value;
 	}
 
-	public static final class NumericalEvalExprVisitor extends ExprFunc1Visitor<Void, ResCtx> {
+	public static final class NumericalEvalExprVisitor extends ExprFunc1<Void, ResCtx> {
 		public static final NumericalEvalExprVisitor INSTANCE = new NumericalEvalExprVisitor();
 
 		private NumericalEvalExprVisitor() {

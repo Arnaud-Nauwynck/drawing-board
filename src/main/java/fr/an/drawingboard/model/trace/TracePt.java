@@ -30,7 +30,10 @@ public class TracePt {
 		return isStopPoint || isMergeStopPoint;
 	}
 
-	
+	public Pt2D pt2DCopy() {
+		return new Pt2D(x, y);
+	}
+
 	public static double distRoundedPixel(TracePt pt0, TracePt pt1) {
 		return distRoundedPixel(pt0.x, pt0.y, pt1.x, pt1.y); 
 	}

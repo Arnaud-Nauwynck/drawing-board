@@ -6,7 +6,7 @@ import fr.an.drawingboard.model.expr.Expr.ParamDefExpr;
 import fr.an.drawingboard.model.expr.Expr.SumExpr;
 import fr.an.drawingboard.model.expr.Expr.VariableExpr;
 
-public abstract class ExprFuncVisitor<TRes> {
+public abstract class ExprFunc0<TRes> {
 
 	public abstract TRes caseLiteral(LiteralDoubleExpr expr);
 
@@ -19,7 +19,7 @@ public abstract class ExprFuncVisitor<TRes> {
 	public abstract TRes caseParamDef(ParamDefExpr expr);
 
 	
-	public static class DefaultExprTransformer extends ExprFuncVisitor<Expr> {
+	public static class DefaultExprTransformer extends ExprFunc0<Expr> {
 
 		@Override
 		public Expr caseLiteral(LiteralDoubleExpr expr) {

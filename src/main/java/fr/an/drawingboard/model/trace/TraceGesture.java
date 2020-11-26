@@ -1,9 +1,11 @@
 package fr.an.drawingboard.model.trace;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import fr.an.drawingboard.model.shape.Shape;
+import fr.an.drawingboard.util.DrawingValidationUtils;
 import javafx.scene.paint.Color;
 import lombok.val;
 
@@ -45,15 +47,46 @@ public class TraceGesture {
 		return res;
 	}
 
-	
-
-	public static double sum(List<Double> values) {
-		double res = 0.0;
-		for(val d : values) {
-			res += d;
-		}
-		return res;
+	public static class TracePathWithElement {
+		public TracePath path;
+		public TracePathElement pathElement;
 	}
 
+	public Iterator<TracePathWithElement> iteratorPathWithElement() {
+		return new TracePathWithElementIterator(pathes.iterator());
+	}
+
+	private static class TracePathWithElementIterator implements Iterator<TracePathWithElement> {
+		final TracePathWithElement curr = new TracePathWithElement();
+		final Iterator<TracePath> pathIter;
+		Iterator<TracePathElement> pathElementIter;
+
+		private TracePathWithElementIterator(Iterator<TracePath> pathIter) {
+			this.pathIter = pathIter;
+		}
+
+		@Override
+		public boolean hasNext() {
+			if (pathElementIter != null && pathElementIter.hasNext()) {
+				return true;
+			}
+			return pathIter.hasNext();
+		}
+
+		@Override
+		public TracePathWithElement next() {
+			if (curr.path == null) {
+				DrawingValidationUtils.checkTrue(pathIter.hasNext(), "hasNext");
+				curr.path = pathIter.next();
+				this.pathElementIter = curr.path.pathElements.iterator(); 
+			}
+			curr.pathElement = pathElementIter.next();
+			if (! pathElementIter.hasNext()) {
+				pathElementIter = null;
+			}
+			return curr;
+		}
+		
+	}
 
 }

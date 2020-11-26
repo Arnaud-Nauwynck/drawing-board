@@ -9,7 +9,7 @@ import fr.an.drawingboard.model.expr.Expr;
 import fr.an.drawingboard.model.expr.Expr.MultExpr;
 import fr.an.drawingboard.model.expr.Expr.SumExpr;
 import fr.an.drawingboard.model.expr.ExprBuilder;
-import fr.an.drawingboard.model.expr.ExprFuncVisitor.DefaultExprTransformer;
+import fr.an.drawingboard.model.expr.ExprFunc0.DefaultExprTransformer;
 
 /**
  * Expand expr builder: 

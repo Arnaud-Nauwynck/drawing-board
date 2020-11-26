@@ -1,5 +1,7 @@
 package fr.an.drawingboard.stddefs.shapedef;
 
+import fr.an.drawingboard.model.expr.Expr;
+import fr.an.drawingboard.model.shapedef.PtExpr;
 import fr.an.drawingboard.model.shapedef.RectExpr;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
@@ -13,12 +15,38 @@ public class ShapeDefRegistryBuilder {
 	private final ShapeDefRegistry dest;
 
 	public void addStdShapes() {
+		addLineDef();
+		addLine2Def();
 		addRectangleDef();
 		addVCrossDef();
 		addHCrossDef();
 		addZDef();
 		addNDef();
 	}
+
+	public void addLineDef() {
+		ShapeDef shapeDef = new ShapeDef("line");
+		RectExpr r = shapeDef.getCoordRectExpr();
+		InitialParamForShapeEstimator paramEstimator = lineParamEstimator();
+		//  PtUL -----> PtUR
+		shapeDef.addGesture_Segments(paramEstimator, r.ptUL, r.ptDR);
+		
+		dest.addShapeDef(shapeDef);
+	}
+	
+	public void addLine2Def() {
+		ShapeDef shapeDef = new ShapeDef("line2");
+		RectExpr r = shapeDef.getCoordRectExpr();
+		InitialParamForShapeEstimator paramEstimator = StdInitialParamEstimators.line2ParamEstimator();
+		Expr ctrlPtX = shapeDef.addParamDef("ctrlPtX").expr;
+		Expr ctrlPtY = shapeDef.addParamDef("ctrlPtY").expr;
+		PtExpr midPt = new PtExpr(ctrlPtX, ctrlPtY);
+		//  PtUL -----> MidPt ---> PtUR
+		shapeDef.addGesture_Segments(paramEstimator, r.ptUL, midPt, r.ptDR);
+		
+		dest.addShapeDef(shapeDef);
+	}
+	
 
 	public void addRectangleDef() {
 		ShapeDef shapeDef = new ShapeDef("rectangle");
@@ -97,6 +125,10 @@ public class ShapeDefRegistryBuilder {
 	
 	private InitialParamForShapeEstimator rectParamEstimator() {
 		return StdInitialParamEstimators.rectParamEstimator();
+	}
+
+	private InitialParamForShapeEstimator lineParamEstimator() {
+		return StdInitialParamEstimators.lineParamEstimator();
 	}
 
 
