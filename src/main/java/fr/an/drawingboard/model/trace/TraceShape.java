@@ -30,19 +30,19 @@ import lombok.val;
  */
 public class TraceShape {
 
-	public List<TraceGesturePathes> gestures = new ArrayList<>();
+	public List<TraceGesture> gestures = new ArrayList<>();
 
-	public TraceGesturePathes appendNewGesture() {
-		val res = new TraceGesturePathes();
+	public TraceGesture appendNewGesture() {
+		val res = new TraceGesture();
 		gestures.add(res);
 		return res;
 	}
 
-	public TraceGesturePathes getLast() {
+	public TraceGesture getLast() {
 		return (gestures.isEmpty())? null : gestures.get(gestures.size() - 1);
 	}
 
-	public void remove(TraceGesturePathes p) {
+	public void remove(TraceGesture p) {
 		this.gestures.remove(p);
 	}
 

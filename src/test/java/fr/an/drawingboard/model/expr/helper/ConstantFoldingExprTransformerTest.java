@@ -8,7 +8,7 @@ import fr.an.drawingboard.model.expr.ExprBuilder;
 import fr.an.drawingboard.model.expr.Expr.VariableExpr;
 import fr.an.drawingboard.model.var.VarDef;
 
-public class ConstantFoldingExprVisitorTest {
+public class ConstantFoldingExprTransformerTest {
 
 	private static final ExprBuilder b = ExprBuilder.INSTANCE;
 
@@ -30,7 +30,7 @@ public class ConstantFoldingExprVisitorTest {
 	}
 
 	private static void assertEqualsConstantFold(Expr expected, Expr exprToFold) {
-		Expr actual = ConstantFoldingExprVisitor.constFold(exprToFold);
+		Expr actual = ConstantFoldingExprTransformer.constFold(exprToFold);
 		Assert.assertEquals(expected, actual);
 	}
 	

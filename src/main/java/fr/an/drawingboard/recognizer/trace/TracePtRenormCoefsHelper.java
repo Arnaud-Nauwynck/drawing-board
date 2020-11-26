@@ -3,18 +3,18 @@ package fr.an.drawingboard.recognizer.trace;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.an.drawingboard.model.trace.TraceGesturePathes;
+import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePath;
 import fr.an.drawingboard.model.trace.TracePathElement.CubicBezierTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.DiscretePointsTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.QuadBezierTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
-import fr.an.drawingboard.model.trace.TracePathElementVisitor2;
+import fr.an.drawingboard.model.trace.TracePathElementVisitorFunc1;
 import lombok.val;
 
 public class TracePtRenormCoefsHelper {
 
-	public static List<Integer> countPts(TraceGesturePathes gesture) {
+	public static List<Integer> countPts(TraceGesture gesture) {
 		List<Integer> res = new ArrayList<>(gesture.pathes.size());
 		for(val path : gesture.pathes) {
 			res.add(countPts(path));
@@ -22,7 +22,7 @@ public class TracePtRenormCoefsHelper {
 		return res;
 	}
 	
-	private static class TracePathElementPtsCounter extends TracePathElementVisitor2<Integer,Void> {
+	private static class TracePathElementPtsCounter extends TracePathElementVisitorFunc1<Integer,Void> {
 		public static final TracePathElementPtsCounter INSTANCE = new TracePathElementPtsCounter();
 		private TracePathElementPtsCounter() {}
 

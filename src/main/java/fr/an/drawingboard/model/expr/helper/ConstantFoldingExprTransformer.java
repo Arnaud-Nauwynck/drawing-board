@@ -11,15 +11,15 @@ import fr.an.drawingboard.model.expr.Expr.SumExpr;
 import fr.an.drawingboard.model.expr.Expr.VariableExpr;
 import fr.an.drawingboard.model.expr.ExprBuilder;
 import lombok.val;
-import fr.an.drawingboard.model.expr.ExprVisitor2;
+import fr.an.drawingboard.model.expr.ExprFunc1Visitor;
 
-public class ConstantFoldingExprVisitor extends ExprVisitor2<Expr, Void> {
+public class ConstantFoldingExprTransformer extends ExprFunc1Visitor<Expr, Void> {
 
 	private static final ExprBuilder b = ExprBuilder.INSTANCE;
 	
-	public static final ConstantFoldingExprVisitor INSTANCE = new ConstantFoldingExprVisitor();
+	public static final ConstantFoldingExprTransformer INSTANCE = new ConstantFoldingExprTransformer();
 
-	private ConstantFoldingExprVisitor() {
+	private ConstantFoldingExprTransformer() {
 	}
 
 	public static Expr constFold(Expr expr) {

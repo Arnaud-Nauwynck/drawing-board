@@ -32,7 +32,9 @@ public abstract class PathElementDef extends ParametrizableEltDef {
 	public abstract PtExpr ptExprAtAbsciss(double s);
 
 	public abstract void accept(PathElementDefVisitor visitor);
-	
+
+	public abstract <TRes> TRes accept(PathElementDefFunc0<TRes> visitor);
+
 	public static abstract class PathElementDefVisitor {
 
 		public abstract void caseSegmentDef(SegmentPathElementDef def);
@@ -44,7 +46,19 @@ public abstract class PathElementDef extends ParametrizableEltDef {
 		public abstract void caseCubicBezierDef(CubicBezierPathElementDef def);
 		
 	}
-	
+
+	public static abstract class PathElementDefFunc0<TRes> {
+
+		public abstract TRes caseSegmentDef(SegmentPathElementDef def);
+
+		public abstract TRes caseDiscretePointsDef(DiscretePointsPathElementDef def);
+
+		public abstract TRes caseQuadBezierDef(QuadBezierPathElementDef def);
+
+		public abstract TRes caseCubicBezierDef(CubicBezierPathElementDef def);
+		
+	}
+
 	// --------------------------------------------------------------------------------------------
 
 	public static class SegmentPathElementDef extends PathElementDef {
@@ -61,6 +75,11 @@ public abstract class PathElementDef extends ParametrizableEltDef {
 		@Override
 		public void accept(PathElementDefVisitor visitor) {
 			visitor.caseSegmentDef(this);
+		}
+
+		@Override
+		public <TRes> TRes accept(PathElementDefFunc0<TRes> visitor) {
+			return visitor.caseSegmentDef(this);
 		}
 
 		@Override
@@ -103,6 +122,11 @@ public abstract class PathElementDef extends ParametrizableEltDef {
 		@Override
 		public void accept(PathElementDefVisitor visitor) {
 			visitor.caseDiscretePointsDef(this);
+		}
+
+		@Override
+		public <TRes> TRes accept(PathElementDefFunc0<TRes> visitor) {
+			return visitor.caseDiscretePointsDef(this);
 		}
 
 		public int ptExprCount() {
@@ -152,6 +176,11 @@ public abstract class PathElementDef extends ParametrizableEltDef {
 		}
 
 		@Override
+		public <TRes> TRes accept(PathElementDefFunc0<TRes> visitor) {
+			return visitor.caseQuadBezierDef(this);
+		}
+
+		@Override
 		public PtExpr ptExprAtAbscissExpr(Expr s, Expr expr1minusS) {
 			throw DrawingValidationUtils.notImplYet();
 		}
@@ -192,6 +221,11 @@ public abstract class PathElementDef extends ParametrizableEltDef {
 		@Override
 		public void accept(PathElementDefVisitor visitor) {
 			visitor.caseCubicBezierDef(this);
+		}
+
+		@Override
+		public <TRes> TRes accept(PathElementDefFunc0<TRes> visitor) {
+			return visitor.caseCubicBezierDef(this);
 		}
 
 		@Override

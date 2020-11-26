@@ -23,9 +23,9 @@ public abstract class Expr {
 
 	public abstract void accept(ExprVisitor visitor);
 	
-	public abstract <TRes,TParam> TRes accept(ExprVisitor2<TRes,TParam> visitor, TParam param);
+	public abstract <TRes,TParam> TRes accept(ExprFunc1Visitor<TRes,TParam> visitor, TParam param);
 
-	public abstract <TRes> TRes accept(ExprVisitor3<TRes> visitor);
+	public abstract <TRes> TRes accept(ExprFuncVisitor<TRes> visitor);
 
 	// --------------------------------------------------------------------------------------------
 
@@ -43,12 +43,12 @@ public abstract class Expr {
 		}
 
 		@Override
-		public <TRes,TParam> TRes accept(ExprVisitor2<TRes,TParam> visitor, TParam param) {
+		public <TRes,TParam> TRes accept(ExprFunc1Visitor<TRes,TParam> visitor, TParam param) {
 			return visitor.caseLiteral(this, param);
 		}
 		
 		@Override
-		public <TRes> TRes accept(ExprVisitor3<TRes> visitor) {
+		public <TRes> TRes accept(ExprFuncVisitor<TRes> visitor) {
 			return visitor.caseLiteral(this);
 		}
 		
@@ -115,12 +115,12 @@ public abstract class Expr {
 		}
 
 		@Override
-		public <TRes,TParam> TRes accept(ExprVisitor2<TRes,TParam> visitor, TParam param) {
+		public <TRes,TParam> TRes accept(ExprFunc1Visitor<TRes,TParam> visitor, TParam param) {
 			return visitor.caseSum(this, param);
 		}
 
 		@Override
-		public <TRes> TRes accept(ExprVisitor3<TRes> visitor) {
+		public <TRes> TRes accept(ExprFuncVisitor<TRes> visitor) {
 			return visitor.caseSum(this);
 		}
 
@@ -169,12 +169,12 @@ public abstract class Expr {
 		}
 
 		@Override
-		public <TRes,TParam> TRes accept(ExprVisitor2<TRes,TParam> visitor, TParam param) {
+		public <TRes,TParam> TRes accept(ExprFunc1Visitor<TRes,TParam> visitor, TParam param) {
 			return visitor.caseMult(this, param);
 		}
 		
 		@Override
-		public <TRes> TRes accept(ExprVisitor3<TRes> visitor) {
+		public <TRes> TRes accept(ExprFuncVisitor<TRes> visitor) {
 			return visitor.caseMult(this);
 		}
 
@@ -223,12 +223,12 @@ public abstract class Expr {
 		}
 
 		@Override
-		public <TRes,TParam> TRes accept(ExprVisitor2<TRes,TParam> visitor, TParam param) {
+		public <TRes,TParam> TRes accept(ExprFunc1Visitor<TRes,TParam> visitor, TParam param) {
 			return visitor.caseVariable(this, param);
 		}
 
 		@Override
-		public <TRes> TRes accept(ExprVisitor3<TRes> visitor) {
+		public <TRes> TRes accept(ExprFuncVisitor<TRes> visitor) {
 			return visitor.caseVariable(this);
 		}
 
@@ -278,12 +278,12 @@ public abstract class Expr {
 		}
 
 		@Override
-		public <TRes, TParam> TRes accept(ExprVisitor2<TRes,TParam> visitor, TParam param) {
+		public <TRes, TParam> TRes accept(ExprFunc1Visitor<TRes,TParam> visitor, TParam param) {
 			return visitor.caseParamDef(this, param);
 		}
 
 		@Override
-		public <TRes> TRes accept(ExprVisitor3<TRes> visitor) {
+		public <TRes> TRes accept(ExprFuncVisitor<TRes> visitor) {
 			return visitor.caseParamDef(this);
 		}
 

@@ -9,7 +9,7 @@ import fr.an.drawingboard.model.expr.Expr;
 import fr.an.drawingboard.model.expr.Expr.MultExpr;
 import fr.an.drawingboard.model.expr.Expr.SumExpr;
 import fr.an.drawingboard.model.expr.ExprBuilder;
-import fr.an.drawingboard.model.expr.ExprVisitor3.DefaultExprTransformer;
+import fr.an.drawingboard.model.expr.ExprFuncVisitor.DefaultExprTransformer;
 
 /**
  * Expand expr builder: 
@@ -20,11 +20,11 @@ import fr.an.drawingboard.model.expr.ExprVisitor3.DefaultExprTransformer;
  * @author arnaud
  *
  */
-public class ExpandExprBuilder {
+public class ExpandExprTransformer {
 
 	private static final ExprBuilder b = ExprBuilder.INSTANCE;
 	
-	protected ExpandExprBuilder() {
+	protected ExpandExprTransformer() {
 	}
 
 	protected static Expr expandExpr(Expr expr) {

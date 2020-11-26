@@ -8,7 +8,7 @@ import fr.an.drawingboard.model.expr.Expr.VariableExpr;
 import fr.an.drawingboard.model.expr.ExprBuilder;
 import fr.an.drawingboard.model.var.VarDef;
 
-public class ExpandExprBuilderTest {
+public class ExpandExprTransformerTest {
 	private static final ExprBuilder b = ExprBuilder.INSTANCE;
 	
 	@Test
@@ -44,7 +44,7 @@ public class ExpandExprBuilderTest {
 	}
 
 	protected void assertEqualsExpand(Expr expected, Expr actualToExpand) {
-		Expr actual = ExpandExprBuilder.expandExpr(actualToExpand);
+		Expr actual = ExpandExprTransformer.expandExpr(actualToExpand);
 		Assert.assertEquals(expected, actual);
 		
 	}

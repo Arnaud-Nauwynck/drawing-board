@@ -3,14 +3,15 @@ package fr.an.drawingboard.recognizer.initialParamEstimators;
 import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.trace.Pt2D;
-import fr.an.drawingboard.model.trace.TraceGesturePathes;
-import fr.an.drawingboard.model.trace.TracePt;
+import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePathElement.CubicBezierTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.DiscretePointsTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.QuadBezierTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
+import fr.an.drawingboard.model.trace.TracePt;
 import fr.an.drawingboard.model.var.ParamDef;
 import fr.an.drawingboard.recognizer.shape.InitialParamForShapeEstimator;
+import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder;
 import lombok.val;
 
 public class StdInitialParamEstimators {
@@ -20,11 +21,11 @@ public class StdInitialParamEstimators {
 	}
 
 	public static void estimateRectInitialParamsFor( //
-			TraceGesturePathes gestureDef,
+			TraceGesture gestureDef,
 			GesturePathesDef gesture,
 			NumericExprEvalCtx res) {
 		// ensure coefs per points are computed
-		gestureDef.updatePtCoefs(); // useless?
+		WeightedDiscretizationPathPtsBuilder.updatePtCoefs(gestureDef); // redundant useless?
 		
 		final double avgX, avgY;
 		final double minX, maxX, minY, maxY;

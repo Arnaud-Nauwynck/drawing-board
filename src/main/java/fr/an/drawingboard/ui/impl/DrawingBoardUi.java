@@ -9,7 +9,7 @@ import fr.an.drawingboard.model.shape.Shape;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
-import fr.an.drawingboard.model.trace.TraceGesturePathes;
+import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePath;
 import fr.an.drawingboard.model.trace.TracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.DiscretePointsTracePathElement;
@@ -17,10 +17,11 @@ import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElementBuilder;
 import fr.an.drawingboard.model.trace.TracePt;
 import fr.an.drawingboard.model.trace.TraceShape;
-import fr.an.drawingboard.model.trace2shape.DiscreteTimesToAbsciss;
+import fr.an.drawingboard.model.trace2shape.GesturePtToAbscissMatch;
 import fr.an.drawingboard.recognizer.shape.MatchShapeToCostExprBuilder;
 import fr.an.drawingboard.recognizer.trace.StopPointDetector;
 import fr.an.drawingboard.recognizer.trace.TracePathElementDetector;
+import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder;
 import fr.an.drawingboard.stddefs.shapedef.ShapeDefRegistryBuilder;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -78,13 +79,13 @@ public class DrawingBoardUi {
 	// 
 	private double currLineWidth = 2;
 	
-	private TraceGesturePathes currGesture;
+	private TraceGesture currGesture;
 	private TracePath currPath;
 	private TracePathElementBuilder currPathElementBuilder;
 
 	private ShapeDefRegistry shapeDefRegistry;
 
-	private DiscreteTimesToAbsciss currMatchIndexToAbsciss;
+	private GesturePtToAbscissMatch currMatchIndexToAbsciss;
 	private Shape currMatchShape;
 	
 	// --------------------------------------------------------------------------------------------
@@ -145,7 +146,7 @@ public class DrawingBoardUi {
 		toolbarItems.add(button);
 		button.setOnAction(event -> {
 			// remove last
-			TraceGesturePathes lastGesture = traceShape.getLast();
+			TraceGesture lastGesture = traceShape.getLast();
 			if (lastGesture != null) {
 				lastGesture.removeLastPath();
 				if (lastGesture.isEmpty()) {
@@ -247,7 +248,7 @@ public class DrawingBoardUi {
 				currPathElementBuilder = null;
 				currPath = null;
 				if (currGesture != null) {
-					currGesture.updatePtCoefs();
+					WeightedDiscretizationPathPtsBuilder.updatePtCoefs(currGesture);
 					currGesture = null;
 				}
 				
@@ -314,7 +315,7 @@ public class DrawingBoardUi {
 	}
 	
 
-	private TraceGesturePathes currOrAppendGesture() { 
+	private TraceGesture currOrAppendGesture() { 
 		 if (currGesture == null) {
 			 currGesture = traceShape.appendNewGesture();
 		 }
@@ -322,7 +323,7 @@ public class DrawingBoardUi {
 	}
 	private TracePath currOrAppendPath() { 
 		 if (currPath == null) {
-			 TraceGesturePathes gesture = currOrAppendGesture();
+			 TraceGesture gesture = currOrAppendGesture();
 			 currPath = gesture.appendNewPath();
 		 }
 		 return currPath;
@@ -343,7 +344,7 @@ public class DrawingBoardUi {
 
 	private void tryMatchShape(ShapeDef currMatchShapeDef) {
 		GesturePathesDef gestureDef = currMatchShapeDef.gestures.get(0);
-		TraceGesturePathes matchGesture = traceShape.getLast();
+		TraceGesture matchGesture = traceShape.getLast();
 		if (matchGesture == null) {
 			return;
 		}
@@ -362,11 +363,11 @@ public class DrawingBoardUi {
 
 			// TODO currMatchIndexToAbsciss = new DiscreteTimesToAbsciss();
 			
-			Expr costExpr = matchShapeToCostExprBuilder.costMatchGestureWithAbsciss(
-					matchGesture,
-					gestureDef, 
-					currMatchIndexToAbsciss);
-
+//			Expr costExpr = matchShapeToCostExprBuilder.costMatchGestureWithAbsciss(
+//					matchGesture,
+//					gestureDef, 
+//					currMatchIndexToAbsciss);
+//
 			// TODO ..
 			
 					

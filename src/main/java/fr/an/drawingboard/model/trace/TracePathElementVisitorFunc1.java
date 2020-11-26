@@ -5,7 +5,7 @@ import fr.an.drawingboard.model.trace.TracePathElement.DiscretePointsTracePathEl
 import fr.an.drawingboard.model.trace.TracePathElement.QuadBezierTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
 
-public abstract class TracePathElementVisitor2<TRes,TParam> {
+public abstract class TracePathElementVisitorFunc1<TRes,TParam> {
 	
 	public abstract TRes caseSegment(SegmentTracePathElement elt, TParam p);
 

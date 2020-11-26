@@ -10,7 +10,7 @@ import fr.an.drawingboard.model.expr.Expr.ParamDefExpr;
 import fr.an.drawingboard.model.expr.Expr.SumExpr;
 import fr.an.drawingboard.model.expr.Expr.VariableExpr;
 import fr.an.drawingboard.model.expr.ExprBuilder;
-import fr.an.drawingboard.model.expr.ExprVisitor2;
+import fr.an.drawingboard.model.expr.ExprFunc1Visitor;
 import fr.an.drawingboard.model.var.ParamDef;
 import fr.an.drawingboard.model.var.VarDef;
 import lombok.AllArgsConstructor;
@@ -55,7 +55,7 @@ public class DerivativeExprBuilder {
 	/**
 	 *
 	 */
-	public static final class DeriveExprVisitor extends ExprVisitor2<Expr, DeriveByVarOrParamDef> {
+	public static final class DeriveExprVisitor extends ExprFunc1Visitor<Expr, DeriveByVarOrParamDef> {
 
 		public static final DeriveExprVisitor INSTANCE = new DeriveExprVisitor();
 

@@ -6,7 +6,7 @@ import fr.an.drawingboard.model.expr.Expr.ParamDefExpr;
 import fr.an.drawingboard.model.expr.Expr.SumExpr;
 import fr.an.drawingboard.model.expr.Expr.VariableExpr;
 
-public abstract class ExprVisitor2<TRes,TParam> {
+public abstract class ExprFunc1Visitor<TRes,TParam> {
 
 	public abstract TRes caseLiteral(LiteralDoubleExpr expr, TParam param);
 

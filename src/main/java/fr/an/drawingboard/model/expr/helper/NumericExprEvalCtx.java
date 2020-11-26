@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fr.an.drawingboard.model.expr.Expr;
-import fr.an.drawingboard.model.expr.ExprVisitor2;
+import fr.an.drawingboard.model.expr.ExprFunc1Visitor;
 import fr.an.drawingboard.model.expr.Expr.LiteralDoubleExpr;
 import fr.an.drawingboard.model.expr.Expr.MultExpr;
 import fr.an.drawingboard.model.expr.Expr.ParamDefExpr;
@@ -69,7 +69,7 @@ public class NumericExprEvalCtx {
 		public double value;
 	}
 
-	public static final class NumericalEvalExprVisitor extends ExprVisitor2<Void, ResCtx> {
+	public static final class NumericalEvalExprVisitor extends ExprFunc1Visitor<Void, ResCtx> {
 		public static final NumericalEvalExprVisitor INSTANCE = new NumericalEvalExprVisitor();
 
 		private NumericalEvalExprVisitor() {

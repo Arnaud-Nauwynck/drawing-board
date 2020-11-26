@@ -37,7 +37,8 @@ public abstract class TracePathElement {
 	public abstract TracePathElementType getType();
 	
 	public abstract void visit(TracePathElementVisitor visitor);
-	public abstract <TRes,TParam> TRes visit(TracePathElementVisitor2<TRes,TParam> visitor, TParam p);
+	public abstract <TRes> TRes visit(TracePathElementVisitorFunc0<TRes> visitor);
+	public abstract <TRes,TParam> TRes visit(TracePathElementVisitorFunc1<TRes,TParam> visitor, TParam p);
 	
 	// --------------------------------------------------------------------------------------------
 
@@ -58,7 +59,12 @@ public abstract class TracePathElement {
 		}
 
 		@Override
-		public <TRes,TParam> TRes visit(TracePathElementVisitor2<TRes,TParam> visitor, TParam p) {
+		public <TRes> TRes visit(TracePathElementVisitorFunc0<TRes> visitor) {
+			return visitor.caseSegment(this);
+		}
+
+		@Override
+		public <TRes,TParam> TRes visit(TracePathElementVisitorFunc1<TRes,TParam> visitor, TParam p) {
 			return visitor.caseSegment(this, p);
 		}
 
@@ -89,7 +95,12 @@ public abstract class TracePathElement {
 		}
 
 		@Override
-		public <TRes,TParam> TRes visit(TracePathElementVisitor2<TRes,TParam> visitor, TParam p) {
+		public <TRes> TRes visit(TracePathElementVisitorFunc0<TRes> visitor) {
+			return visitor.caseDiscretePts(this);
+		}
+
+		@Override
+		public <TRes,TParam> TRes visit(TracePathElementVisitorFunc1<TRes,TParam> visitor, TParam p) {
 			return visitor.caseDiscretePts(this, p);
 		}
 
@@ -145,7 +156,12 @@ public abstract class TracePathElement {
 		}
 
 		@Override
-		public <TRes,TParam> TRes visit(TracePathElementVisitor2<TRes,TParam> visitor, TParam p) {
+		public <TRes> TRes visit(TracePathElementVisitorFunc0<TRes> visitor) {
+			return visitor.caseQuadBezier(this);
+		}
+
+		@Override
+		public <TRes,TParam> TRes visit(TracePathElementVisitorFunc1<TRes,TParam> visitor, TParam p) {
 			return visitor.caseQuadBezier(this, p);
 		}
 		
@@ -189,7 +205,12 @@ public abstract class TracePathElement {
 		}
 
 		@Override
-		public <TRes,TParam> TRes visit(TracePathElementVisitor2<TRes,TParam> visitor, TParam p) {
+		public <TRes> TRes visit(TracePathElementVisitorFunc0<TRes> visitor) {
+			return visitor.caseCubicBezier(this);
+		}
+
+		@Override
+		public <TRes,TParam> TRes visit(TracePathElementVisitorFunc1<TRes,TParam> visitor, TParam p) {
 			return visitor.caseCubicBezier(this, p);
 		}
 
