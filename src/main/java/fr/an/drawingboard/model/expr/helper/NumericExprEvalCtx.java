@@ -59,6 +59,16 @@ public class NumericExprEvalCtx {
 		return found.doubleValue();
 	}
 
+	
+	public VarDef findVarByName(String name) {
+		for(val varDef : varValues.keySet()) {
+			if (varDef.name.equals(name)) {
+				return varDef; 
+			}
+		}
+		return null;
+	}
+
 	public double evalExpr(Expr expr) {
 		ResCtx resCtx = new ResCtx(this);
 		expr.accept(NumericalEvalExprVisitor.INSTANCE, resCtx);

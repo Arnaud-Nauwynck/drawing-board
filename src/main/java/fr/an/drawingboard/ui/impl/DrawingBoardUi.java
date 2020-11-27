@@ -2,6 +2,7 @@ package fr.an.drawingboard.ui.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
 import fr.an.drawingboard.model.shape.Shape;
@@ -19,6 +20,7 @@ import fr.an.drawingboard.model.trace.TracePathElementBuilder;
 import fr.an.drawingboard.model.trace.TracePt;
 import fr.an.drawingboard.model.trace.TraceShape;
 import fr.an.drawingboard.model.trace2shape.GesturePtToAbscissMatch;
+import fr.an.drawingboard.model.var.VarDef;
 import fr.an.drawingboard.recognizer.shape.MatchShapeToCostExprBuilder;
 import fr.an.drawingboard.recognizer.trace.StopPointDetector;
 import fr.an.drawingboard.recognizer.trace.TracePathElementDetector;
@@ -31,7 +33,9 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.Slider;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyEvent;
@@ -74,6 +78,7 @@ public class DrawingBoardUi {
 	TracePathElementDetector pathElementDetector = new TracePathElementDetector();
 	MatchShapeToCostExprBuilder matchShapeToCostExprBuilder = new MatchShapeToCostExprBuilder();
 	int discretizationPrecision = 30;
+	Function<NumericExprEvalCtx,NumericExprEvalCtx> paramCtxInitTransformer;
 	
 	boolean showSettingsStopPointDetector = false;
 	
@@ -189,6 +194,27 @@ public class DrawingBoardUi {
 		checkBoxDebugMatchPtToAbsciss.setOnAction(e -> paintCanvas());
 		toolbarItems.add(checkBoxDebugMatchPtToAbsciss);
 		
+		{
+			ToggleGroup group = new ToggleGroup();
+			toolbarItems.add(createParamCtxTransformerRadioButton(group, ".", null));
+			toolbarItems.add(createParamCtxTransformerRadioButton(group, "->", 
+					ctx -> {
+						VarDef xDef = ctx.findVarByName("x");
+						ctx.putVarValue(xDef, ctx.varValue(xDef) + 50);
+						return ctx;
+					}));
+			toolbarItems.add(createParamCtxTransformerRadioButton(group, "x2", 
+					ctx -> {
+						VarDef wDef = ctx.findVarByName("w");
+						double wValue = ctx.varValue(wDef);
+						ctx.putVarValue(wDef, wValue * 2);
+						VarDef hDef = ctx.findVarByName("h");
+						ctx.putVarValue(hDef, ctx.varValue(hDef) * 2);
+						return ctx;
+					}));
+
+		}
+		
 //		final TextField nameText = new TextField();
 //		nameText.setText("");
 //		toolbarItems.add(nameText);
@@ -198,6 +224,15 @@ public class DrawingBoardUi {
 		toolbarItems.add(createMatchShapeButton("Rect", "rectangle", 0));
 		toolbarItems.add(createMatchShapeButton("R(DL->UR..)", "rectangle", 1));
 		toolbarItems.add(createMatchShapeButton("HCross", "hcross", 0));
+	}
+
+	private RadioButton createParamCtxTransformerRadioButton(ToggleGroup group, String label, Function<NumericExprEvalCtx, NumericExprEvalCtx> transformer) {
+		RadioButton but1 = new RadioButton(label);
+		but1.setToggleGroup(group);
+		but1.setOnAction(e -> {
+			paramCtxInitTransformer = transformer;
+		});
+		return but1;
 	}
 	
 	private Button createMatchShapeButton(String label, String shapeName, int gestureIndex) {
@@ -365,6 +400,10 @@ public class DrawingBoardUi {
 		gestureDef.initalParamEstimator.estimateInitialParamsFor(
 				matchGesture, gestureDef, currMatchParamCtx);
 
+		if (paramCtxInitTransformer != null) {
+			this.currMatchParamCtx = paramCtxInitTransformer.apply(currMatchParamCtx);
+		}
+		
 		this.currGesturePtToAbscissMatch = new GesturePtToAbscissMatch(matchGesture, gestureDef, 
 				discretizationPrecision, 
 				currMatchParamCtx);
