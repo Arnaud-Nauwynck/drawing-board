@@ -1,5 +1,7 @@
 package fr.an.drawingboard.recognizer.initialParamEstimators;
 
+import java.util.List;
+
 import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.trace.Pt2D;
@@ -37,7 +39,8 @@ public class StdInitialParamEstimators {
 		double estimX, estimY, estimW, estimH;
 		if (! gesture.pathes.isEmpty()) {
 			TracePath firstPath = gesture.pathes.get(0);
-			TracePathElement firstPathElt = firstPath.pathElements.get(0);
+			List<TracePathElement> pathElements = firstPath.pathElements;
+			TracePathElement firstPathElt = pathElements.get(0);
 			TracePt startPt = firstPathElt.startPt;
 			TracePath lastPath = gesture.getLast();
 			TracePathElement lastPathElt = lastPath.getLastPathElement();
@@ -64,10 +67,10 @@ public class StdInitialParamEstimators {
 		Pt2D controlPt;
 		TracePath path0 = gesture.pathes.get(0);
 		if (path0.pathElements.size() == 2) {
-			controlPt = path0.pathElements.get(0).endPt.pt2DCopy();
+			controlPt = path0.pathElements.get(0).endPt.xy();
 		} else {
 			// TODO
-			controlPt = path0.pathElements.get(0).endPt.pt2DCopy();
+			controlPt = path0.pathElements.get(0).endPt.xy();
 		}
 		// fill res ctx
 		ParamDef ctrlPtX = gestureDef.getParam("ctrlPtX");

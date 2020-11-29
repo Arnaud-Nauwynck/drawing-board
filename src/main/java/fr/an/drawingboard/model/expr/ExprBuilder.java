@@ -1,5 +1,6 @@
 package fr.an.drawingboard.model.expr;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import fr.an.drawingboard.model.expr.Expr.LiteralDoubleExpr;
@@ -7,6 +8,7 @@ import fr.an.drawingboard.model.expr.Expr.MultExpr;
 import fr.an.drawingboard.model.expr.Expr.SumExpr;
 import fr.an.drawingboard.model.shapedef.PtExpr;
 import fr.an.drawingboard.model.trace.TracePt;
+import lombok.val;
 
 public class ExprBuilder {
 
@@ -15,7 +17,19 @@ public class ExprBuilder {
 	}
 
 	public Expr lit(double value) {
-		return new LiteralDoubleExpr(value);
+		if (value == 0.0) {
+			return lit0();
+		} else if (value == 1.0) {
+			return lit1();
+		} else if (value == -1.0) {
+			return litMinus1();
+		} else if (value == 2.0) {
+			return lit2();
+		} else if (value == -2.0) {
+			return litMinus2();
+		} else {
+			return new LiteralDoubleExpr(value);
+		}
 	}
 
 	public Expr lit0() {
@@ -57,7 +71,33 @@ public class ExprBuilder {
 		} else if (exprs.size() == 1) {
 			return exprs.get(0);
 		}
-		return new SumExpr(exprs);
+		return sum(0.0, exprs);
+	}
+
+	public Expr sum(double expr0, List<Expr> exprs) {
+		if (exprs.isEmpty()) {
+			return lit(expr0);
+		} else if (exprs.size() == 1 && expr0 == 0.0) {
+			return exprs.get(0);
+		}
+		// extract all literal from exprs, sum them
+		double resultLiteral = expr0;
+		List<Expr> remainingExprs = new ArrayList<>(exprs.size());
+		for(val e : exprs) {
+			if (e instanceof LiteralDoubleExpr) {
+				double eDouble = ((LiteralDoubleExpr) e).value;
+				resultLiteral += eDouble;
+			} else {
+				remainingExprs.add(e);
+			}
+		}
+		if (resultLiteral != 0.0) {
+			remainingExprs.add(lit(resultLiteral));
+		}
+		if (remainingExprs.isEmpty()) {
+			return lit0();
+		}
+		return new SumExpr(remainingExprs);
 	}
 
 	public Expr minus(Expr expr) {
@@ -107,7 +147,37 @@ public class ExprBuilder {
 		} else if (exprs.size() == 1) {
 			return exprs.get(0);
 		}
-		return new MultExpr(exprs);
+		return mult(1.0, exprs);
+	}
+
+	public Expr mult(double expr0, List<Expr> exprs) {
+		if (expr0 == 0.0) {
+			return lit0();
+		}
+		if (exprs.isEmpty()) {
+			return lit(expr0);
+		} else {
+			// extract all literal from exprs, multiply them
+			double resultCoef = expr0;
+			List<Expr> remainingExprs = new ArrayList<>(exprs.size());
+			for(val e : exprs) {
+				if (e instanceof LiteralDoubleExpr) {
+					double eDouble = ((LiteralDoubleExpr) e).value;
+					if (eDouble == 0.0) {
+						return lit0(); // 0 *x*y ... = 0 !!
+					}
+					resultCoef *= eDouble;
+				} else {
+					remainingExprs.add(e);
+				}
+			}
+			if (resultCoef != 1.0) {
+				remainingExprs.add(lit(resultCoef));
+			} else if (remainingExprs.isEmpty()) {
+				return lit(resultCoef);
+			}
+			return new MultExpr(remainingExprs);
+		}
 	}
 
 	public Expr square(Expr expr) {

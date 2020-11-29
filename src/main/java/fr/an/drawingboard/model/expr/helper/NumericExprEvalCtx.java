@@ -69,6 +69,16 @@ public class NumericExprEvalCtx {
 		return null;
 	}
 
+	public ParamDef findParamByName(String name) {
+		for(val paramDef : paramValues.keySet()) {
+			if (paramDef.name.equals(name)) {
+				return paramDef; 
+			}
+		}
+		return null;
+	}
+	
+
 	public double evalExpr(Expr expr) {
 		ResCtx resCtx = new ResCtx(this);
 		expr.accept(NumericalEvalExprVisitor.INSTANCE, resCtx);

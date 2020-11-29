@@ -74,6 +74,7 @@ public class DrawingBoardUi {
 
 	private List<Shape> shapes = new ArrayList<>();
 	
+	AlmostAlignedPtsSimplifier almostAlignedPtsSimplifier = new AlmostAlignedPtsSimplifier();
 	StopPointDetector stopPointDetector = new StopPointDetector();
 	TracePathElementDetector pathElementDetector = new TracePathElementDetector();
 	MatchShapeToCostExprBuilder matchShapeToCostExprBuilder = new MatchShapeToCostExprBuilder();
@@ -81,6 +82,7 @@ public class DrawingBoardUi {
 	Function<NumericExprEvalCtx,NumericExprEvalCtx> paramCtxInitTransformer;
 	
 	boolean showSettingsStopPointDetector = false;
+	boolean showSettingsAlmostAlignedPtsSimplifier = true;
 	
 	// 
 	private double currLineWidth = 2;
@@ -199,31 +201,89 @@ public class DrawingBoardUi {
 			toolbarItems.add(createParamCtxTransformerRadioButton(group, ".", null));
 			toolbarItems.add(createParamCtxTransformerRadioButton(group, "->", 
 					ctx -> {
-						VarDef xDef = ctx.findVarByName("x");
-						ctx.putVarValue(xDef, ctx.varValue(xDef) + 50);
+						val xDef = ctx.findParamByName("x");
+						ctx.putParamValue(xDef, ctx.paramValue(xDef) + 50);
 						return ctx;
 					}));
 			toolbarItems.add(createParamCtxTransformerRadioButton(group, "x2", 
 					ctx -> {
-						VarDef wDef = ctx.findVarByName("w");
-						double wValue = ctx.varValue(wDef);
-						ctx.putVarValue(wDef, wValue * 2);
-						VarDef hDef = ctx.findVarByName("h");
-						ctx.putVarValue(hDef, ctx.varValue(hDef) * 2);
+						val wDef = ctx.findParamByName("w");
+						double wValue = ctx.paramValue(wDef);
+						ctx.putParamValue(wDef, wValue * 2);
+						val hDef = ctx.findParamByName("h");
+						ctx.putParamValue(hDef, ctx.paramValue(hDef) * 2);
 						return ctx;
 					}));
 
 		}
 		
-//		final TextField nameText = new TextField();
-//		nameText.setText("");
-//		toolbarItems.add(nameText);
 
+		if (showSettingsAlmostAlignedPtsSimplifier) {
+			// settings for AlmostAlignedPtsSimplifier 
+			{ // simplifyMergePtDist = 5;
+				Slider slider = new Slider();
+				slider.setTooltip(new Tooltip("merge pt narrow less than distance"));
+				slider.setMin(0);
+				slider.setMax(15);
+				slider.setShowTickMarks(true);
+				slider.setShowTickLabels(true);
+				slider.setValue(this.almostAlignedPtsSimplifier.getSimplifyMergePtDist());
+				slider.valueProperty().addListener((ctrl,oldValue,newValue) -> {
+					this.almostAlignedPtsSimplifier.setSimplifyMergePtDist(newValue.doubleValue());
+				});
+				toolbarItems.add(slider);
+			}
+			
+			{ // maxOrth05DistRatio = .07;
+				Slider slider = new Slider();
+				slider.setTooltip(new Tooltip("max angle ratio (in %) for almost aligned"));
+				slider.setMin(0);
+				slider.setMax(25);
+				slider.setShowTickMarks(true);
+				slider.setShowTickLabels(true);
+				slider.setValue(this.almostAlignedPtsSimplifier.getMaxOrth05DistRatio() * 100);
+				slider.valueProperty().addListener((ctrl,oldValue,newValue) -> {
+					this.almostAlignedPtsSimplifier.setMaxOrth05DistRatio(newValue.doubleValue() / 100.0);
+				});
+				toolbarItems.add(slider);
+			}
+			
+			{ // maxOrthDistOffset = 10.0; // unit: pixels
+				Slider slider = new Slider();
+				slider.setTooltip(new Tooltip("max offset height (in pixels) for almost aligned"));
+				slider.setMin(0);
+				slider.setMax(30);
+				slider.setShowTickMarks(true);
+				slider.setShowTickLabels(true);
+				slider.setValue(this.almostAlignedPtsSimplifier.getMaxOrthDistOffset());
+				slider.valueProperty().addListener((ctrl,oldValue,newValue) -> {
+					this.almostAlignedPtsSimplifier.setMaxOrthDistOffset(newValue.doubleValue());
+				});
+				toolbarItems.add(slider);
+			}
+			
+		}
+		
+		
+		toolbarItems.add(createButton("Simplify", () -> {
+			TraceGesture gesture = (currGesture != null)? currGesture : traceShape.getLast();
+			if (gesture != null) {
+				almostAlignedPtsSimplifier.simplifyGestureLines(gesture);
+				paintCanvas();
+			}
+		}));
+		
 		toolbarItems.add(createMatchShapeButton("Line", "line", 0));
 		toolbarItems.add(createMatchShapeButton("Line2", "line2", 0));
 		toolbarItems.add(createMatchShapeButton("Rect", "rectangle", 0));
 		toolbarItems.add(createMatchShapeButton("R(DL->UR..)", "rectangle", 1));
 		toolbarItems.add(createMatchShapeButton("HCross", "hcross", 0));
+	}
+
+	private Button createButton(String label, Runnable action) {
+		Button but = new Button(label);
+		but.setOnAction(e -> action.run());
+		return but;
 	}
 
 	private RadioButton createParamCtxTransformerRadioButton(ToggleGroup group, String label, Function<NumericExprEvalCtx, NumericExprEvalCtx> transformer) {
@@ -277,7 +337,6 @@ public class DrawingBoardUi {
 		public void onMouseExited(MouseEvent e) {
 			// System.out.println("mouse exited ");
 			// canvas.requestFocus();
-			// foxus ??
 		}
 		@Override
 		public void onMousePressed(MouseEvent e) {
@@ -493,7 +552,7 @@ public class DrawingBoardUi {
 		drawSegment(gc, segment.startPt, segment.endPt);
 	}
 	private void drawSegment(GraphicsContext gc, TracePt startPt, TracePt endPt) {
-		drawSegment(gc, startPt.pt2DCopy(), endPt.pt2DCopy());
+		drawSegment(gc, startPt.xy(), endPt.xy());
 	}
 	private void drawSegment(GraphicsContext gc, Pt2D startPt, Pt2D endPt) {
 		gc.beginPath();
@@ -563,7 +622,7 @@ public class DrawingBoardUi {
 			Pt2D ptDef = currMatchParamCtx.evalPtExpr(ptDefExpr);
 
 			// drawPtCircle(gc, pt, 3);
-			drawSegment(gc, pt.pt2DCopy(), ptDef);
+			drawSegment(gc, pt.xy(), ptDef);
 			// drawPtCircle(gc, ptDef, 3);
 			
 		}

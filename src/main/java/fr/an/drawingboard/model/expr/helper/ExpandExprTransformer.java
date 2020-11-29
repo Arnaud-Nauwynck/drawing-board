@@ -12,12 +12,10 @@ import fr.an.drawingboard.model.expr.ExprBuilder;
 import fr.an.drawingboard.model.expr.ExprFunc0.DefaultExprTransformer;
 
 /**
- * Expand expr builder: 
+ * Expand expr transformer: 
  * <PRE>
  * a x ( b + c ) => ( a x b)  + ( a x c )
  * </PRE>
- * 
- * @author arnaud
  *
  */
 public class ExpandExprTransformer {
@@ -27,7 +25,7 @@ public class ExpandExprTransformer {
 	protected ExpandExprTransformer() {
 	}
 
-	protected static Expr expandExpr(Expr expr) {
+	public static Expr expandExpr(Expr expr) {
 		Expr res = expr.accept(ExpandExprVisitor.INSTANCE);
 		return res;
 	}

@@ -30,7 +30,7 @@ public class TracePt {
 		return isStopPoint || isMergeStopPoint;
 	}
 
-	public Pt2D pt2DCopy() {
+	public Pt2D xy() {
 		return new Pt2D(x, y);
 	}
 
