@@ -7,7 +7,7 @@ import lombok.Getter;
 /**
  * Immutable matrix of double
  */
-public class ImmutableMatrixDouble {
+public class ImmutableDoubleMatrix {
 
 	@Getter
 	public final int dim0;
@@ -20,30 +20,30 @@ public class ImmutableMatrixDouble {
 		return new MatrixDoubleBuilder(dim0, dim1); 
 	}
 
-	public ImmutableMatrixDouble(int dim0, int dim1, double[][] data) {
+	public ImmutableDoubleMatrix(int dim0, int dim1, double[][] data) {
 		this.dim0 = dim0;
 		this.dim1 = dim1;
 		DoubleArrayUtils.checkDim2D(dim0, dim1, data);
 		this.data = DoubleArrayUtils.copyArray2D(data);
 	}
 
-	public static ImmutableMatrixDouble createMatN1(double[] data) {
+	public static ImmutableDoubleMatrix createMatN1(double[] data) {
 		int dim0 = data.length;
 		double[][] res = new double[dim0][];
 		for(int i0 = 0; i0 < dim0; i0++) {
 			res[i0] = new double[] { data[i0] };
 		}
-		return new ImmutableMatrixDouble(dim0, 1, res);
+		return new ImmutableDoubleMatrix(dim0, 1, res);
 	}
 
-	public static ImmutableMatrixDouble createMat1N(double[] data) {
+	public static ImmutableDoubleMatrix createMat1N(double[] data) {
 		int dim1 = data.length;
 		double[][] res = new double[1][dim1];
 		double[] res0 = res[0] = new double[dim1];
 		for(int i1 = 0; i1 < dim1; i1++) {
 			res0[i1] = data[i1];
 		}
-		return new ImmutableMatrixDouble(1, dim1, res);
+		return new ImmutableDoubleMatrix(1, dim1, res);
 	}
 
 	public double get(int i, int j) {
@@ -54,17 +54,17 @@ public class ImmutableMatrixDouble {
 		return DoubleArrayUtils.copyArray2D(data);
 	}
 
-	public ImmutableMatrixDouble extractRow(int i0) {
+	public ImmutableDoubleMatrix extractRow(int i0) {
 		return createMat1N(data[i0]);
 	}
 	
-	public ImmutableMatrixDouble extractCol(int i1) {
+	public ImmutableDoubleMatrix extractCol(int i1) {
 		double[][] res = new double[1][dim1];
 		double[] res0 = res[0] = new double[dim1];
 		for(int i0 = 0; i0 < dim1; i0++) {
 			res0[i1] = data[i0][i1];
 		}
-		return new ImmutableMatrixDouble(dim0, 1, res);	
+		return new ImmutableDoubleMatrix(dim0, 1, res);	
 	}
 
 	// --------------------------------------------------------------------------------------------
@@ -94,8 +94,8 @@ public class ImmutableMatrixDouble {
 			this.data = (copy)? DoubleArrayUtils.copyArray2D(data) : data;
 		}
 
-		public ImmutableMatrixDouble build() {
-			return new ImmutableMatrixDouble(dim0, dim1, data);
+		public ImmutableDoubleMatrix build() {
+			return new ImmutableDoubleMatrix(dim0, dim1, data);
 		}
 		
 		public double get(int i, int j) {

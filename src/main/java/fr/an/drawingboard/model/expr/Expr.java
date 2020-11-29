@@ -63,8 +63,8 @@ public abstract class Expr {
 		public static final LiteralDoubleExpr VAL_minus1 = new LiteralDoubleExpr(-1);
 		public static final LiteralDoubleExpr VAL_2 = new LiteralDoubleExpr(2);
 		public static final LiteralDoubleExpr VAL_minus2 = new LiteralDoubleExpr(-2);
-		public static final LiteralDoubleExpr VAL_05 = new LiteralDoubleExpr(0.5);
-		public static final LiteralDoubleExpr VAL_minus05 = new LiteralDoubleExpr(-0.5);
+		public static final LiteralDoubleExpr VAL_inv2 = new LiteralDoubleExpr(0.5);
+		public static final LiteralDoubleExpr VAL_minusInv2 = new LiteralDoubleExpr(-0.5);
 
 		public static boolean isLit0(Expr expr) {
 			return (expr instanceof LiteralDoubleExpr)

@@ -41,23 +41,25 @@ public class QuadraticTermsNVarsCollectorTest {
 		//     = t|x| .| adg           1/2(aeg+bdg)  |. |x|  + t|x|.|afg+dcg|  +  cfg
 		//        |y|  | 1/2(aeg+bdg)  beg           |  |y|     |y| |bfg+ceg|
 
-		MatrixExpr quadTerms = quadForm.otherQuadTerms;
-		Assert.assertEquals(B.mult(a,d,g), quadTerms.get(0, 0));
-		Assert.assertEquals(B.mult(b,e,g), quadTerms.get(1, 1));
-		Expr q_01 = B.mult(B.lit(0.5), B.sum(B.mult(a,e,g), B.mult(b,d,g)));
+		MatrixExpr quadTerms = quadForm.quadExprMatrix;
+		Assert.assertEquals(B.mult(g, a, d), quadTerms.get(0, 0));
+		Assert.assertEquals(B.mult(g, b, e), quadTerms.get(1, 1));
+		Expr q_01 = B.sum(B.mult(g,a,e,B.litInv2()), B.mult(g,b,d,B.litInv2()));
 		Assert.assertEquals(q_01, quadTerms.get(0, 1));
 		Assert.assertEquals(q_01, quadTerms.get(1, 0));
 
-		MatrixExpr linTerms = quadForm.otherLinearTerms;
-		Assert.assertEquals(B.sum(B.mult(a,f,g), B.mult(d,c,g)), linTerms.get(0, 0));
-		Assert.assertEquals(B.sum(B.mult(b,f,g), B.mult(c,e,g)), linTerms.get(1, 0));
+		MatrixExpr linTerms = quadForm.linExprMatrix;
+		Assert.assertEquals(B.sum(B.mult(g,a,f), B.mult(g,c,d)), linTerms.get(0, 0));
+		Assert.assertEquals(B.sum(B.mult(g,b,f), B.mult(g,c,e)), linTerms.get(0, 1));
 		
-		Assert.assertEquals(B.mult(c,f,g), quadForm.constTerm);
+		Assert.assertEquals(B.mult(g,c,f), quadForm.constExpr);
 		
-		Assert.assertEquals(0.0, quadForm.doubleLinearTerms.get(0, 0), PREC);
-		Assert.assertEquals(0.0, quadForm.doubleLinearTerms.get(1, 0), PREC);
-		Assert.assertEquals(0.0, quadForm.doubleLinearTerms.get(0, 1), PREC);
-		Assert.assertEquals(0.0, quadForm.doubleLinearTerms.get(1, 1), PREC);
+		Assert.assertEquals(0.0, quadForm.quadLiteralMatrix.get(0, 0), PREC);
+		Assert.assertEquals(0.0, quadForm.quadLiteralMatrix.get(0, 1), PREC);
+		Assert.assertEquals(0.0, quadForm.quadLiteralMatrix.get(1, 0), PREC);
+		Assert.assertEquals(0.0, quadForm.quadLiteralMatrix.get(1, 1), PREC);
+		Assert.assertEquals(0.0, quadForm.linLiteralMatrix.get(0, 0), PREC);
+		Assert.assertEquals(0.0, quadForm.linLiteralMatrix.get(0, 1), PREC);
 	}
 	
 }

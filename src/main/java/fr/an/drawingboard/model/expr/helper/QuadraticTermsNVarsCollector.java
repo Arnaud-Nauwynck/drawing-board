@@ -20,8 +20,8 @@ import fr.an.drawingboard.model.expr.Expr.SumExpr;
 import fr.an.drawingboard.model.expr.Expr.VariableExpr;
 import fr.an.drawingboard.model.expr.ExprBuilder;
 import fr.an.drawingboard.model.expr.ExprVisitor;
-import fr.an.drawingboard.model.expr.matrix.ImmutableMatrixDouble;
-import fr.an.drawingboard.model.expr.matrix.ImmutableMatrixDouble.MatrixDoubleBuilder;
+import fr.an.drawingboard.model.expr.matrix.ImmutableDoubleMatrix;
+import fr.an.drawingboard.model.expr.matrix.ImmutableDoubleMatrix.MatrixDoubleBuilder;
 import fr.an.drawingboard.model.expr.matrix.MatrixExpr;
 import fr.an.drawingboard.model.expr.matrix.MatrixExpr.MatrixExprBuilder;
 import fr.an.drawingboard.model.var.VarDef;
@@ -35,20 +35,25 @@ import lombok.val;
  */
 public class QuadraticTermsNVarsCollector {
 
+	/**
+	 * QuadForm(X)= 'X A X + 'B X + C
+	 * where A = quadLiteralMatrix .. for literal terms
+	 *           + quadExprMatrix .. for algebric terms
+	 */
 	@AllArgsConstructor
 	public static class QuadraticForm {
 		public final ImmutableList<VarDef> vars;
 		public final ImmutableMap<VarDef,Integer> varToIndex;
 		
 		// when detected litteral coefficient on variable term:
-		public final ImmutableMatrixDouble doubleQuadTerms;
-		public final ImmutableMatrixDouble doubleLinearTerms;
-		public final double doubleTerm;
+		public final ImmutableDoubleMatrix quadLiteralMatrix;
+		public final ImmutableDoubleMatrix linLiteralMatrix;
+		public final double constLiteral;
 		
 		// when not litteral coefficient on variable term:
-		public final MatrixExpr otherQuadTerms;
-		public final MatrixExpr otherLinearTerms;
-		public final Expr constTerm;
+		public final MatrixExpr quadExprMatrix;
+		public final MatrixExpr linExprMatrix;
+		public final Expr constExpr;
 	}
 	
 
@@ -71,14 +76,14 @@ public class QuadraticTermsNVarsCollector {
 		public final ImmutableMap<VarDef,Integer> varToIndex;
 		
 		// when detected litteral coefficient on variable term:
-		public final MatrixDoubleBuilder doubleQuadTerms;
-		public final MatrixDoubleBuilder doubleLinearTerms;
-		public double doubleTerm;
+		public final MatrixDoubleBuilder quadLiteralMatrix;
+		public final MatrixDoubleBuilder linLiteralMatrix;
+		public double constLiteral;
 		
 		// when not litteral coefficient on variable term:
-		public final MatrixExprBuilder otherQuadTerms;
-		public final MatrixExprBuilder otherLinearTerms;
-		public final List<Expr> otherTerms;
+		public final MatrixExprBuilder quadExprMatrix;
+		public final MatrixExprBuilder linExprMatrix;
+		public final List<Expr> constExpr;
 		
 		public QuadraticTermsBuilder(List<VarDef> vars) {
 			final int dim = vars.size();
@@ -89,18 +94,18 @@ public class QuadraticTermsNVarsCollector {
 			}
 			this.varToIndex = varToIndexBuilder.build();
 			
-			this.doubleQuadTerms = new MatrixDoubleBuilder(dim, dim);
-			this.doubleLinearTerms = new MatrixDoubleBuilder(1, dim);
-			this.doubleTerm = 0;
-			this.otherQuadTerms = new MatrixExprBuilder(dim, dim);
-			this.otherLinearTerms = new MatrixExprBuilder(1, dim);
-			this.otherTerms = new ArrayList<>();
+			this.quadLiteralMatrix = new MatrixDoubleBuilder(dim, dim);
+			this.linLiteralMatrix = new MatrixDoubleBuilder(1, dim);
+			this.constLiteral = 0;
+			this.quadExprMatrix = new MatrixExprBuilder(dim, dim);
+			this.linExprMatrix = new MatrixExprBuilder(1, dim);
+			this.constExpr = new ArrayList<>();
 		}
 		
 		public QuadraticForm build() {
 			return new QuadraticForm(vars, varToIndex, //
-					doubleQuadTerms.build(), doubleLinearTerms.build(), doubleTerm, //
-					otherQuadTerms.build(), otherLinearTerms.build(), ExprBuilder.INSTANCE.sum(otherTerms));
+					quadLiteralMatrix.build(), linLiteralMatrix.build(), constLiteral, //
+					quadExprMatrix.build(), linExprMatrix.build(), ExprBuilder.INSTANCE.sum(constExpr));
 		}
 	}
 	
@@ -111,7 +116,7 @@ public class QuadraticTermsNVarsCollector {
 		
 		@Override
 		public void caseLiteral(LiteralDoubleExpr expr) {
-			res.doubleTerm += expr.value;
+			res.constLiteral += expr.value;
 		}
 
 		@Override
@@ -129,7 +134,7 @@ public class QuadraticTermsNVarsCollector {
 			// can be flat mult(a, x, y, b, c) ... or recursive mult: mult(a, mult(x, mult(y ..)))
 			// mult case requiring expand: (a+x)*(b*y) => a*b + a*y + x*b + x*y
 			TermsVarPowBuilder termsVarPow = new TermsVarPowBuilder();
-			val multExtract = new QuadraticMultTermVarPowExtractVisitor(termsVarPow);
+			val multExtract = new QuadraticMultTermVarPowExtractVisitor(res, termsVarPow);
 			for(val e : expr.exprs) {
 				e.accept(multExtract);
 			}
@@ -150,19 +155,19 @@ public class QuadraticTermsNVarsCollector {
 				int var1Power = varTermEntry1.getValue().intValue();
 
 				Expr coef05Expr = (!termsVarPow.multOtherTerms.isEmpty())?
-						b.mult(0.5 * termsVarPow.literalTerm, termsVarPow.multOtherTerms)
+						b.mult(0.5 * termsVarPow.multLiteralTerm, termsVarPow.multOtherTerms)
 						: null;
 				if (var0Power == 1 && var1Power == 1) {
 					if (coef05Expr != null) {
-						res.otherQuadTerms.add(var0Index, var1Index, coef05Expr);
-						res.otherQuadTerms.add(var1Index, var0Index, coef05Expr);
+						res.quadExprMatrix.add(var0Index, var1Index, coef05Expr);
+						res.quadExprMatrix.add(var1Index, var0Index, coef05Expr);
 					} else {
-						res.doubleQuadTerms.add(var0Index, var1Index, 0.5 * termsVarPow.literalTerm);
-						res.doubleQuadTerms.add(var1Index, var0Index, 0.5 * termsVarPow.literalTerm);
+						res.quadLiteralMatrix.add(var0Index, var1Index, 0.5 * termsVarPow.multLiteralTerm);
+						res.quadLiteralMatrix.add(var1Index, var0Index, 0.5 * termsVarPow.multLiteralTerm);
 					}
 				} else {
 					// not quadratic term
-					res.otherTerms.add(expr);
+					res.constExpr.add(expr);
 				}
 				
 			} else if (distinctVarsCount == 1) {
@@ -174,34 +179,34 @@ public class QuadraticTermsNVarsCollector {
 				int var0Power = varTermEntry0.getValue().intValue();
 				
 				Expr coefExpr = (!termsVarPow.multOtherTerms.isEmpty())?
-						b.mult(termsVarPow.literalTerm, termsVarPow.multOtherTerms)
+						b.mult(termsVarPow.multLiteralTerm, termsVarPow.multOtherTerms)
 						: null;
 				if (var0Power == 2) {
 					if (coefExpr != null) {
-						res.otherQuadTerms.add(var0Index, var0Index, coefExpr);
+						res.quadExprMatrix.add(var0Index, var0Index, coefExpr);
 					} else {
-						res.doubleQuadTerms.add(var0Index, var0Index, termsVarPow.literalTerm);
+						res.quadLiteralMatrix.add(var0Index, var0Index, termsVarPow.multLiteralTerm);
 					}
 				} else if (var0Power == 1) {
 					if (coefExpr != null) {
-						res.otherLinearTerms.add(0, var0Index, coefExpr);
+						res.linExprMatrix.add(0, var0Index, coefExpr);
 					} else {
-						res.doubleLinearTerms.add(0, var0Index, termsVarPow.literalTerm);
+						res.linLiteralMatrix.add(0, var0Index, termsVarPow.multLiteralTerm);
 					}
 				}
 				
 			} else if (distinctVarsCount == 0) {
 				Expr coefExpr = (!termsVarPow.multOtherTerms.isEmpty())?
-						b.mult(termsVarPow.literalTerm, termsVarPow.multOtherTerms)
+						b.mult(termsVarPow.multLiteralTerm, termsVarPow.multOtherTerms)
 						: null;
 				if (coefExpr != null) {
-					res.otherTerms.add(coefExpr);
+					res.constExpr.add(coefExpr);
 				} else {
-					res.doubleTerm += termsVarPow.literalTerm;
+					res.constLiteral += termsVarPow.multLiteralTerm;
 				}
 				
 			} else { // not  quadratic term!
-				res.otherTerms.add(expr);
+				res.constExpr.add(expr);
 			}
 		}
 
@@ -209,20 +214,20 @@ public class QuadraticTermsNVarsCollector {
 		public void caseVariable(VariableExpr expr) {
 			Integer foundVarIndex = res.varToIndex.get(expr.varDef);
 			if (null != foundVarIndex) {
-				res.doubleLinearTerms.add(0, foundVarIndex, 1.0);
+				res.linLiteralMatrix.add(0, foundVarIndex, 1.0);
 			}
 		}
 
 		@Override
 		public void caseParamDef(ParamDefExpr expr) {
-			res.otherTerms.add(expr);
+			res.constExpr.add(expr);
 		}
 		
 	}
 	
 	private static class TermsVarPowBuilder {
 		Map<VarDef,AtomicInteger> varPowers = new HashMap<>();
-		double literalTerm = 1.0;
+		double multLiteralTerm = 1.0;
 		List<Expr> multOtherTerms = new ArrayList<>();
 		
 		public void addMultPow(VarDef varDef) {
@@ -237,11 +242,12 @@ public class QuadraticTermsNVarsCollector {
 	
 	@RequiredArgsConstructor
 	private static class QuadraticMultTermVarPowExtractVisitor extends ExprVisitor {
+		private final QuadraticTermsBuilder resBuilder;
 		private final TermsVarPowBuilder res;
 
 		@Override
 		public void caseLiteral(LiteralDoubleExpr expr) {
-			res.literalTerm *= expr.value;
+			res.multLiteralTerm *= expr.value;
 		}
 		@Override
 		public void caseSum(SumExpr expr) {
@@ -256,7 +262,12 @@ public class QuadraticTermsNVarsCollector {
 		}
 		@Override
 		public void caseVariable(VariableExpr expr) {
-			res.addMultPow(expr.varDef);
+			Integer found = resBuilder.varToIndex.get(expr.varDef);
+			if (null != found) {
+				res.addMultPow(expr.varDef);
+			} else {
+				res.multOtherTerms.add(expr);
+			}
 		}
 		@Override
 		public void caseParamDef(ParamDefExpr expr) {

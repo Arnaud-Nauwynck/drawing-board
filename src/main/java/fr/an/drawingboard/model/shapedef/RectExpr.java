@@ -28,8 +28,8 @@ public class RectExpr {
 	public final PtExpr ptDL;
 
 	public static RectExpr fromXYHW(Expr x, Expr y, Expr w, Expr h) {
-		Expr val05 = LiteralDoubleExpr.VAL_05;
-		Expr valMinus05 = LiteralDoubleExpr.VAL_minus05;
+		Expr val05 = LiteralDoubleExpr.VAL_inv2;
+		Expr valMinus05 = LiteralDoubleExpr.VAL_minusInv2;
 		Expr xmin = new SumExpr(x, new MultExpr(valMinus05, w));
 		Expr xmax = new SumExpr(x, new MultExpr(val05, w));
 		Expr ymin = new SumExpr(y, new MultExpr(valMinus05, h));

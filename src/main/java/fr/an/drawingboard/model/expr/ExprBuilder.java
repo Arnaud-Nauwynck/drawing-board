@@ -27,6 +27,10 @@ public class ExprBuilder {
 			return lit2();
 		} else if (value == -2.0) {
 			return litMinus2();
+		} else if (value == 0.5) {
+			return litInv2();
+		} else if (value == -0.5) {
+			return litMinusInv2();
 		} else {
 			return new LiteralDoubleExpr(value);
 		}
@@ -46,6 +50,12 @@ public class ExprBuilder {
 	}
 	public Expr litMinus2() {
 		return LiteralDoubleExpr.VAL_minus2;
+	}
+	public Expr litInv2() {
+		return LiteralDoubleExpr.VAL_inv2;
+	}
+	public Expr litMinusInv2() {
+		return LiteralDoubleExpr.VAL_minusInv2;
 	}
 
 	public Expr sum(Expr lhs, Expr rhs) {
