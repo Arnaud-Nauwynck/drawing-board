@@ -6,7 +6,7 @@ import java.util.List;
 
 import fr.an.drawingboard.model.var.ParamDef;
 import fr.an.drawingboard.model.var.ParametrizableEltDef;
-import fr.an.drawingboard.recognizer.shape.InitialParamForShapeEstimator;
+import fr.an.drawingboard.recognizer.initialParamEstimators.InitialParamForShapeEstimator;
 import lombok.AllArgsConstructor;
 
 public class ShapeDef extends ParametrizableEltDef {

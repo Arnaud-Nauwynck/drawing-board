@@ -10,10 +10,10 @@ import fr.an.drawingboard.model.expr.Expr.ParamDefExpr;
 import fr.an.drawingboard.model.expr.Expr.SumExpr;
 import fr.an.drawingboard.model.expr.Expr.VariableExpr;
 import fr.an.drawingboard.model.expr.ExprFunc1;
+import fr.an.drawingboard.model.expr.VarDef;
 import fr.an.drawingboard.model.shapedef.PtExpr;
 import fr.an.drawingboard.model.trace.Pt2D;
 import fr.an.drawingboard.model.var.ParamDef;
-import fr.an.drawingboard.model.var.VarDef;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 

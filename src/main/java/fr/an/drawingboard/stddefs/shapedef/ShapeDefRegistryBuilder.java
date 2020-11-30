@@ -5,8 +5,8 @@ import fr.an.drawingboard.model.shapedef.PtExpr;
 import fr.an.drawingboard.model.shapedef.RectExpr;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
+import fr.an.drawingboard.recognizer.initialParamEstimators.InitialParamForShapeEstimator;
 import fr.an.drawingboard.recognizer.initialParamEstimators.StdInitialParamEstimators;
-import fr.an.drawingboard.recognizer.shape.InitialParamForShapeEstimator;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

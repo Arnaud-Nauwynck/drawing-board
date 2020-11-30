@@ -5,8 +5,8 @@ import org.junit.Test;
 
 import fr.an.drawingboard.model.expr.Expr.VariableExpr;
 import fr.an.drawingboard.model.expr.ExprBuilder;
+import fr.an.drawingboard.model.expr.VarDef;
 import fr.an.drawingboard.model.expr.helper.ExprVarDependiesAnalyzer.ExprDependencies;
-import fr.an.drawingboard.model.var.VarDef;
 
 public class ExprVarDependiesAnalyzerTest {
 	private static final ExprBuilder b = ExprBuilder.INSTANCE;

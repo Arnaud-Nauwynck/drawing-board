@@ -7,9 +7,9 @@ import org.junit.Test;
 
 import fr.an.drawingboard.model.expr.Expr;
 import fr.an.drawingboard.model.expr.ExprBuilder;
+import fr.an.drawingboard.model.expr.VarDef;
 import fr.an.drawingboard.model.expr.helper.QuadraticTermsNVarsCollector.QuadraticForm;
 import fr.an.drawingboard.model.expr.matrix.MatrixExpr;
-import fr.an.drawingboard.model.var.VarDef;
 
 public class QuadraticTermsNVarsCollectorTest {
 

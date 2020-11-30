@@ -2,6 +2,7 @@ package fr.an.drawingboard.model.var;
 
 import fr.an.drawingboard.model.expr.Expr.ParamDefExpr;
 
+// TODO Deprecated .. replace by VarDef ? 
 public class ParamDef {
 
 	private static final Object CHECK_creator = new Object();

@@ -1,4 +1,4 @@
-package fr.an.drawingboard.model.var;
+package fr.an.drawingboard.model.expr;
 
 import fr.an.drawingboard.model.expr.Expr.VariableExpr;
 

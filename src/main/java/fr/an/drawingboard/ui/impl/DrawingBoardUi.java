@@ -19,21 +19,27 @@ import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElementBuilder;
 import fr.an.drawingboard.model.trace.TracePt;
 import fr.an.drawingboard.model.trace.TraceShape;
-import fr.an.drawingboard.model.trace2shape.GesturePtToAbscissMatch;
-import fr.an.drawingboard.model.var.VarDef;
+import fr.an.drawingboard.recognizer.shape.GesturePtToAbscissMatch;
 import fr.an.drawingboard.recognizer.shape.MatchShapeToCostExprBuilder;
+import fr.an.drawingboard.recognizer.trace.AlmostAlignedPtsSimplifier;
 import fr.an.drawingboard.recognizer.trace.StopPointDetector;
+import fr.an.drawingboard.recognizer.trace.TooNarrowPtsSimplifier;
 import fr.an.drawingboard.recognizer.trace.TracePathElementDetector;
 import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder;
 import fr.an.drawingboard.stddefs.shapedef.ShapeDefRegistryBuilder;
+import javafx.beans.property.BooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToolBar;
@@ -42,6 +48,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TouchEvent;
 import javafx.scene.input.ZoomEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -55,12 +62,11 @@ public class DrawingBoardUi {
 	String currDisplayText = "";
 	
 	Parent root;
-	ToolBar toolbar;
-	CheckBox checkBoxDebugTrace;
-	CheckBox checkBoxDebugTraceStopPoints;
-	CheckBox checkBoxDebugVerboseStopPointDetector;
-	CheckBox checkBoxDebugMatchShape;
-	CheckBox checkBoxDebugMatchPtToAbsciss;
+	BooleanProperty debugTrace;
+	BooleanProperty debugTraceStopPoints;
+	BooleanProperty debugVerboseStopPointDetector;
+	BooleanProperty debugMatchShape;
+	BooleanProperty debugMatchPtToAbsciss;
 	
 	Color currLineColor = Color.BLACK;
 	
@@ -74,6 +80,7 @@ public class DrawingBoardUi {
 
 	private List<Shape> shapes = new ArrayList<>();
 	
+	TooNarrowPtsSimplifier tooNarrowPtsSimplifier = new TooNarrowPtsSimplifier();
 	AlmostAlignedPtsSimplifier almostAlignedPtsSimplifier = new AlmostAlignedPtsSimplifier();
 	StopPointDetector stopPointDetector = new StopPointDetector();
 	TracePathElementDetector pathElementDetector = new TracePathElementDetector();
@@ -82,7 +89,7 @@ public class DrawingBoardUi {
 	Function<NumericExprEvalCtx,NumericExprEvalCtx> paramCtxInitTransformer;
 	
 	boolean showSettingsStopPointDetector = false;
-	boolean showSettingsAlmostAlignedPtsSimplifier = true;
+	BooleanProperty showSettingsAlmostAlignedPtsSimplifier;
 	
 	// 
 	private double currLineWidth = 2;
@@ -103,10 +110,9 @@ public class DrawingBoardUi {
 		shapeDefRegistry = new ShapeDefRegistry();
 		new ShapeDefRegistryBuilder(shapeDefRegistry).addStdShapes();
 		
-		toolbar = new ToolBar();
-		createToolbar();
+		Node toolbar = createToolbar();
 
-		this.canvas = new Canvas(500, 500);
+		this.canvas = new Canvas(1000, 500);
 		installCanvasHandler();
 
 		VBox vbox = new VBox(toolbar, canvas);
@@ -122,8 +128,10 @@ public class DrawingBoardUi {
 		return root;
 	}
 
-	private void createToolbar() {
-		ObservableList<Node> toolbarItems = toolbar.getItems();
+	private Node createToolbar() {
+		HBox toolbar = new HBox();
+
+		ObservableList<Node> toolbarItems = toolbar.getChildren();
 		
 		if (showSettingsStopPointDetector) {
 			{ // stationnaryThreshold
@@ -170,135 +178,153 @@ public class DrawingBoardUi {
 			paintCanvas();
 		});
 		
-		checkBoxDebugTrace = new CheckBox("show pt");
-		checkBoxDebugTrace.setSelected(false);
-		checkBoxDebugTrace.setOnAction(e -> paintCanvas());
-		toolbarItems.add(checkBoxDebugTrace);
+		{
+			MenuButton debugMenu = new MenuButton("Debug");
+			toolbarItems.add(debugMenu);
+			List<MenuItem> debugItems = debugMenu.getItems();
+			
+			debugTrace = addCheckMenuItem(debugItems, "show pt", () -> paintCanvas()).selectedProperty();
+			
+			debugTraceStopPoints = addCheckMenuItem(debugItems, "show stop-pt", () -> paintCanvas()).selectedProperty();
+			debugTraceStopPoints.set(true);
 
-		checkBoxDebugTraceStopPoints = new CheckBox("show stop-pt");
-		checkBoxDebugTraceStopPoints.setSelected(true);
-		checkBoxDebugTraceStopPoints.setOnAction(e -> paintCanvas());
-		toolbarItems.add(checkBoxDebugTraceStopPoints);
-		
-		checkBoxDebugVerboseStopPointDetector = new CheckBox("debug stop-pt");
-		checkBoxDebugVerboseStopPointDetector.setSelected(stopPointDetector.isDebugPrint());
-		checkBoxDebugVerboseStopPointDetector.setOnAction(e -> {
-			stopPointDetector.setDebugPrint(checkBoxDebugVerboseStopPointDetector.isSelected());
-			paintCanvas();
-		});
-		toolbarItems.add(checkBoxDebugVerboseStopPointDetector);
-		
-		checkBoxDebugMatchShape = new CheckBox("debug match");
-		checkBoxDebugMatchShape.setOnAction(e -> paintCanvas());
-		toolbarItems.add(checkBoxDebugMatchShape);
-		
-		checkBoxDebugMatchPtToAbsciss = new CheckBox("debug absciss");
-		checkBoxDebugMatchPtToAbsciss.setOnAction(e -> paintCanvas());
-		toolbarItems.add(checkBoxDebugMatchPtToAbsciss);
+			debugVerboseStopPointDetector = addCheckMenuItem(debugItems, "debug stop-pt", () -> {
+				stopPointDetector.setDebugPrint(debugVerboseStopPointDetector.get());
+				paintCanvas();
+			}).selectedProperty();
+			
+			showSettingsAlmostAlignedPtsSimplifier = addCheckMenuItem(debugItems, "show settings almost aligned", () -> {}).selectedProperty();
+			
+			debugMatchShape = addCheckMenuItem(debugItems, "debug match", () -> paintCanvas()).selectedProperty();
+			
+			debugMatchPtToAbsciss = addCheckMenuItem(debugItems, "debug absciss", () -> paintCanvas()).selectedProperty();
+			
+			{ // 
+				Menu paramShifterMenu = new Menu("inital param shifter");
+				debugItems.add(paramShifterMenu);
+				
+				ToggleGroup group = new ToggleGroup();
+				addParamCtxTransformer(paramShifterMenu, group, ".", null);
+				addParamCtxTransformer(paramShifterMenu, group, "->", 
+						ctx -> {
+							val xDef = ctx.findParamByName("x");
+							ctx.putParamValue(xDef, ctx.paramValue(xDef) + 50);
+							return ctx;
+						});
+				addParamCtxTransformer(paramShifterMenu, group, "x2", 
+						ctx -> {
+							val wDef = ctx.findParamByName("w");
+							double wValue = ctx.paramValue(wDef);
+							ctx.putParamValue(wDef, wValue * 2);
+							val hDef = ctx.findParamByName("h");
+							ctx.putParamValue(hDef, ctx.paramValue(hDef) * 2);
+							return ctx;
+						});
+			}
+			
+		}
+
+		{
+			HBox settingsPanel = new HBox(4);
+			settingsPanel.visibleProperty().bind(showSettingsAlmostAlignedPtsSimplifier);
+			settingsPanel.managedProperty().bind(showSettingsAlmostAlignedPtsSimplifier);
+			toolbarItems.add(settingsPanel);
+
+			{ // maxAngleChange = 5;
+				Slider slider = new Slider();
+				slider.setTooltip(new Tooltip("almost aligned threshold for angle to remove pt "));
+				slider.setMin(0);
+				slider.setMax(20);
+				slider.setShowTickMarks(true);
+				slider.setShowTickLabels(true);
+				slider.setValue(this.almostAlignedPtsSimplifier.getMaxAngleChange()*180/Math.PI);
+				slider.valueProperty().addListener((ctrl,oldValue,newValue) -> {
+					this.almostAlignedPtsSimplifier.setMaxAngleChange(newValue.doubleValue()*Math.PI/180);
+				});
+				settingsPanel.getChildren().add(slider);
+			}
+		}
 		
 		{
-			ToggleGroup group = new ToggleGroup();
-			toolbarItems.add(createParamCtxTransformerRadioButton(group, ".", null));
-			toolbarItems.add(createParamCtxTransformerRadioButton(group, "->", 
-					ctx -> {
-						val xDef = ctx.findParamByName("x");
-						ctx.putParamValue(xDef, ctx.paramValue(xDef) + 50);
-						return ctx;
-					}));
-			toolbarItems.add(createParamCtxTransformerRadioButton(group, "x2", 
-					ctx -> {
-						val wDef = ctx.findParamByName("w");
-						double wValue = ctx.paramValue(wDef);
-						ctx.putParamValue(wDef, wValue * 2);
-						val hDef = ctx.findParamByName("h");
-						ctx.putParamValue(hDef, ctx.paramValue(hDef) * 2);
-						return ctx;
-					}));
-
+			MenuButton menu = new MenuButton("Simplify");
+			toolbarItems.add(menu);
+			List<MenuItem> menuItems = menu.getItems();
+			addMenuItem(menuItems, "Rm Pts", () -> {
+				TraceGesture gesture = (currGesture != null)? currGesture : traceShape.getLast();
+				if (gesture != null) {
+					almostAlignedPtsSimplifier.simplifyGestureLines(gesture);
+					tooNarrowPtsSimplifier.simplifyTooNarrowPts(gesture);
+					almostAlignedPtsSimplifier.simplifyGestureLines(gesture);
+					paintCanvas();
+				}
+			});
+			addMenuItem(menuItems, "Rm Narrow Pts only", () -> {
+				TraceGesture gesture = (currGesture != null)? currGesture : traceShape.getLast();
+				if (gesture != null) {
+					tooNarrowPtsSimplifier.simplifyTooNarrowPts(gesture);
+					paintCanvas();
+				}
+			});
+			addMenuItem(menuItems, "Rm Aligned Pts only", () -> {
+				TraceGesture gesture = (currGesture != null)? currGesture : traceShape.getLast();
+				if (gesture != null) {
+					almostAlignedPtsSimplifier.simplifyGestureLines(gesture);
+					paintCanvas();
+				}
+			});
 		}
 		
-
-		if (showSettingsAlmostAlignedPtsSimplifier) {
-			// settings for AlmostAlignedPtsSimplifier 
-			{ // simplifyMergePtDist = 5;
-				Slider slider = new Slider();
-				slider.setTooltip(new Tooltip("merge pt narrow less than distance"));
-				slider.setMin(0);
-				slider.setMax(15);
-				slider.setShowTickMarks(true);
-				slider.setShowTickLabels(true);
-				slider.setValue(this.almostAlignedPtsSimplifier.getSimplifyMergePtDist());
-				slider.valueProperty().addListener((ctrl,oldValue,newValue) -> {
-					this.almostAlignedPtsSimplifier.setSimplifyMergePtDist(newValue.doubleValue());
-				});
-				toolbarItems.add(slider);
-			}
+		{ // recognized shapes menu
+			MenuButton recognizeShapeMenu = new MenuButton("Shape Recognizer");
+			toolbarItems.add(recognizeShapeMenu);
+			List<MenuItem> recognizeItems = recognizeShapeMenu.getItems();
 			
-			{ // maxOrth05DistRatio = .07;
-				Slider slider = new Slider();
-				slider.setTooltip(new Tooltip("max angle ratio (in %) for almost aligned"));
-				slider.setMin(0);
-				slider.setMax(25);
-				slider.setShowTickMarks(true);
-				slider.setShowTickLabels(true);
-				slider.setValue(this.almostAlignedPtsSimplifier.getMaxOrth05DistRatio() * 100);
-				slider.valueProperty().addListener((ctrl,oldValue,newValue) -> {
-					this.almostAlignedPtsSimplifier.setMaxOrth05DistRatio(newValue.doubleValue() / 100.0);
-				});
-				toolbarItems.add(slider);
-			}
-			
-			{ // maxOrthDistOffset = 10.0; // unit: pixels
-				Slider slider = new Slider();
-				slider.setTooltip(new Tooltip("max offset height (in pixels) for almost aligned"));
-				slider.setMin(0);
-				slider.setMax(30);
-				slider.setShowTickMarks(true);
-				slider.setShowTickLabels(true);
-				slider.setValue(this.almostAlignedPtsSimplifier.getMaxOrthDistOffset());
-				slider.valueProperty().addListener((ctrl,oldValue,newValue) -> {
-					this.almostAlignedPtsSimplifier.setMaxOrthDistOffset(newValue.doubleValue());
-				});
-				toolbarItems.add(slider);
-			}
-			
+			addMenuItem(recognizeItems, "Reset", () -> onClickClearMatchShapeDef());
+			addMatchShapeItem(recognizeItems, "Line", "line", 0);
+			addMatchShapeItem(recognizeItems, "Line2", "line2", 0);
+			addMatchShapeItem(recognizeItems, "Rect", "rectangle", 0);
+			addMatchShapeItem(recognizeItems, "R(DL->UR..)", "rectangle", 1);
+			addMatchShapeItem(recognizeItems, "HCross", "hcross", 0);
 		}
 		
-		
-		toolbarItems.add(createButton("Simplify", () -> {
-			TraceGesture gesture = (currGesture != null)? currGesture : traceShape.getLast();
-			if (gesture != null) {
-				almostAlignedPtsSimplifier.simplifyGestureLines(gesture);
-				paintCanvas();
-			}
-		}));
-		
-		toolbarItems.add(createMatchShapeButton("Line", "line", 0));
-		toolbarItems.add(createMatchShapeButton("Line2", "line2", 0));
-		toolbarItems.add(createMatchShapeButton("Rect", "rectangle", 0));
-		toolbarItems.add(createMatchShapeButton("R(DL->UR..)", "rectangle", 1));
-		toolbarItems.add(createMatchShapeButton("HCross", "hcross", 0));
+		return toolbar;
 	}
 
+	private MenuItem addMenuItem(List<MenuItem> parent, String label, Runnable action) {
+		MenuItem res = new MenuItem(label);
+		res.setOnAction(e -> action.run());
+		parent.add(res);
+		return res;
+	}
+
+	private CheckMenuItem addCheckMenuItem(List<MenuItem> parent, String label, Runnable action) {
+		CheckMenuItem res = new CheckMenuItem(label);
+		res.setSelected(false);
+		res.setOnAction(e -> action.run());
+		parent.add(res);
+		return res;
+	}
+	
 	private Button createButton(String label, Runnable action) {
 		Button but = new Button(label);
 		but.setOnAction(e -> action.run());
 		return but;
 	}
 
-	private RadioButton createParamCtxTransformerRadioButton(ToggleGroup group, String label, Function<NumericExprEvalCtx, NumericExprEvalCtx> transformer) {
-		RadioButton but1 = new RadioButton(label);
-		but1.setToggleGroup(group);
-		but1.setOnAction(e -> {
+	private RadioMenuItem addParamCtxTransformer(Menu menu, ToggleGroup group, String label, Function<NumericExprEvalCtx, NumericExprEvalCtx> transformer) {
+		RadioMenuItem res = new RadioMenuItem(label);
+		res.setToggleGroup(group);
+		res.setOnAction(e -> {
 			paramCtxInitTransformer = transformer;
 		});
-		return but1;
+		menu.getItems().add(res);
+		return res;
 	}
 	
-	private Button createMatchShapeButton(String label, String shapeName, int gestureIndex) {
-		Button button = new Button(label);
-		button.setOnAction(e -> onClickMatchShapeDef(shapeName, gestureIndex));
-		return button;
+	private void addMatchShapeItem(List<MenuItem> items, String label, String shapeName, int gestureIndex) {
+		MenuItem res = new MenuItem(label);
+		res.setOnAction(e -> onClickMatchShapeDef(shapeName, gestureIndex));
+		items.add(res);
 	}
 
 	private void installCanvasHandler() {
@@ -439,6 +465,13 @@ public class DrawingBoardUi {
 	// Match recognizer
 	// --------------------------------------------------------------------------------------------
 
+	private void onClickClearMatchShapeDef() {
+		this.currMatchParamCtx = null;
+		this.currGesturePtToAbscissMatch = null;
+		this.currMatchShape = null;
+		paintCanvas();
+	}
+	
 	private void onClickMatchShapeDef(String shapeName, int gestureIndex) {
 		ShapeDef shapeDef = shapeDefRegistry.getShapeDef(shapeName);
 		tryMatchShape(shapeDef, gestureIndex);
@@ -523,7 +556,7 @@ public class DrawingBoardUi {
 		
 		if (currMatchShape != null) {
 			currMatchShape.draw(gc);
-			if (checkBoxDebugMatchPtToAbsciss.isSelected()) {
+			if (debugMatchPtToAbsciss.get()) {
 				if (currGesturePtToAbscissMatch != null) {
 					drawPtToAbscissMatch(gc, currGesturePtToAbscissMatch);
 				}
@@ -586,8 +619,8 @@ public class DrawingBoardUi {
 			gc.stroke();
 			
 			// debug
-			val debugTrace = checkBoxDebugTrace.isSelected();
-			val dbgTraceStopPoint = checkBoxDebugTraceStopPoints.isSelected();
+			val debugTrace = debugTrace.get();
+			val dbgTraceStopPoint = debugTraceStopPoints.get();
 			val dbgTraceEndPoint = false;
 			if (dbgTraceEndPoint) {
 				drawPtCircle(gc, pt0, 5);

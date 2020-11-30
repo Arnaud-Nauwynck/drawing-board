@@ -19,7 +19,6 @@ import fr.an.drawingboard.model.trace.TracePathElement.QuadBezierTracePathElemen
 import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElementVisitorFunc0;
 import fr.an.drawingboard.model.trace.TracePt;
-import fr.an.drawingboard.model.trace2shape.GesturePtToAbscissMatch;
 import fr.an.drawingboard.util.DrawingValidationUtils;
 
 public class MatchShapeToCostExprBuilder {

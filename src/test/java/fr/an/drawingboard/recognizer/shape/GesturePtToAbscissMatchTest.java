@@ -1,4 +1,4 @@
-package fr.an.drawingboard.model.trace2shape;
+package fr.an.drawingboard.recognizer.shape;
 
 import org.junit.Test;
 
@@ -13,7 +13,7 @@ import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePath;
 import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
 import fr.an.drawingboard.model.trace.TracePt;
-import fr.an.drawingboard.model.trace2shape.GesturePtToAbscissMatch.GestureMatchPt;
+import fr.an.drawingboard.recognizer.shape.GesturePtToAbscissMatch.GestureMatchPt;
 import fr.an.drawingboard.stddefs.shapedef.ShapeDefRegistryBuilder;
 import lombok.val;
 

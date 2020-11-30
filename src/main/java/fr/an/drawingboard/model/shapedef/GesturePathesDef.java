@@ -10,7 +10,7 @@ import fr.an.drawingboard.model.shapedef.PathElementDef.DiscretePointsPathElemen
 import fr.an.drawingboard.model.shapedef.PathElementDef.QuadBezierPathElementDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef.SegmentPathElementDef;
 import fr.an.drawingboard.model.var.ParametrizableEltDef;
-import fr.an.drawingboard.recognizer.shape.InitialParamForShapeEstimator;
+import fr.an.drawingboard.recognizer.initialParamEstimators.InitialParamForShapeEstimator;
 import fr.an.drawingboard.util.DrawingValidationUtils;
 
 /**

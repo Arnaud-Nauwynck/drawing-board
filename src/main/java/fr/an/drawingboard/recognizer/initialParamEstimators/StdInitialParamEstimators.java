@@ -14,7 +14,6 @@ import fr.an.drawingboard.model.trace.TracePathElement.QuadBezierTracePathElemen
 import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
 import fr.an.drawingboard.model.trace.TracePt;
 import fr.an.drawingboard.model.var.ParamDef;
-import fr.an.drawingboard.recognizer.shape.InitialParamForShapeEstimator;
 import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder;
 import lombok.val;
 

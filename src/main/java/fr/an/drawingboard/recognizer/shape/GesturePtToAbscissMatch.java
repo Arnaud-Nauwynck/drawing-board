@@ -1,4 +1,4 @@
-package fr.an.drawingboard.model.trace2shape;
+package fr.an.drawingboard.recognizer.shape;
 
 import java.util.Iterator;
 import java.util.List;
@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
 import fr.an.drawingboard.model.expr.Expr;
 import fr.an.drawingboard.model.expr.Expr.VariableExpr;
 import fr.an.drawingboard.model.expr.ExprBuilder;
+import fr.an.drawingboard.model.expr.VarDef;
 import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef.PathDefWithElement;
@@ -17,7 +18,6 @@ import fr.an.drawingboard.model.shapedef.PtExpr;
 import fr.an.drawingboard.model.shapedef.PtExpr.PtExprBuilder;
 import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePt;
-import fr.an.drawingboard.model.var.VarDef;
 import fr.an.drawingboard.recognizer.trace.PathDistLengthesUtils;
 import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder;
 import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder.WeightedDiscretizationPt;

@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableList;
 
 import fr.an.drawingboard.model.expr.helper.ExprPrinter;
 import fr.an.drawingboard.model.var.ParamDef;
-import fr.an.drawingboard.model.var.VarDef;
 import lombok.RequiredArgsConstructor;
 
 /**

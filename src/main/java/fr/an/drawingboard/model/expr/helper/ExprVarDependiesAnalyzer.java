@@ -11,8 +11,8 @@ import fr.an.drawingboard.model.expr.Expr.ParamDefExpr;
 import fr.an.drawingboard.model.expr.Expr.SumExpr;
 import fr.an.drawingboard.model.expr.Expr.VariableExpr;
 import fr.an.drawingboard.model.expr.ExprVisitor;
+import fr.an.drawingboard.model.expr.VarDef;
 import fr.an.drawingboard.model.var.ParamDef;
-import fr.an.drawingboard.model.var.VarDef;
 import lombok.val;
 
 public class ExprVarDependiesAnalyzer {
