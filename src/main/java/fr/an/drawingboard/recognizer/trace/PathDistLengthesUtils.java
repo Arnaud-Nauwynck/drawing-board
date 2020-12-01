@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
+import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef.CubicBezierPathElementDef;
@@ -44,7 +44,7 @@ public class PathDistLengthesUtils {
 
 	public static List<Double> evalEstimateDistLengthes(
 			GesturePathesDef gestureDef, 
-			NumericExprEvalCtx evalCtx) {
+			NumericEvalCtx evalCtx) {
 		List<Double> res = new ArrayList<>();
 		for(val pathDef: gestureDef.pathes) {
 			for(val pathElementDef : pathDef.pathElements) {
@@ -55,7 +55,7 @@ public class PathDistLengthesUtils {
 		return res;
 	}
 	
-	public static double evalEstimatePathElementDefDistLength(PathElementDef pathElementDef, NumericExprEvalCtx evalCtx) {
+	public static double evalEstimatePathElementDefDistLength(PathElementDef pathElementDef, NumericEvalCtx evalCtx) {
 		return pathElementDef.accept(new PathElementDefFunc0<Double>() {
 			@Override
 			public Double caseSegmentDef(SegmentPathElementDef def) {

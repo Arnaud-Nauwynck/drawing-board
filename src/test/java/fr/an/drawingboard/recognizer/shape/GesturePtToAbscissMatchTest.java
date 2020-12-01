@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 
-import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
+import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
@@ -37,7 +37,7 @@ public class GesturePtToAbscissMatchTest {
 		GesturePathesDef gestureDef = shapeDef.gestures.get(0);
 		
 		
-		NumericExprEvalCtx paramCtx = new NumericExprEvalCtx();
+		NumericEvalCtx paramCtx = new NumericEvalCtx();
 		
 		
 		gestureDef.initalParamEstimator.estimateInitialParamsFor(

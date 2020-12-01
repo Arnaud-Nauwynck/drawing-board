@@ -18,6 +18,8 @@ public class TraceGesture {
 	
 	public Shape recognizedShape;
 	
+	// ------------------------------------------------------------------------
+	
 	public void removeLastPath() {
 		if (! pathes.isEmpty()) {
 			pathes.remove(pathes.size() - 1);

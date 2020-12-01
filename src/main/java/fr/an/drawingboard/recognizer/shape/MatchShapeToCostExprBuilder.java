@@ -3,9 +3,9 @@ package fr.an.drawingboard.recognizer.shape;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.an.drawingboard.model.expr.Expr;
-import fr.an.drawingboard.model.expr.Expr.SumExpr;
-import fr.an.drawingboard.model.expr.ExprBuilder;
+import fr.an.drawingboard.math.expr.Expr;
+import fr.an.drawingboard.math.expr.ExprBuilder;
+import fr.an.drawingboard.math.expr.Expr.SumExpr;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.PathDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef;

@@ -3,9 +3,9 @@ package fr.an.drawingboard.model.shape;
 import java.util.HashMap;
 import java.util.Map;
 
+import fr.an.drawingboard.math.expr.VarDef;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
-import fr.an.drawingboard.model.var.ParamDef;
 import fr.an.drawingboard.ui.impl.ShapeDefGcRenderer;
 import javafx.scene.canvas.GraphicsContext;
 import lombok.val;
@@ -14,9 +14,9 @@ public class Shape {
 
 	public final ShapeDef shapeDef;
 	
-	public final Map<ParamDef, Double> paramValues = new HashMap<>();
+	public final Map<VarDef, Double> paramValues = new HashMap<>();
 	
-	public Shape(ShapeDef shapeDef, Map<ParamDef, Double> paramValues) {
+	public Shape(ShapeDef shapeDef, Map<VarDef, Double> paramValues) {
 		this.shapeDef = shapeDef;
 		this.paramValues.putAll(paramValues);
 	}

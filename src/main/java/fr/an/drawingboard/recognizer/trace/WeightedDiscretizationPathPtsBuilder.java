@@ -82,7 +82,7 @@ public class WeightedDiscretizationPathPtsBuilder {
 	}
 
 	@RequiredArgsConstructor
-	public static class WeightedDiscretizationPt {
+	public static class WeightedTracePt {
 		public final TracePath tracePath;
 		public final TracePathElement tracePathElement;
 		public final TracePt pt;
@@ -94,7 +94,7 @@ public class WeightedDiscretizationPathPtsBuilder {
 	 * avoid duplicate with consecutive same pts by summing coef
 	 */
 	protected static class ListWeightedDiscretizationBuilder {
-		private List<WeightedDiscretizationPt> pts = new ArrayList<>(50);
+		private List<WeightedTracePt> pts = new ArrayList<>(50);
 		private TracePath currTracePath;
 		private TracePathElement currPathElement;
 		private TracePt currPt;
@@ -115,13 +115,13 @@ public class WeightedDiscretizationPathPtsBuilder {
 				currPtWeight += ptWeight;
 			}
 		}
-		public ImmutableList<WeightedDiscretizationPt> build() {
+		public ImmutableList<WeightedTracePt> build() {
 			flushAddPt();
 			return ImmutableList.copyOf(pts);
 		}
 		protected void flushAddPt() {
 			if (currPt != null) {
-				pts.add(new WeightedDiscretizationPt(currTracePath, currPathElement, currPt, currPtWeight));
+				pts.add(new WeightedTracePt(currTracePath, currPathElement, currPt, currPtWeight));
 				currPt = null;
 				currPtWeight = 0.0;
 			}
@@ -134,7 +134,7 @@ public class WeightedDiscretizationPathPtsBuilder {
 	 * @param discretizationPrecision
 	 * @return
 	 */
-	public static ImmutableList<WeightedDiscretizationPt> weigthedDiscretizationPts(
+	public static ImmutableList<WeightedTracePt> weigthedDiscretizationPts(
 			TraceGesture gesture, int discretizationPrecision
 			) {
 		ListWeightedDiscretizationBuilder res = new ListWeightedDiscretizationBuilder();

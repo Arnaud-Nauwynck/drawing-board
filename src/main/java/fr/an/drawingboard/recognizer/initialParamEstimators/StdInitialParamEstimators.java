@@ -2,7 +2,8 @@ package fr.an.drawingboard.recognizer.initialParamEstimators;
 
 import java.util.List;
 
-import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
+import fr.an.drawingboard.math.expr.VarDef;
+import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.trace.Pt2D;
 import fr.an.drawingboard.model.trace.TraceGesture;
@@ -13,7 +14,6 @@ import fr.an.drawingboard.model.trace.TracePathElement.DiscretePointsTracePathEl
 import fr.an.drawingboard.model.trace.TracePathElement.QuadBezierTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
 import fr.an.drawingboard.model.trace.TracePt;
-import fr.an.drawingboard.model.var.ParamDef;
 import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder;
 import lombok.val;
 
@@ -34,7 +34,7 @@ public class StdInitialParamEstimators {
 	public static void estimateLineInitialParamsFor( //
 			TraceGesture gesture,
 			GesturePathesDef gestureDef,
-			NumericExprEvalCtx res) {
+			NumericEvalCtx res) {
 		double estimX, estimY, estimW, estimH;
 		if (! gesture.pathes.isEmpty()) {
 			TracePath firstPath = gesture.pathes.get(0);
@@ -59,7 +59,7 @@ public class StdInitialParamEstimators {
 	public static void estimateLine2InitialParamsFor( //
 			TraceGesture gesture,
 			GesturePathesDef gestureDef,
-			NumericExprEvalCtx res) {
+			NumericEvalCtx res) {
 		estimateLineInitialParamsFor(gesture, gestureDef, res);
 		// estimate mid point
 		// find stop point if any, otherwise half distance (TODO)
@@ -72,31 +72,31 @@ public class StdInitialParamEstimators {
 			controlPt = path0.pathElements.get(0).endPt.xy();
 		}
 		// fill res ctx
-		ParamDef ctrlPtX = gestureDef.getParam("ctrlPtX");
-		ParamDef ctrlPtY = gestureDef.getParam("ctrlPtY");
-		res.putParamValue(ctrlPtX, controlPt.x);
-		res.putParamValue(ctrlPtY, controlPt.y);
+		VarDef ctrlPtX = gestureDef.getParam("ctrlPtX");
+		VarDef ctrlPtY = gestureDef.getParam("ctrlPtY");
+		res.put(ctrlPtX, controlPt.x);
+		res.put(ctrlPtY, controlPt.y);
 	}
 	
 	private static void fillRectParam(
-			NumericExprEvalCtx res, // 
+			NumericEvalCtx res, // 
 			GesturePathesDef gestureDef, //  
 			double estimX, double estimY, double estimW, double estimH) {
-		ParamDef paramX = gestureDef.getParam("x");
-		ParamDef paramY = gestureDef.getParam("y");
-		ParamDef paramW = gestureDef.getParam("w");
-		ParamDef paramH = gestureDef.getParam("h");
-		res.putParamValue(paramX, estimX);
-		res.putParamValue(paramY, estimY);
-		res.putParamValue(paramW, estimW);
-		res.putParamValue(paramH, estimH);
+		VarDef paramX = gestureDef.getParam("x");
+		VarDef paramY = gestureDef.getParam("y");
+		VarDef paramW = gestureDef.getParam("w");
+		VarDef paramH = gestureDef.getParam("h");
+		res.put(paramX, estimX);
+		res.put(paramY, estimY);
+		res.put(paramW, estimW);
+		res.put(paramH, estimH);
 	}
 	
 	
 	public static void estimateRectInitialParamsFor( //
 			TraceGesture gesture,
 			GesturePathesDef gestureDef,
-			NumericExprEvalCtx res) {
+			NumericEvalCtx res) {
 		// ensure coefs per points are computed
 		WeightedDiscretizationPathPtsBuilder.updatePtCoefs(gesture); // redundant useless?
 		

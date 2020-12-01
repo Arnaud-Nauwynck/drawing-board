@@ -1,6 +1,6 @@
 package fr.an.drawingboard.model.shapedef;
 
-import fr.an.drawingboard.model.expr.Expr;
+import fr.an.drawingboard.math.expr.Expr;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

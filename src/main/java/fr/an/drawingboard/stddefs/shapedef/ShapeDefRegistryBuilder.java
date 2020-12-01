@@ -1,6 +1,6 @@
 package fr.an.drawingboard.stddefs.shapedef;
 
-import fr.an.drawingboard.model.expr.Expr;
+import fr.an.drawingboard.math.expr.Expr;
 import fr.an.drawingboard.model.shapedef.PtExpr;
 import fr.an.drawingboard.model.shapedef.RectExpr;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
@@ -38,8 +38,8 @@ public class ShapeDefRegistryBuilder {
 		ShapeDef shapeDef = new ShapeDef("line2");
 		RectExpr r = shapeDef.getCoordRectExpr();
 		InitialParamForShapeEstimator paramEstimator = StdInitialParamEstimators.line2ParamEstimator();
-		Expr ctrlPtX = shapeDef.addParamDef("ctrlPtX").expr;
-		Expr ctrlPtY = shapeDef.addParamDef("ctrlPtY").expr;
+		Expr ctrlPtX = shapeDef.addVarDef("ctrlPtX").expr;
+		Expr ctrlPtY = shapeDef.addVarDef("ctrlPtY").expr;
 		PtExpr midPt = new PtExpr(ctrlPtX, ctrlPtY);
 		//  PtUL -----> MidPt ---> PtUR
 		shapeDef.addGesture_Segments(paramEstimator, r.ptUL, midPt, r.ptDR);

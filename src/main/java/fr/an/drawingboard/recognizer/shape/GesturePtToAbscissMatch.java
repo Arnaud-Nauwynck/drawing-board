@@ -5,11 +5,11 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 
-import fr.an.drawingboard.model.expr.Expr;
-import fr.an.drawingboard.model.expr.Expr.VariableExpr;
-import fr.an.drawingboard.model.expr.ExprBuilder;
-import fr.an.drawingboard.model.expr.VarDef;
-import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
+import fr.an.drawingboard.math.expr.Expr;
+import fr.an.drawingboard.math.expr.ExprBuilder;
+import fr.an.drawingboard.math.expr.VarDef;
+import fr.an.drawingboard.math.expr.Expr.VariableExpr;
+import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef.PathDefWithElement;
 import fr.an.drawingboard.model.shapedef.PathDef;
@@ -20,11 +20,12 @@ import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePt;
 import fr.an.drawingboard.recognizer.trace.PathDistLengthesUtils;
 import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder;
-import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder.WeightedDiscretizationPt;
+import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder.WeightedTracePt;
 import fr.an.drawingboard.util.LsUtils;
 import lombok.AllArgsConstructor;
 import lombok.val;
 
+@Deprecated
 public class GesturePtToAbscissMatch {
 
 	public final TraceGesture gesture;
@@ -34,7 +35,7 @@ public class GesturePtToAbscissMatch {
 	 * expanded all pts for Gesture -> * TracePath -> TracePathElt -> .. for each
 	 * Bezier curve PathElement, an inital discretisation is chosen
 	 */
-	public final ImmutableList<WeightedDiscretizationPt> gestureDiscretizedPts;
+	public final ImmutableList<WeightedTracePt> gestureDiscretizedPts;
 
 	public final ImmutableList<GestureMatchPt> gestureMatchDiscretizedPts;
 
@@ -43,7 +44,7 @@ public class GesturePtToAbscissMatch {
 		public final GesturePtToAbscissMatch parent;
 		public final int ptIndex;
 
-		public final WeightedDiscretizationPt weighedPt() {
+		public final WeightedTracePt weighedPt() {
 			return parent.gestureDiscretizedPts.get(ptIndex);
 		}
 
@@ -61,7 +62,7 @@ public class GesturePtToAbscissMatch {
 	// TODO does not work yet ...
 	public GesturePtToAbscissMatch(TraceGesture gesture, GesturePathesDef gestureDef, //
 			int discretizationPrecision, //
-			NumericExprEvalCtx currInitialParamCtx) {
+			NumericEvalCtx currInitialParamCtx) {
 		this.gesture = gesture;
 		this.gestureDef = gestureDef;
 		// discretize pts for gesture
@@ -132,7 +133,7 @@ public class GesturePtToAbscissMatch {
 			ExprBuilder b = ExprBuilder.INSTANCE;
 			VarDef varDef = new VarDef("pathEltAbsciss" + ptIndex);
 			
-			currInitialParamCtx.putVarValue(varDef, currS);
+			currInitialParamCtx.put(varDef, currS);
 			VariableExpr exprS = varDef.expr;
 			Expr expr1minusS = b.minus(b.lit1(), exprS);
 

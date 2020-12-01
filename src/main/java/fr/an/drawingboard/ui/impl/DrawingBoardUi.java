@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import fr.an.drawingboard.model.expr.helper.NumericExprEvalCtx;
+import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shape.Shape;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.PtExpr;
@@ -38,11 +38,9 @@ import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.RadioButton;
 import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -86,7 +84,7 @@ public class DrawingBoardUi {
 	TracePathElementDetector pathElementDetector = new TracePathElementDetector();
 	MatchShapeToCostExprBuilder matchShapeToCostExprBuilder = new MatchShapeToCostExprBuilder();
 	int discretizationPrecision = 30;
-	Function<NumericExprEvalCtx,NumericExprEvalCtx> paramCtxInitTransformer;
+	Function<NumericEvalCtx,NumericEvalCtx> paramCtxInitTransformer;
 	
 	boolean showSettingsStopPointDetector = false;
 	BooleanProperty showSettingsAlmostAlignedPtsSimplifier;
@@ -101,7 +99,7 @@ public class DrawingBoardUi {
 	private ShapeDefRegistry shapeDefRegistry;
 
 	private Shape currMatchShape;
-	private NumericExprEvalCtx currMatchParamCtx;
+	private NumericEvalCtx currMatchParamCtx;
 	private GesturePtToAbscissMatch currGesturePtToAbscissMatch;
 	
 	// --------------------------------------------------------------------------------------------
@@ -207,17 +205,17 @@ public class DrawingBoardUi {
 				addParamCtxTransformer(paramShifterMenu, group, ".", null);
 				addParamCtxTransformer(paramShifterMenu, group, "->", 
 						ctx -> {
-							val xDef = ctx.findParamByName("x");
-							ctx.putParamValue(xDef, ctx.paramValue(xDef) + 50);
+							val xDef = ctx.findVarByName("x");
+							ctx.put(xDef, ctx.get(xDef) + 50);
 							return ctx;
 						});
 				addParamCtxTransformer(paramShifterMenu, group, "x2", 
 						ctx -> {
-							val wDef = ctx.findParamByName("w");
-							double wValue = ctx.paramValue(wDef);
-							ctx.putParamValue(wDef, wValue * 2);
-							val hDef = ctx.findParamByName("h");
-							ctx.putParamValue(hDef, ctx.paramValue(hDef) * 2);
+							val wDef = ctx.findVarByName("w");
+							double wValue = ctx.get(wDef);
+							ctx.put(wDef, wValue * 2);
+							val hDef = ctx.findVarByName("h");
+							ctx.put(hDef, ctx.get(hDef) * 2);
 							return ctx;
 						});
 			}
@@ -311,7 +309,7 @@ public class DrawingBoardUi {
 		return but;
 	}
 
-	private RadioMenuItem addParamCtxTransformer(Menu menu, ToggleGroup group, String label, Function<NumericExprEvalCtx, NumericExprEvalCtx> transformer) {
+	private RadioMenuItem addParamCtxTransformer(Menu menu, ToggleGroup group, String label, Function<NumericEvalCtx, NumericEvalCtx> transformer) {
 		RadioMenuItem res = new RadioMenuItem(label);
 		res.setToggleGroup(group);
 		res.setOnAction(e -> {
@@ -487,7 +485,7 @@ public class DrawingBoardUi {
 //			return; // ??
 //		}
 
-		this.currMatchParamCtx = new NumericExprEvalCtx();
+		this.currMatchParamCtx = new NumericEvalCtx();
 		
 		gestureDef.initalParamEstimator.estimateInitialParamsFor(
 				matchGesture, gestureDef, currMatchParamCtx);
@@ -511,7 +509,7 @@ public class DrawingBoardUi {
 		// TODO .. choice + optim steps
 		
 		
-		this.currMatchShape = new Shape(currMatchShapeDef, currMatchParamCtx.paramValues);
+		this.currMatchShape = new Shape(currMatchShapeDef, currMatchParamCtx.varValues);
 		matchGesture.recognizedShape = currMatchShape;
 		
 		paintCanvas();

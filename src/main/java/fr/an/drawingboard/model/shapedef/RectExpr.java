@@ -1,9 +1,9 @@
 package fr.an.drawingboard.model.shapedef;
 
-import fr.an.drawingboard.model.expr.Expr;
-import fr.an.drawingboard.model.expr.Expr.LiteralDoubleExpr;
-import fr.an.drawingboard.model.expr.Expr.MultExpr;
-import fr.an.drawingboard.model.expr.Expr.SumExpr;
+import fr.an.drawingboard.math.expr.Expr;
+import fr.an.drawingboard.math.expr.Expr.LiteralDoubleExpr;
+import fr.an.drawingboard.math.expr.Expr.MultExpr;
+import fr.an.drawingboard.math.expr.Expr.SumExpr;
 import lombok.AllArgsConstructor;
 
 /**

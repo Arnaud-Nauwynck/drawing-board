@@ -3,10 +3,9 @@ package fr.an.drawingboard.model.shapedef;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.an.drawingboard.model.expr.Expr;
-import fr.an.drawingboard.model.expr.ExprBuilder;
+import fr.an.drawingboard.math.expr.Expr;
+import fr.an.drawingboard.math.expr.ExprBuilder;
 import fr.an.drawingboard.model.trace.TracePathElementType;
-import fr.an.drawingboard.model.var.ParametrizableEltDef;
 import fr.an.drawingboard.util.DrawingValidationUtils;
 
 /**
