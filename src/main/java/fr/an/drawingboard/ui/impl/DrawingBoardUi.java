@@ -4,13 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import fr.an.drawingboard.geom2d.BoundingRect2D;
+import fr.an.drawingboard.geom2d.BoundingRect2D.BoundingRect2DBuilder;
+import fr.an.drawingboard.geom2d.CubicBezier2D;
+import fr.an.drawingboard.geom2d.Pt2D;
+import fr.an.drawingboard.geom2d.bezier.BezierEnclosingRect2DUtil;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
-import fr.an.drawingboard.model.shape.Shape;
+import fr.an.drawingboard.model.shape.ShapeCtxEval;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.PtExpr;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
-import fr.an.drawingboard.model.trace.Pt2D;
 import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePath;
 import fr.an.drawingboard.model.trace.TracePathElement;
@@ -21,6 +25,8 @@ import fr.an.drawingboard.model.trace.TracePt;
 import fr.an.drawingboard.model.trace.TraceShape;
 import fr.an.drawingboard.recognizer.shape.GesturePtToAbscissMatch;
 import fr.an.drawingboard.recognizer.shape.MatchShapeToCostExprBuilder;
+import fr.an.drawingboard.recognizer.shape.TraceGestureDefMatching;
+import fr.an.drawingboard.recognizer.shape.TraceGestureDefMatchingBuilder;
 import fr.an.drawingboard.recognizer.trace.AlmostAlignedPtsSimplifier;
 import fr.an.drawingboard.recognizer.trace.StopPointDetector;
 import fr.an.drawingboard.recognizer.trace.TooNarrowPtsSimplifier;
@@ -76,7 +82,7 @@ public class DrawingBoardUi {
 	// model
 	private TraceShape traceShape = new TraceShape();
 
-	private List<Shape> shapes = new ArrayList<>();
+	private List<ShapeCtxEval> shapes = new ArrayList<>();
 	
 	TooNarrowPtsSimplifier tooNarrowPtsSimplifier = new TooNarrowPtsSimplifier();
 	AlmostAlignedPtsSimplifier almostAlignedPtsSimplifier = new AlmostAlignedPtsSimplifier();
@@ -98,9 +104,13 @@ public class DrawingBoardUi {
 
 	private ShapeDefRegistry shapeDefRegistry;
 
-	private Shape currMatchShape;
+	private ShapeCtxEval currMatchShape;
 	private NumericEvalCtx currMatchParamCtx;
-	private GesturePtToAbscissMatch currGesturePtToAbscissMatch;
+	private TraceGestureDefMatching currTraceGestureDefMatching;
+	
+	boolean debugBezier = false;
+	private Pt2D debugCubicBezierEditPt;
+	private CubicBezier2D debugCurrCubicBezier = new CubicBezier2D(new Pt2D(0, 0), new Pt2D(100, 100), new Pt2D(100, 200), new Pt2D(0, 300));
 	
 	// --------------------------------------------------------------------------------------------
 
@@ -108,9 +118,9 @@ public class DrawingBoardUi {
 		shapeDefRegistry = new ShapeDefRegistry();
 		new ShapeDefRegistryBuilder(shapeDefRegistry).addStdShapes();
 		
+		this.canvas = new Canvas(1000, 500);
 		Node toolbar = createToolbar();
 
-		this.canvas = new Canvas(1000, 500);
 		installCanvasHandler();
 
 		VBox vbox = new VBox(toolbar, canvas);
@@ -171,7 +181,7 @@ public class DrawingBoardUi {
 			if (currMatchShape != null) {
 				currMatchShape = null;
 			}
-			currGesturePtToAbscissMatch = null;
+			currTraceGestureDefMatching = null;
 			
 			paintCanvas();
 		});
@@ -285,6 +295,19 @@ public class DrawingBoardUi {
 			addMatchShapeItem(recognizeItems, "HCross", "hcross", 0);
 		}
 		
+		if (debugBezier) {
+			MenuButton menu = new MenuButton("Debug CubicBezier");
+			toolbarItems.add(menu);
+			List<MenuItem> menuItems = menu.getItems();
+			ToggleGroup group = new ToggleGroup();
+
+			addRadioMenuItem(menuItems, group, "stop edit pt", () -> { debugCubicBezierEditPt = null; });
+			addRadioMenuItem(menuItems, group, "edit pt0", () -> { debugCubicBezierEditPt = debugCurrCubicBezier.startPt; });
+			addRadioMenuItem(menuItems, group, "edit pt1", () -> { debugCubicBezierEditPt = debugCurrCubicBezier.p1; });
+			addRadioMenuItem(menuItems, group, "edit pt2", () -> { debugCubicBezierEditPt = debugCurrCubicBezier.p2; });
+			addRadioMenuItem(menuItems, group, "edit pt3", () -> { debugCubicBezierEditPt = debugCurrCubicBezier.endPt; });
+		}
+		
 		return toolbar;
 	}
 
@@ -309,6 +332,14 @@ public class DrawingBoardUi {
 		return but;
 	}
 
+	private RadioMenuItem addRadioMenuItem(List<MenuItem> parent, ToggleGroup group, String label, Runnable action) {
+		RadioMenuItem res = new RadioMenuItem(label);
+		res.setToggleGroup(group);
+		res.setOnAction(e -> action.run());
+		parent.add(res);
+		return res;
+	}
+	
 	private RadioMenuItem addParamCtxTransformer(Menu menu, ToggleGroup group, String label, Function<NumericEvalCtx, NumericEvalCtx> transformer) {
 		RadioMenuItem res = new RadioMenuItem(label);
 		res.setToggleGroup(group);
@@ -403,6 +434,13 @@ public class DrawingBoardUi {
 		@Override
 		public void onMouseDragged(MouseEvent e) {
 			// System.out.println("mouse dragged");
+			if (debugBezier && null != debugCubicBezierEditPt) {
+				debugCubicBezierEditPt.x = e.getSceneX();
+				debugCubicBezierEditPt.y = e.getSceneY();
+				paintCanvas();
+				return;
+			}
+
 			if (currPathElementBuilder != null) {
 				TracePt prevPt = currPathElementBuilder.lastPt();
 
@@ -465,7 +503,7 @@ public class DrawingBoardUi {
 
 	private void onClickClearMatchShapeDef() {
 		this.currMatchParamCtx = null;
-		this.currGesturePtToAbscissMatch = null;
+		this.currTraceGestureDefMatching = null;
 		this.currMatchShape = null;
 		paintCanvas();
 	}
@@ -494,9 +532,13 @@ public class DrawingBoardUi {
 			this.currMatchParamCtx = paramCtxInitTransformer.apply(currMatchParamCtx);
 		}
 		
-		this.currGesturePtToAbscissMatch = new GesturePtToAbscissMatch(matchGesture, gestureDef, 
-				discretizationPrecision, 
+		this.currTraceGestureDefMatching = TraceGestureDefMatchingBuilder.match(gestureDef, 
+				matchGesture, discretizationPrecision, 
 				currMatchParamCtx);
+		
+//		this.currGesturePtToAbscissMatch = new GesturePtToAbscissMatch(matchGesture, gestureDef, 
+//				discretizationPrecision, 
+//				currMatchParamCtx);
 			
 //			Expr costExpr = matchShapeToCostExprBuilder.costMatchGestureWithAbsciss(
 //					matchGesture,
@@ -509,8 +551,8 @@ public class DrawingBoardUi {
 		// TODO .. choice + optim steps
 		
 		
-		this.currMatchShape = new Shape(currMatchShapeDef, currMatchParamCtx.varValues);
-		matchGesture.recognizedShape = currMatchShape;
+		this.currMatchShape = new ShapeCtxEval(currMatchShapeDef);
+		this.currMatchShape.eval(currMatchParamCtx);
 		
 		paintCanvas();
 	}
@@ -548,18 +590,49 @@ public class DrawingBoardUi {
 			drawDiscretePoints(gc, currPathElementBuilder.tracePts);
 		}
 		
+		val gcRenderer = new ShapeDefGcRenderer(gc);
 		for(val shape : shapes) {
-			shape.draw(gc);
+			gcRenderer.draw(shape);
 		}
 		
 		if (currMatchShape != null) {
-			currMatchShape.draw(gc);
+			gcRenderer.draw(currMatchShape);
 			if (debugMatchPtToAbsciss.get()) {
-				if (currGesturePtToAbscissMatch != null) {
-					drawPtToAbscissMatch(gc, currGesturePtToAbscissMatch);
+				if (currTraceGestureDefMatching != null) {
+// TODO 					drawPtToAbscissMatch(gc, currTraceGestureDefMatching);
 				}
 			}
 		}
+		
+		
+		// Debug Bezier Curve
+		if (debugBezier) {
+			double w = 100;
+			int maxStep = 100;
+			for(int step = 0; step <= maxStep; step++) {
+				double s = ((double)step) / maxStep;
+				Pt2D pt = debugCurrCubicBezier.eval(s);
+				drawPtCircle(gc, pt, 1);
+			}
+
+			BoundingRect2DBuilder bboxBuider = new BoundingRect2DBuilder();
+			BezierEnclosingRect2DUtil.bestEnclosing_CubicBezier(bboxBuider, debugCurrCubicBezier);
+			BoundingRect2D bbox = bboxBuider.build();
+			
+			gc.beginPath();
+			gc.rect(bbox.minx, bbox.miny, (bbox.maxx-bbox.minx), (bbox.maxy-bbox.miny));
+			gc.stroke();
+			
+			Paint prevStroke = gc.getStroke();
+			gc.setStroke(Color.RED);
+			drawPtCircle(gc, debugCurrCubicBezier.startPt, 3);
+			drawPtCircle(gc, debugCurrCubicBezier.p1, 3);
+			drawPtCircle(gc, debugCurrCubicBezier.p2, 3);
+			drawPtCircle(gc, debugCurrCubicBezier.endPt, 3);
+			gc.setStroke(prevStroke);
+			
+		}
+		
 	}
 
 	private void drawPath(GraphicsContext gc, TracePath path) {

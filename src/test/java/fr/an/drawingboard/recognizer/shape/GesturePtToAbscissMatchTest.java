@@ -4,11 +4,11 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 
+import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
-import fr.an.drawingboard.model.trace.Pt2D;
 import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePath;
 import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;

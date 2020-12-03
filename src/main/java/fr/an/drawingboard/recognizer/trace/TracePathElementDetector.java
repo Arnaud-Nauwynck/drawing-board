@@ -2,11 +2,11 @@ package fr.an.drawingboard.recognizer.trace;
 
 import java.util.List;
 
-import fr.an.drawingboard.model.trace.TracePt;
 import fr.an.drawingboard.model.trace.TracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.DiscretePointsTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
 import fr.an.drawingboard.model.trace.TracePathElementBuilder;
+import fr.an.drawingboard.model.trace.TracePt;
 
 public class TracePathElementDetector {
 

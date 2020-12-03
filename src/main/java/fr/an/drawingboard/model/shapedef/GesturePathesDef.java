@@ -64,21 +64,21 @@ public class GesturePathesDef extends ParametrizableEltDef {
 
 	
 
-	public static class PathDefWithElement {
+	public static class PathElementDefEntry {
 		public PathDef path;
 		public PathElementDef pathElement;
 	}
 	
-	public Iterator<PathDefWithElement> iteratorPathDefWithElement() {
-		return new PathDefWithElementIterator(pathes.iterator());
+	public Iterator<PathElementDefEntry> iteratorPathElementDef() {
+		return new PathElementDefEntryIterator(pathes.iterator());
 	}
 	
-	private static class PathDefWithElementIterator implements Iterator<PathDefWithElement> {
-		final PathDefWithElement curr = new PathDefWithElement();
+	private static class PathElementDefEntryIterator implements Iterator<PathElementDefEntry> {
+		final PathElementDefEntry curr = new PathElementDefEntry();
 		final Iterator<PathDef> pathIter;
 		Iterator<PathElementDef> pathElementIter;
 
-		private PathDefWithElementIterator(Iterator<PathDef> pathIter) {
+		private PathElementDefEntryIterator(Iterator<PathDef> pathIter) {
 			this.pathIter = pathIter;
 		}
 
@@ -91,7 +91,7 @@ public class GesturePathesDef extends ParametrizableEltDef {
 		}
 
 		@Override
-		public PathDefWithElement next() {
+		public PathElementDefEntry next() {
 			if (pathElementIter == null || !pathElementIter.hasNext()) {
 				DrawingValidationUtils.checkTrue(pathIter.hasNext(), "hasNext");
 				curr.path = pathIter.next();

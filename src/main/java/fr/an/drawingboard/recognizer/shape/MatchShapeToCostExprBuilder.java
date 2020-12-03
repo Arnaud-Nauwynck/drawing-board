@@ -1,26 +1,5 @@
 package fr.an.drawingboard.recognizer.shape;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import fr.an.drawingboard.math.expr.Expr;
-import fr.an.drawingboard.math.expr.ExprBuilder;
-import fr.an.drawingboard.math.expr.Expr.SumExpr;
-import fr.an.drawingboard.model.shapedef.GesturePathesDef;
-import fr.an.drawingboard.model.shapedef.PathDef;
-import fr.an.drawingboard.model.shapedef.PathElementDef;
-import fr.an.drawingboard.model.shapedef.PtExpr;
-import fr.an.drawingboard.model.trace.TraceGesture;
-import fr.an.drawingboard.model.trace.TracePath;
-import fr.an.drawingboard.model.trace.TracePathElement;
-import fr.an.drawingboard.model.trace.TracePathElement.CubicBezierTracePathElement;
-import fr.an.drawingboard.model.trace.TracePathElement.DiscretePointsTracePathElement;
-import fr.an.drawingboard.model.trace.TracePathElement.QuadBezierTracePathElement;
-import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
-import fr.an.drawingboard.model.trace.TracePathElementVisitorFunc0;
-import fr.an.drawingboard.model.trace.TracePt;
-import fr.an.drawingboard.util.DrawingValidationUtils;
-
 public class MatchShapeToCostExprBuilder {
 
 //	public Expr costMatchGestureWithAbsciss(

@@ -1,23 +1,22 @@
-package fr.an.drawingboard.alg.optim;
+package fr.an.drawingboard.math.numeric.optim;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import fr.an.drawingboard.math.algo.optim.LiteralQuad1DOptimizeStep;
-import fr.an.drawingboard.math.algo.optim.LiteralQuad1DOptimizeStep.PrepareLiteralQuad1DOptimizeStep;
 import fr.an.drawingboard.math.expr.Expr;
 import fr.an.drawingboard.math.expr.ExprBuilder;
 import fr.an.drawingboard.math.expr.VarDef;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
+import fr.an.drawingboard.math.numeric.optim.NumericQuadExtractOtherwiseDeriveQuad1DOptimizeStep.PrepareNumericQuadExtractOtherwiseDeriveQuad1DOptimize;
 
-public class LiteralQuad1DOptimizeStepTest {
+public class NumericQuadExtractOtherwiseDeriveQuad1DOptimizeStepTest {
 
 	private static final ExprBuilder B = ExprBuilder.INSTANCE;
 	private static final double	PREC = 1e-9;
 	private static final VarDef xDef = new VarDef("x");
 	private static final Expr x = xDef.expr;
 	
-	private final LiteralQuad1DOptimizeStep sut = new LiteralQuad1DOptimizeStep(xDef);
+	private final NumericQuadExtractOtherwiseDeriveQuad1DOptimizeStep sut = new NumericQuadExtractOtherwiseDeriveQuad1DOptimizeStep(xDef);
 	
 	private NumericEvalCtx ctx = createNumericExprEvalCtx(0.0);
 
@@ -31,9 +30,10 @@ public class LiteralQuad1DOptimizeStepTest {
 	public void testOptimStep_PureNumeric_ExactQuad() {
 		// given
 		Expr expr = B.sum(B.mult(2.0, x, x), B.mult(3, x), B.lit(4)); // 2 x^2 + 3 x + 4
+		double prevRes = ctx.evalExpr(expr);
 		
 		// when
-		sut.optimStep(expr, ctx);
+		sut.optimStep(expr, ctx, prevRes);
 		
 		// then
 		// x = -b/(2a) = -3/4
@@ -51,7 +51,7 @@ public class LiteralQuad1DOptimizeStepTest {
 				B.mult(5, x), //
 				B.lit(2.16));
 		// when-then
-		doTestOptimStep_PureNumeric_NotQuad(expr, 4, -0.8285177655516776, -6.05094548e-4);
+		doTestOptimStep_PureNumeric_NotQuad(expr, 4, -0.8285177655516776, -6.05094548e-4); // TODO use real value from math solver
 	}
 
 	@Test
@@ -67,7 +67,7 @@ public class LiteralQuad1DOptimizeStepTest {
 				B.lit(1));
 		
 		// when-then
-		doTestOptimStep_PureNumeric_NotQuad(expr, 5, -0.50850724272, 0.48410645091698534); // TODO use real value from solver (Mathematica,Sage,PariGP,geogebra,..)
+		doTestOptimStep_PureNumeric_NotQuad(expr, 5, -0.50850724272, 0.48410645091698534); // TODO use real value from math solver
 	}
 	
 	private void doTestOptimStep_PureNumeric_NotQuad(Expr expr, 
@@ -77,23 +77,23 @@ public class LiteralQuad1DOptimizeStepTest {
 			) {
 		double prevRes = ctx.evalExpr(expr);
 
-		PrepareLiteralQuad1DOptimizeStep prep = sut.prepareOptimStep(expr);
+		PrepareNumericQuadExtractOtherwiseDeriveQuad1DOptimize prep = sut.prepareOptimStep(expr);
 
 		int finishedStep = -1;
 		double finishConvergencePrecision = 1e-8;
-		for(int step = 0; step < 30; step++) {
+		for(int stepCount = 0; stepCount < 30; stepCount++) {
 			// when
-			double nextRes = sut.optimStep(prep, ctx);
+			double nextRes = sut.optimStep(prep, ctx, prevRes);
 			
 			// then
 			if (nextRes == prevRes) {
-				finishedStep = step; // was exact, no optim, or rounding same result..
+				finishedStep = stepCount; // was exact, no optim, or rounding same result..
 				break;
 			}
 			Assert.assertTrue(nextRes < prevRes);
 			if (prevRes - nextRes < finishConvergencePrecision) {
 				// ok, converged
-				finishedStep = step;
+				finishedStep = stepCount;
 				break;
 			}
 			

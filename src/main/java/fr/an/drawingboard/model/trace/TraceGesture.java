@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import fr.an.drawingboard.model.shape.Shape;
 import fr.an.drawingboard.util.DrawingValidationUtils;
 import javafx.scene.paint.Color;
 import lombok.val;
@@ -15,8 +14,6 @@ public class TraceGesture {
 	public int lineWidth;
 	
 	public List<TracePath> pathes = new ArrayList<>();
-	
-	public Shape recognizedShape;
 	
 	// ------------------------------------------------------------------------
 	

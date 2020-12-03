@@ -1,20 +1,18 @@
 package fr.an.drawingboard.ui.impl;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
-import fr.an.drawingboard.math.expr.VarDef;
-import fr.an.drawingboard.math.numeric.NumericEvalCtx;
-import fr.an.drawingboard.model.shapedef.GesturePathesDef;
-import fr.an.drawingboard.model.shapedef.PathDef;
-import fr.an.drawingboard.model.shapedef.PathElementDef;
-import fr.an.drawingboard.model.shapedef.PathElementDef.CubicBezierPathElementDef;
-import fr.an.drawingboard.model.shapedef.PathElementDef.DiscretePointsPathElementDef;
-import fr.an.drawingboard.model.shapedef.PathElementDef.PathElementDefVisitor;
-import fr.an.drawingboard.model.shapedef.PathElementDef.QuadBezierPathElementDef;
-import fr.an.drawingboard.model.shapedef.PathElementDef.SegmentPathElementDef;
-import fr.an.drawingboard.model.shapedef.PtExpr;
-import fr.an.drawingboard.model.trace.Pt2D;
+import fr.an.drawingboard.geom2d.Pt2D;
+import fr.an.drawingboard.model.shape.GesturePathesCtxEval;
+import fr.an.drawingboard.model.shape.PathCtxEval;
+import fr.an.drawingboard.model.shape.PathElementCtxEval;
+import fr.an.drawingboard.model.shape.PathElementCtxEval.CubicBezierPathElementCtxEval;
+import fr.an.drawingboard.model.shape.PathElementCtxEval.DiscretePointsPathElementCtxEval;
+import fr.an.drawingboard.model.shape.PathElementCtxEval.PathElementCtxEvalVisitor;
+import fr.an.drawingboard.model.shape.PathElementCtxEval.QuadBezierPathElementCtxEval;
+import fr.an.drawingboard.model.shape.PathElementCtxEval.SegmentPathElementCtxEval;
+import fr.an.drawingboard.model.shape.ShapeCtxEval;
 import fr.an.drawingboard.util.DrawingValidationUtils;
 import javafx.scene.canvas.GraphicsContext;
 import lombok.RequiredArgsConstructor;
@@ -25,72 +23,63 @@ public class ShapeDefGcRenderer {
 
 	protected final GraphicsContext gc;
 
-	public static NumericEvalCtx toExprEvalCtx(Map<VarDef, Double> paramValues) {
-		NumericEvalCtx res = new NumericEvalCtx();
-		for(val e : paramValues.entrySet()) {
-			res.put(e.getKey(), e.getValue());
-		}
-		return res;
-	}
-	
-	public void draw(GesturePathesDef gestureDef, Map<VarDef, Double> paramValues) {
-		NumericEvalCtx exprCtx = toExprEvalCtx(paramValues);
-		draw(gestureDef, exprCtx);
-	}
-	
-	public void draw(GesturePathesDef gestureDef, NumericEvalCtx varCtx) {
-		for(PathDef path : gestureDef.pathes) {
-			draw(path, varCtx);
+	public void draw(ShapeCtxEval shape) {
+		for(val gesture : shape.gestures) {
+			draw(gesture);
 		}
 	}
 
-	public void draw(PathDef path, NumericEvalCtx varCtx) {
-		for(PathElementDef pathElement : path.pathElements) {
-			drawPathElementDef(pathElement, varCtx);
+	public void draw(GesturePathesCtxEval gesture) {
+		for(val path : gesture.pathes) {
+			draw(path);
 		}
 	}
 
-	public void drawPathElementDef(PathElementDef pathElement, NumericEvalCtx varCtx) {
-		pathElement.accept(new PathElementDefVisitor() {
+	public void draw(PathCtxEval path) {
+		for(val pathElement : path.pathElements) {
+			draw(pathElement);
+		}
+	}
+
+	public void draw(PathElementCtxEval pathElement) {
+		pathElement.accept(new PathElementCtxEvalVisitor() {
 			@Override
-			public void caseSegmentDef(SegmentPathElementDef def) {
-				drawSegmentDef(def, varCtx);
+			public void caseSegment(SegmentPathElementCtxEval segment) {
+				drawSegment(segment);
 			}
 			@Override
-			public void caseDiscretePointsDef(DiscretePointsPathElementDef def) {
-				drawDiscretePointsDef(def, varCtx);
+			public void caseDiscretePoints(DiscretePointsPathElementCtxEval discretePts) {
+				drawDiscretePoints(discretePts);
 			}
 			@Override
-			public void caseQuadBezierDef(QuadBezierPathElementDef def) {
+			public void caseQuadBezier(QuadBezierPathElementCtxEval quadBezier) {
 				throw DrawingValidationUtils.notImplYet();
 			}
 			@Override
-			public void caseCubicBezierDef(CubicBezierPathElementDef def) {
+			public void caseCubicBezier(CubicBezierPathElementCtxEval cubicBezier) {
 				throw DrawingValidationUtils.notImplYet();
 			}
 		});
 	}
 
-	public void drawSegmentDef(SegmentPathElementDef def, NumericEvalCtx varCtx) {
-		Pt2D startPt = evalPt(def.startPt, varCtx);
-		Pt2D endPt = evalPt(def.endPt, varCtx);
+	public void drawSegment(SegmentPathElementCtxEval src) {
 		gc.beginPath();
-		moveTo(startPt);
-		lineTo(endPt);
+		moveTo(src.startPt);
+		lineTo(src.endPt);
 		gc.stroke();
 	}
 
-	public void drawDiscretePointsDef(DiscretePointsPathElementDef def, NumericEvalCtx varCtx) {
-		drawLinePoints(def.ptExprs, varCtx);
+	public void drawDiscretePoints(DiscretePointsPathElementCtxEval src) {
+		drawLinePoints(Arrays.asList(src.pts));
 	}
 	
-	public void drawLinePoints(List<PtExpr> ptExprs, NumericEvalCtx varCtx) {
+	public void drawLinePoints(List<Pt2D> ptExprs) {
 		int ptsCount = ptExprs.size();
-		Pt2D prevPt = evalPt(ptExprs.get(0), varCtx);
+		Pt2D prevPt = ptExprs.get(0);
 		gc.beginPath();
 		moveTo(prevPt);
 		for(int i = 1; i < ptsCount; i++) {
-			Pt2D pt = evalPt(ptExprs.get(i), varCtx);
+			Pt2D pt = ptExprs.get(i);
 			lineTo(pt);
 			prevPt = pt;
 		}
@@ -103,12 +92,6 @@ public class ShapeDefGcRenderer {
 
 	public void moveTo(Pt2D pt) {
 		gc.moveTo(pt.x, pt.y);
-	}
-
-	public Pt2D evalPt(PtExpr ptExpr, NumericEvalCtx varCtx) {
-		double x = varCtx.evalExpr(ptExpr.x);
-		double y = varCtx.evalExpr(ptExpr.y);
-		return new Pt2D(x, y);
 	}
 
 }

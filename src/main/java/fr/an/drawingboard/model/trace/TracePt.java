@@ -1,5 +1,6 @@
 package fr.an.drawingboard.model.trace;
 
+import fr.an.drawingboard.geom2d.Pt2D;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 

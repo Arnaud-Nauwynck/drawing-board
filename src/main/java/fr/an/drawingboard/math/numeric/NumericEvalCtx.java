@@ -3,11 +3,11 @@ package fr.an.drawingboard.math.numeric;
 import java.util.HashMap;
 import java.util.Map;
 
+import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.math.expr.Expr;
 import fr.an.drawingboard.math.expr.Expr.VariableExpr;
 import fr.an.drawingboard.math.expr.VarDef;
 import fr.an.drawingboard.model.shapedef.PtExpr;
-import fr.an.drawingboard.model.trace.Pt2D;
 import lombok.val;
 
 public class NumericEvalCtx {

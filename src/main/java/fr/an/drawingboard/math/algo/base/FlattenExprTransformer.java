@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.an.drawingboard.math.expr.Expr;
-import fr.an.drawingboard.math.expr.ExprBuilder;
 import fr.an.drawingboard.math.expr.Expr.LiteralDoubleExpr;
 import fr.an.drawingboard.math.expr.Expr.MultExpr;
 import fr.an.drawingboard.math.expr.Expr.SumExpr;
+import fr.an.drawingboard.math.expr.ExprBuilder;
 import fr.an.drawingboard.math.expr.ExprFunc0.DefaultExprTransformer;
 import lombok.val;
 

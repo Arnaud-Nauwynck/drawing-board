@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef;
@@ -13,7 +14,6 @@ import fr.an.drawingboard.model.shapedef.PathElementDef.PathElementDefFunc0;
 import fr.an.drawingboard.model.shapedef.PathElementDef.QuadBezierPathElementDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef.SegmentPathElementDef;
 import fr.an.drawingboard.model.shapedef.PtExpr;
-import fr.an.drawingboard.model.trace.Pt2D;
 import fr.an.drawingboard.model.trace.TracePt;
 import lombok.val;
 

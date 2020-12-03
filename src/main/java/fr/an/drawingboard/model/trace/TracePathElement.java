@@ -3,6 +3,8 @@ package fr.an.drawingboard.model.trace;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.an.drawingboard.geom2d.Pt2D;
+
 /**
  * curve path element: Segment, continuous polyline curve, Bezier Curve, .. 
  * 

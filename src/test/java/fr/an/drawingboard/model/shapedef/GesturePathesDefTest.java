@@ -5,7 +5,7 @@ import java.util.Iterator;
 import org.junit.Assert;
 import org.junit.Test;
 
-import fr.an.drawingboard.model.shapedef.GesturePathesDef.PathDefWithElement;
+import fr.an.drawingboard.model.shapedef.GesturePathesDef.PathElementDefEntry;
 import fr.an.drawingboard.stddefs.shapedef.ShapeDefRegistryBuilder;
 
 public class GesturePathesDefTest {
@@ -25,9 +25,9 @@ public class GesturePathesDefTest {
 		PathDef path3 = gestureDef.pathes.get(3);
 		PathElementDef elt3_0 = path3.pathElements.get(0);
 		
-		Iterator<PathDefWithElement> iter = gestureDef.iteratorPathDefWithElement();
+		Iterator<PathElementDefEntry> iter = gestureDef.iteratorPathElementDef();
 		
-		PathDefWithElement curr = iter.next();
+		PathElementDefEntry curr = iter.next();
 		Assert.assertSame(path0, curr.path);
 		Assert.assertSame(elt0_0, curr.pathElement);
 

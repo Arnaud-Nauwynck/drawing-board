@@ -1,7 +1,7 @@
 package fr.an.drawingboard.recognizer.trace;
 
-import fr.an.drawingboard.model.trace.TracePt;
 import fr.an.drawingboard.model.trace.TracePathElementBuilder;
+import fr.an.drawingboard.model.trace.TracePt;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -2,10 +2,10 @@ package fr.an.drawingboard.recognizer.initialParamEstimators;
 
 import java.util.List;
 
+import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.math.expr.VarDef;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
-import fr.an.drawingboard.model.trace.Pt2D;
 import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePath;
 import fr.an.drawingboard.model.trace.TracePathElement;
@@ -39,16 +39,20 @@ public class StdInitialParamEstimators {
 		if (! gesture.pathes.isEmpty()) {
 			TracePath firstPath = gesture.pathes.get(0);
 			List<TracePathElement> pathElements = firstPath.pathElements;
-			TracePathElement firstPathElt = pathElements.get(0);
-			TracePt startPt = firstPathElt.startPt;
-			TracePath lastPath = gesture.getLast();
-			TracePathElement lastPathElt = lastPath.getLastPathElement();
-			TracePt endPt = lastPathElt.endPt;
-			
-			estimX = 0.5 * (startPt.x + endPt.x);
-			estimY = 0.5 * (startPt.y + endPt.y);
-			estimW = endPt.x - startPt.x;
-			estimH = endPt.y - startPt.y;
+			if (pathElements != null && pathElements.size() > 0) {
+				TracePathElement firstPathElt = pathElements.get(0);
+				TracePt startPt = firstPathElt.startPt;
+				TracePath lastPath = gesture.getLast();
+				TracePathElement lastPathElt = lastPath.getLastPathElement();
+				TracePt endPt = lastPathElt.endPt;
+				
+				estimX = 0.5 * (startPt.x + endPt.x);
+				estimY = 0.5 * (startPt.y + endPt.y);
+				estimW = endPt.x - startPt.x;
+				estimH = endPt.y - startPt.y;
+			} else {
+				estimX = estimY = estimW = estimH = 0.0;
+			}
 		} else {
 			estimX = estimY = estimW = estimH = 0.0;
 		}
