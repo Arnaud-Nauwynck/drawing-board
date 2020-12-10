@@ -11,7 +11,7 @@ import fr.an.drawingboard.geom2d.QuadBezier2D;
  */
 public class BezierEnclosingRect2DUtil {
 
-	public static void bestEnclosing(BoundingRect2DBuilder res, QuadBezier2D quadBezier) {
+	public static void bestEnclosing_QuadBezier(BoundingRect2DBuilder res, QuadBezier2D quadBezier) {
 		bestEnclosing_QuadBezier(res, quadBezier.startPt, quadBezier.controlPt, quadBezier.endPt);
 	}
 	
