@@ -694,18 +694,19 @@ public class DrawingBoardUi {
 			}
             if (debugQuadBezierShowSplit.get()) {
                 double[] showSplits = new double[] { 0.25, 0.5, 0.75 };
-                val showOffsetX = 100;
-                Pt2D currTranslate = new Pt2D(showOffsetX, 0);
+                val offsetSplit = 60;
+                Pt2D currTranslate = new Pt2D(150, 0);
+                Pt2D translateRight = new Pt2D(0, 0);
                 for(val showSplit: showSplits) {
-                    QuadBezier2D split025_left = new QuadBezier2D();
-                    QuadBezier2D split025_right = new QuadBezier2D();
-                    BezierMatrixSplit.splitQuadBezier(split025_left, split025_right, showSplit, debugCurrQuadBezier);
-                    split025_left.setTranslate(currTranslate);
-                    split025_right.setTranslate(currTranslate);
-                    paintQuadBezier(gc, split025_left);
-                    paintQuadBezier(gc, split025_right);
-                
-                    currTranslate.x += showOffsetX;
+                    QuadBezier2D splitLeft = new QuadBezier2D();
+                    QuadBezier2D splitRight = new QuadBezier2D();
+                    BezierMatrixSplit.splitQuadBezier(splitLeft, splitRight, showSplit, debugCurrQuadBezier);
+                    splitLeft.setTranslate(currTranslate);
+                    splitRight.setTranslate(currTranslate);
+                    splitRight.setTranslate(translateRight);
+                    paintQuadBezier(gc, splitLeft);
+                    paintQuadBezier(gc, splitRight);
+                    currTranslate.x += offsetSplit;
                 }
             }
 			
@@ -728,18 +729,19 @@ public class DrawingBoardUi {
             if (debugCubicBezierShowSplit.get()) {
                 // split at s=0.25, paint shifted by x+150
                 double[] showSplits = new double[] { 0.25, 0.5, 0.75 };
-                val showOffsetX = 100;
-                Pt2D currTranslate = new Pt2D(showOffsetX, 0);
+                val offsetSplit = 60;
+                Pt2D currTranslate = new Pt2D(150, 0);
+                Pt2D translateRight = new Pt2D(0, 0);
                 for(val showSplit: showSplits) {
-                    CubicBezier2D split025_left = new CubicBezier2D();
-                    CubicBezier2D split025_right = new CubicBezier2D();
-                    BezierMatrixSplit.splitCubicBezier(split025_left, split025_right, showSplit, debugCurrCubicBezier);
-                    split025_left.setTranslate(currTranslate);
-                    split025_right.setTranslate(currTranslate);
-                    paintCubicBezier(gc, split025_left);
-                    paintCubicBezier(gc, split025_right);
-                
-                    currTranslate.x += showOffsetX;
+                    CubicBezier2D splitLeft = new CubicBezier2D();
+                    CubicBezier2D splitRight = new CubicBezier2D();
+                    BezierMatrixSplit.splitCubicBezier(splitLeft, splitRight, showSplit, debugCurrCubicBezier);
+                    splitLeft.setTranslate(currTranslate);
+                    splitRight.setTranslate(currTranslate);
+                    splitRight.setTranslate(translateRight);
+                    paintCubicBezier(gc, splitLeft);
+                    paintCubicBezier(gc, splitRight);
+                    currTranslate.x += offsetSplit;
                 }
             }
 		}
