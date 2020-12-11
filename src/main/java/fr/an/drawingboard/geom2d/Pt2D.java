@@ -39,6 +39,11 @@ public final class Pt2D {
 		this.y = c1 * pt1.y + c2 * pt2.y + c3 * pt3.y + c4 * pt4.y;
 	}
 	
+    public void setTranslate(Pt2D vect) {
+        this.x += vect.x;
+        this.y += vect.y;        
+    }
+
 	
 	public Pt2D mult(double k) {
 		return new Pt2D(k * x, k * y);
@@ -105,5 +110,6 @@ public final class Pt2D {
 	public String toString() {
 		return "(" + x + "," + y + ")";
 	}
+
 
 }

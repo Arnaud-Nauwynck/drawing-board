@@ -10,6 +10,7 @@ import fr.an.drawingboard.geom2d.CubicBezier2D;
 import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.geom2d.QuadBezier2D;
 import fr.an.drawingboard.geom2d.bezier.BezierEnclosingRect2DUtil;
+import fr.an.drawingboard.geom2d.bezier.BezierMatrixSplit;
 import fr.an.drawingboard.geom2d.bezier.PtToBezierDistanceMinSolver;
 import fr.an.drawingboard.geom2d.bezier.PtToBezierDistanceMinSolver.PtToCurveDistanceMinSolverResult;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
@@ -120,11 +121,13 @@ public class DrawingBoardUi {
 	private Pt2D debugQuadBezierEditPt = null;
 	private final QuadBezier2D debugCurrQuadBezier = new QuadBezier2D(new Pt2D(100, 0), new Pt2D(200, 100), new Pt2D(100, 200));
 	private BooleanProperty debugQuadBezierShowBoundingBox;
+	private BooleanProperty debugQuadBezierShowSplit;
 
 	boolean debugCubicBezier = false;
 	private Pt2D debugCubicBezierEditPt = null;
 	private final CubicBezier2D debugCurrCubicBezier = new CubicBezier2D(new Pt2D(100, 0), new Pt2D(200, 100), new Pt2D(200, 200), new Pt2D(100, 300));
 	private BooleanProperty debugCubicBezierShowBoundingBox;
+	private BooleanProperty debugCubicBezierShowSplit;
 	
 	// --------------------------------------------------------------------------------------------
 
@@ -331,6 +334,7 @@ public class DrawingBoardUi {
 			addRadioMenuItem(menuItems, group, "edit end pt", () -> { debugQuadBezierEditPt = debugCurrQuadBezier.endPt; });
 			
 			debugQuadBezierShowBoundingBox = addCheckMenuItem(menuItems, "show bounding box", () -> paintCanvas()).selectedProperty();
+			debugQuadBezierShowSplit = addCheckMenuItem(menuItems, "show split", () -> paintCanvas()).selectedProperty();
 		}
 
 		if (debugCubicBezier) {
@@ -346,6 +350,7 @@ public class DrawingBoardUi {
 			addRadioMenuItem(menuItems, group, "edit end pt", () -> { debugCubicBezierEditPt = debugCurrCubicBezier.endPt; });
 
 			debugCubicBezierShowBoundingBox = addCheckMenuItem(menuItems, "show bounding box", () -> paintCanvas()).selectedProperty();
+			debugCubicBezierShowSplit = addCheckMenuItem(menuItems, "show split", () -> paintCanvas()).selectedProperty();
 		}
 		
 		return toolbar;
@@ -676,12 +681,7 @@ public class DrawingBoardUi {
 		
 		// Debug Quad Bezier Curve
 		if (debugQuadBezier) {
-			int maxStep = 100;
-			for(int step = 0; step <= maxStep; step++) {
-				double s = ((double)step) / maxStep;
-				Pt2D pt = debugCurrQuadBezier.eval(s);
-				drawPtCircle(gc, pt, 1);
-			}
+			paintQuadBezier(gc, debugCurrQuadBezier);
 
 			if (debugQuadBezierShowBoundingBox.get()) {
 				BoundingRect2DBuilder bboxBuider = new BoundingRect2DBuilder();
@@ -692,43 +692,29 @@ public class DrawingBoardUi {
 				gc.rect(bbox.minx, bbox.miny, (bbox.maxx-bbox.minx), (bbox.maxy-bbox.miny));
 				gc.stroke();
 			}
+            if (debugQuadBezierShowSplit.get()) {
+                double[] showSplits = new double[] { 0.25, 0.5, 0.75 };
+                val showOffsetX = 100;
+                Pt2D currTranslate = new Pt2D(showOffsetX, 0);
+                for(val showSplit: showSplits) {
+                    QuadBezier2D split025_left = new QuadBezier2D();
+                    QuadBezier2D split025_right = new QuadBezier2D();
+                    BezierMatrixSplit.splitQuadBezier(split025_left, split025_right, showSplit, debugCurrQuadBezier);
+                    split025_left.setTranslate(currTranslate);
+                    split025_right.setTranslate(currTranslate);
+                    paintQuadBezier(gc, split025_left);
+                    paintQuadBezier(gc, split025_right);
+                
+                    currTranslate.x += showOffsetX;
+                }
+            }
 			
-			Paint prevStroke = gc.getStroke();
-			gc.setStroke(Color.RED);
-			drawPtCircle(gc, debugCurrQuadBezier.startPt, 3);
-			drawPtCircle(gc, debugCurrQuadBezier.controlPt, 3);
-			drawPtCircle(gc, debugCurrQuadBezier.endPt, 3);
-			gc.setStroke(prevStroke);
-
-			gc.setStroke(Color.GREY);
-			drawSegment(gc, debugCurrQuadBezier.startPt, debugCurrQuadBezier.controlPt);
-			drawSegment(gc, debugCurrQuadBezier.controlPt, debugCurrQuadBezier.endPt);
-			gc.setStroke(prevStroke);
 
 		}
 
 		// Debug Cubic Bezier Curve
 		if (debugCubicBezier) {
-			int maxStep = 100;
-			for(int step = 0; step <= maxStep; step++) {
-				double s = ((double)step) / maxStep;
-				Pt2D pt = debugCurrCubicBezier.eval(s);
-				drawPtCircle(gc, pt, 1);
-			}
-
-			Paint prevStroke = gc.getStroke();
-			gc.setStroke(Color.RED);
-			drawPtCircle(gc, debugCurrCubicBezier.startPt, 3);
-			drawPtCircle(gc, debugCurrCubicBezier.p1, 3);
-			drawPtCircle(gc, debugCurrCubicBezier.p2, 3);
-			drawPtCircle(gc, debugCurrCubicBezier.endPt, 3);
-			gc.setStroke(prevStroke);
-
-			gc.setStroke(Color.GREY);
-			drawSegment(gc, debugCurrCubicBezier.startPt, debugCurrCubicBezier.p1);
-			drawSegment(gc, debugCurrCubicBezier.p1, debugCurrCubicBezier.p2);
-			drawSegment(gc, debugCurrCubicBezier.p2, debugCurrCubicBezier.endPt);
-			gc.setStroke(prevStroke);
+			paintCubicBezier(gc, debugCurrCubicBezier);
 			
 			if (debugCubicBezierShowBoundingBox.get()) {
 				BoundingRect2DBuilder bboxBuider = new BoundingRect2DBuilder();
@@ -739,10 +725,69 @@ public class DrawingBoardUi {
 				gc.rect(bbox.minx, bbox.miny, (bbox.maxx-bbox.minx), (bbox.maxy-bbox.miny));
 				gc.stroke();
 			}
-
+            if (debugCubicBezierShowSplit.get()) {
+                // split at s=0.25, paint shifted by x+150
+                double[] showSplits = new double[] { 0.25, 0.5, 0.75 };
+                val showOffsetX = 100;
+                Pt2D currTranslate = new Pt2D(showOffsetX, 0);
+                for(val showSplit: showSplits) {
+                    CubicBezier2D split025_left = new CubicBezier2D();
+                    CubicBezier2D split025_right = new CubicBezier2D();
+                    BezierMatrixSplit.splitCubicBezier(split025_left, split025_right, showSplit, debugCurrCubicBezier);
+                    split025_left.setTranslate(currTranslate);
+                    split025_right.setTranslate(currTranslate);
+                    paintCubicBezier(gc, split025_left);
+                    paintCubicBezier(gc, split025_right);
+                
+                    currTranslate.x += showOffsetX;
+                }
+            }
 		}
 		
 	}
+
+    private void paintQuadBezier(GraphicsContext gc, QuadBezier2D bezier) {
+        int maxStep = 100;
+        for(int step = 0; step <= maxStep; step++) {
+        	double s = ((double)step) / maxStep;
+        	Pt2D pt = bezier.eval(s);
+        	drawPtCircle(gc, pt, 1);
+        }
+        Paint prevStroke = gc.getStroke();
+        gc.setStroke(Color.RED);
+        drawPtCircle(gc, bezier.startPt, 3);
+        drawPtCircle(gc, bezier.controlPt, 3);
+        drawPtCircle(gc, bezier.endPt, 3);
+        gc.setStroke(prevStroke);
+
+        gc.setStroke(Color.GREY);
+        drawSegment(gc, bezier.startPt, bezier.controlPt);
+        drawSegment(gc, bezier.controlPt, bezier.endPt);
+        gc.setStroke(prevStroke);
+    }
+
+    private void paintCubicBezier(GraphicsContext gc, CubicBezier2D bezier) {
+        int maxStep = 100;
+        for(int step = 0; step <= maxStep; step++) {
+        	double s = ((double)step) / maxStep;
+        	Pt2D pt = bezier.eval(s);
+        	drawPtCircle(gc, pt, 1);
+        }
+
+        Paint prevStroke = gc.getStroke();
+        gc.setStroke(Color.RED);
+        drawPtCircle(gc, bezier.startPt, 3);
+        drawPtCircle(gc, bezier.p1, 3);
+        drawPtCircle(gc, bezier.p2, 3);
+        drawPtCircle(gc, bezier.endPt, 3);
+        gc.setStroke(prevStroke);
+
+        gc.setStroke(Color.GREY);
+        drawSegment(gc, bezier.startPt, bezier.p1);
+        drawSegment(gc, bezier.p1, bezier.p2);
+        drawSegment(gc, bezier.p2, bezier.endPt);
+        gc.setStroke(prevStroke);
+    }
 
 	private void drawPath(GraphicsContext gc, TracePath path) {
 		for(TracePathElement pathElement : path.pathElements) {

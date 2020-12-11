@@ -9,6 +9,14 @@ public class CubicBezier2D {
 	public final Pt2D p2;
 	public final Pt2D endPt;
 	
+
+    public CubicBezier2D() {
+        this.startPt = new Pt2D(0, 0);
+        this.p1 = new Pt2D(0, 0);
+        this.p2 = new Pt2D(0, 0);
+        this.endPt = new Pt2D(0, 0);
+    }
+
 	public double eval_x(double s) {
 		return evalB(s, startPt.x, p1.x, p2.x, endPt.x);
 	}
@@ -32,4 +40,10 @@ public class CubicBezier2D {
 		return _1s2*_1s * p0 + 3*_1s2*s * p1 + 3*_1s*s2 * p2 + s2*s * p3;
 	}
 	
+	public void setTranslate(Pt2D vect) {
+        this.startPt.setTranslate(vect);
+        this.p1.setTranslate(vect);
+        this.p2.setTranslate(vect);
+        this.endPt.setTranslate(vect);
+	}
 }

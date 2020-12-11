@@ -12,6 +12,12 @@ public class QuadBezier2D {
 	public final Pt2D controlPt;
 	public final Pt2D endPt;
 	
+	public QuadBezier2D() {
+	    this.startPt = new Pt2D(0, 0);
+	    this.controlPt = new Pt2D(0, 0);
+	    this.endPt = new Pt2D(0, 0);
+	}
+
 	public double eval_x(double s) {
 		return evalB(s, startPt.x, controlPt.x, endPt.x);
 	}
@@ -38,5 +44,11 @@ public class QuadBezier2D {
 		double _1s = 1.0-s;
 		return _1s*_1s * p0 + 2*_1s*s * p1 + s*s * p2;
 	}
+
+   public void setTranslate(Pt2D vect) {
+        this.startPt.setTranslate(vect);
+        this.controlPt.setTranslate(vect);
+        this.endPt.setTranslate(vect);
+    }
 
 }
