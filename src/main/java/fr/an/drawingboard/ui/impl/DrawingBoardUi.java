@@ -9,8 +9,10 @@ import fr.an.drawingboard.geom2d.BoundingRect2D.BoundingRect2DBuilder;
 import fr.an.drawingboard.geom2d.CubicBezier2D;
 import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.geom2d.QuadBezier2D;
+import fr.an.drawingboard.geom2d.WeightedPt2D;
 import fr.an.drawingboard.geom2d.bezier.BezierEnclosingRect2DUtil;
 import fr.an.drawingboard.geom2d.bezier.BezierMatrixSplit;
+import fr.an.drawingboard.geom2d.bezier.BezierPtsFittting;
 import fr.an.drawingboard.geom2d.bezier.PtToBezierDistanceMinSolver;
 import fr.an.drawingboard.geom2d.bezier.PtToBezierDistanceMinSolver.PtToCurveDistanceMinSolverResult;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
@@ -36,7 +38,9 @@ import fr.an.drawingboard.recognizer.trace.StopPointDetector;
 import fr.an.drawingboard.recognizer.trace.TooNarrowPtsSimplifier;
 import fr.an.drawingboard.recognizer.trace.TracePathElementDetector;
 import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder;
+import fr.an.drawingboard.recognizer.trace.WeightedPtsBuilder;
 import fr.an.drawingboard.stddefs.shapedef.ShapeDefRegistryBuilder;
+import fr.an.drawingboard.util.LsUtils;
 import javafx.beans.property.BooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -122,6 +126,12 @@ public class DrawingBoardUi {
 	private final QuadBezier2D debugCurrQuadBezier = new QuadBezier2D(new Pt2D(100, 0), new Pt2D(200, 100), new Pt2D(100, 200));
 	private BooleanProperty debugQuadBezierShowBoundingBox;
 	private BooleanProperty debugQuadBezierShowSplit;
+
+	boolean debugFittingBezier = true;
+	BooleanProperty showFittingQuadBezier;
+	BooleanProperty showFittingCubicBezier;
+	private final QuadBezier2D debugCurrTraceFittingQuadBezier = new QuadBezier2D();
+	private final CubicBezier2D debugCurrTraceFittingCubicBezier = new CubicBezier2D();
 
 	boolean debugCubicBezier = false;
 	private Pt2D debugCubicBezierEditPt = null;
@@ -335,6 +345,14 @@ public class DrawingBoardUi {
 			
 			debugQuadBezierShowBoundingBox = addCheckMenuItem(menuItems, "show bounding box", () -> paintCanvas()).selectedProperty();
 			debugQuadBezierShowSplit = addCheckMenuItem(menuItems, "show split", () -> paintCanvas()).selectedProperty();
+		}
+		
+		if (debugFittingBezier) {
+			MenuButton menu = new MenuButton("Debug Fitting Bezier");
+			toolbarItems.add(menu);
+			List<MenuItem> menuItems = menu.getItems();
+			showFittingQuadBezier = addCheckMenuItem(menuItems, "show fitting Quad Bezier", () -> paintCanvas()).selectedProperty();
+			showFittingCubicBezier = addCheckMenuItem(menuItems, "show fitting Cubic Bezier", () -> paintCanvas()).selectedProperty();
 		}
 
 		if (debugCubicBezier) {
@@ -709,10 +727,32 @@ public class DrawingBoardUi {
                     currTranslate.x += offsetSplit;
                 }
             }
-			
 
 		}
 
+		if (debugFittingBezier) {
+			if (showFittingQuadBezier.get() || showFittingCubicBezier.get()) {
+				TraceGesture lastGesture = this.traceShape.getLast();
+				TracePath lastTrace = (lastGesture != null)? lastGesture.getLast() : null;
+				TracePathElement lastPathElt = (lastTrace != null)? lastTrace.getLastPathElement() : null;
+				if (lastPathElt instanceof DiscretePointsTracePathElement) {
+					List<TracePt> lastTracePts = ((DiscretePointsTracePathElement) lastPathElt).tracePts;
+					List<Pt2D> lastPts = LsUtils.map(lastTracePts, tracePt -> new Pt2D(tracePt.x, tracePt.y));
+					List<WeightedPt2D> wpts = WeightedPtsBuilder.ptsToWeightedPts_polygonalDistance(lastPts);
+					if (showFittingQuadBezier.get()) {
+						// fitting QuadBezier to curr last trace
+						BezierPtsFittting.fitControlPt_QuadBezier(debugCurrTraceFittingQuadBezier, wpts);
+						paintQuadBezier(gc, debugCurrTraceFittingQuadBezier);
+					}
+					if (showFittingCubicBezier.get()) {
+						// fitting QuadBezier to curr last trace
+						BezierPtsFittting.fitControlPts_CubicBezier(debugCurrTraceFittingCubicBezier, wpts);
+						paintCubicBezier(gc, debugCurrTraceFittingCubicBezier);
+					}
+				}
+			}
+		}
+		
 		// Debug Cubic Bezier Curve
 		if (debugCubicBezier) {
 			paintCubicBezier(gc, debugCurrCubicBezier);

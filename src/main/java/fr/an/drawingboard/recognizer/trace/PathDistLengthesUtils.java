@@ -19,6 +19,29 @@ import lombok.val;
 
 public class PathDistLengthesUtils {
 
+
+	public static double[] ptsToRatioDistLengthes(List<Pt2D> pts) {
+		int ptCount = pts.size();
+		double[] len_pt0_pti = new double[ptCount];
+		len_pt0_pti[0] = 0.0;
+		Pt2D pt_im1 = pts.get(0);
+		double currLen = 0.0;
+		for(int i = 1; i < ptCount; i++) {
+			Pt2D pt_i = pts.get(i);
+			double dist_ptim1_pti = pt_im1.distTo(pt_i);
+			currLen += dist_ptim1_pti;
+			len_pt0_pti[i] = currLen;
+			pt_im1 = pt_i;
+		}
+		// renorm ratio to total len
+		double coefNorm = 1.0 / ((len_pt0_pti[ptCount-1]!=0.0)? len_pt0_pti[ptCount-1] : 1.0);
+		double[] s_i = len_pt0_pti; // reuse same array.. replace
+		for(int i = 0; i < ptCount; i++) {
+			s_i[i] = len_pt0_pti[i] * coefNorm;
+		}
+		return s_i;
+	}
+
 	public static double sum(List<Double> values) {
 		double res = 0.0;
 		for(val d : values) {
