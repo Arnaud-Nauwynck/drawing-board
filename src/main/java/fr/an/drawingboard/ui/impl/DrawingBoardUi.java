@@ -116,29 +116,28 @@ public class DrawingBoardUi {
 	private NumericEvalCtx currMatchParamCtx;
 	private TraceGestureDefMatching currTraceGestureDefMatching;
 
-	boolean debugDistPt = false;
+	boolean debugDistPt = true;
 	private Pt2D debugCurrDistEditPt = null;
 	private final Pt2D debugDistEditPt = new Pt2D(300, 200);
-	private final Pt2D debugDistMinToBezierPt = new Pt2D(0, 0);
 	
 	boolean debugQuadBezier = false;
 	private Pt2D debugQuadBezierEditPt = null;
 	private final QuadBezier2D debugCurrQuadBezier = new QuadBezier2D(new Pt2D(100, 0), new Pt2D(200, 100), new Pt2D(100, 200));
 	private BooleanProperty debugQuadBezierShowBoundingBox;
 	private BooleanProperty debugQuadBezierShowSplit;
+	
+	boolean debugCubicBezier = true;
+	private Pt2D debugCubicBezierEditPt = null;
+	private final CubicBezier2D debugCurrCubicBezier = new CubicBezier2D(new Pt2D(100, 0), new Pt2D(200, 100), new Pt2D(200, 200), new Pt2D(100, 300));
+	private BooleanProperty debugCubicBezierShowBoundingBox;
+	private BooleanProperty debugCubicBezierShowSplit;
+	
 
 	boolean debugFittingBezier = true;
 	BooleanProperty showFittingQuadBezier;
 	BooleanProperty showFittingCubicBezier;
 	private final QuadBezier2D debugCurrTraceFittingQuadBezier = new QuadBezier2D();
 	private final CubicBezier2D debugCurrTraceFittingCubicBezier = new CubicBezier2D();
-
-	boolean debugCubicBezier = false;
-	private Pt2D debugCubicBezierEditPt = null;
-	private final CubicBezier2D debugCurrCubicBezier = new CubicBezier2D(new Pt2D(100, 0), new Pt2D(200, 100), new Pt2D(200, 200), new Pt2D(100, 300));
-	private BooleanProperty debugCubicBezierShowBoundingBox;
-	private BooleanProperty debugCubicBezierShowSplit;
-	
 	// --------------------------------------------------------------------------------------------
 
 	public DrawingBoardUi() {
@@ -688,7 +687,17 @@ public class DrawingBoardUi {
 			if (debugQuadBezier) {
 				// compute min project to QuadBezier
 				PtToCurveDistanceMinSolverResult minProjResult = new PtToCurveDistanceMinSolverResult();
-				PtToBezierDistanceMinSolver.projPtToQuadBezier(minProjResult, debugDistEditPt, debugCurrQuadBezier, 0.0, 1.0);
+				PtToBezierDistanceMinSolver.projPtToQuadBezier(minProjResult, debugDistEditPt, debugCurrQuadBezier);
+
+				gc.setStroke(Color.BLUE);
+				drawPtCircle(gc, minProjResult.projPt, 4);
+				drawSegment(gc, minProjResult.projPt, debugDistEditPt);
+				gc.setStroke(prevStroke);
+			}
+			if (debugCubicBezier) {
+				// compute min project to QuadBezier
+				PtToCurveDistanceMinSolverResult minProjResult = new PtToCurveDistanceMinSolverResult();
+				PtToBezierDistanceMinSolver.projPtToCubicBezier(minProjResult, debugDistEditPt, debugCurrCubicBezier);
 
 				gc.setStroke(Color.BLUE);
 				drawPtCircle(gc, minProjResult.projPt, 4);

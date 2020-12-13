@@ -297,10 +297,17 @@ public final class DoublePolynom {
 			StringBuilder sb = new StringBuilder();
 			final int len = coefs.length;
 			sb.append(coefs[len-1] + "*" + varName + "^" + (len-1));
-			for(int pow = len-1; pow > 1; pow--) {
-				sb.append(" + " + coefs[pow] + "*" + varName + "^" + pow);
+			for(int pow = len-2; pow >= 1; pow--) {
+				double coef = coefs[pow];
+				if (coef != 0.0) {
+					sb.append(((coef > 0)? " + " + coef : " - " + (-coef))
+							+ "*" + varName 
+							+ ((pow != 1)? "^" + pow : ""));
+				}
 			}
-			sb.append(" + " + coefs[0]);
+			if (coefs[0] != 0.0) {
+				sb.append(" + " + coefs[0]);
+			}
 			return sb.toString();
 		}
 

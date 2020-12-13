@@ -33,6 +33,16 @@ public class CubicBezier2D {
 		return new Pt2D(evalB(s, p0.x, p1.x, p2.x, p3.x), evalB(s, p0.y, p1.y, p2.y, p3.y));
 	}
 
+	public static void eval(Pt2D res, double s, Pt2D p0, Pt2D p1, Pt2D p2, Pt2D p3) {
+		res.x = evalB(s, p0.x, p1.x, p2.x, p3.x);
+		res.y = evalB(s, p0.y, p1.y, p2.y, p3.y);
+	}
+
+	public static void eval(Pt2D res, double s, double p0_x, double p0_y, double p1_x, double p1_y, double p2_x, double p2_y, double p3_x, double p3_y) {
+		res.x = evalB(s, p0_x, p1_x, p2_x, p3_x);
+		res.y = evalB(s, p0_y, p1_y, p2_y, p3_y);
+	}
+
 	public static double evalB(double s, double p0, double p1, double p2, double p3) {
 		double _1s = 1.0-s;
 		double s2 = s*s;

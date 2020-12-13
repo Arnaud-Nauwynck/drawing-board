@@ -93,6 +93,16 @@ public final class Pt2D {
 		return dist(x, y, pt.x, pt.y); 
 	}
 
+	public double squareDistTo(Pt2D pt) {
+		return squareDist(x, y, pt.x, pt.y); 
+	}
+
+	public static double squareDist(double x0, double y0, double x1, double y1) {
+		double dx = x1 - x0;
+		double dy = y1 - y0;
+		return dx * dx + dy * dy;
+	}
+
 	public static double dist(double x0, double y0, double x1, double y1) {
 		double dx = x1 - x0;
 		double dy = y1 - y0;
