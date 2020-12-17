@@ -2,6 +2,13 @@ package fr.an.drawingboard.geom2d;
 
 import lombok.AllArgsConstructor;
 
+/**
+ * https://pomax.github.io/BezierInfo-2
+ * 
+ * http://www.caffeineowl.com/graphics/2d/vectorial/cubic2quad01.html
+ * https://blend2d.com/research/simplify_and_offset_bezier_curves.pdf
+ * https://github.com/fonttools/fonttools/blob/master/Lib/fontTools/misc/bezierTools.py
+ */
 @AllArgsConstructor
 public class CubicBezier2D {
 	public final Pt2D startPt;

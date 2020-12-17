@@ -15,6 +15,7 @@ import fr.an.drawingboard.geom2d.bezier.BezierMatrixSplit;
 import fr.an.drawingboard.geom2d.bezier.BezierPtsFittting;
 import fr.an.drawingboard.geom2d.bezier.PtToBezierDistanceMinSolver;
 import fr.an.drawingboard.geom2d.bezier.PtToBezierDistanceMinSolver.PtToCurveDistanceMinSolverResult;
+import fr.an.drawingboard.geom2d.bezier.RaiseLowerBezierDegreeUtil;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shape.ShapeCtxEval;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
@@ -124,14 +125,18 @@ public class DrawingBoardUi {
 	private Pt2D debugQuadBezierEditPt = null;
 	private final QuadBezier2D debugCurrQuadBezier = new QuadBezier2D(new Pt2D(100, 0), new Pt2D(200, 100), new Pt2D(100, 200));
 	private BooleanProperty debugQuadBezierShowBoundingBox;
+	private BooleanProperty debugQuadBezierShowSplit2;
 	private BooleanProperty debugQuadBezierShowSplit;
+	private BooleanProperty debugQuadBezierShowRaiseCubic;
 	
 	boolean debugCubicBezier = true;
 	private Pt2D debugCubicBezierEditPt = null;
 	private final CubicBezier2D debugCurrCubicBezier = new CubicBezier2D(new Pt2D(100, 0), new Pt2D(200, 100), new Pt2D(200, 200), new Pt2D(100, 300));
 	private BooleanProperty debugCubicBezierShowBoundingBox;
+	private BooleanProperty debugCubicBezierShowSplit2;
 	private BooleanProperty debugCubicBezierShowSplit;
 	private BooleanProperty debugCubicBezierShowSplitWeight;
+	private BooleanProperty debugCubicBezierShowLowerQuad;
 	
 
 	boolean debugFittingBezier = true;
@@ -344,7 +349,9 @@ public class DrawingBoardUi {
 			addRadioMenuItem(menuItems, group, "edit end pt", () -> { debugQuadBezierEditPt = debugCurrQuadBezier.endPt; });
 			
 			debugQuadBezierShowBoundingBox = addCheckMenuItem(menuItems, "show bounding box", () -> paintCanvas()).selectedProperty();
+			debugQuadBezierShowSplit2 = addCheckMenuItem(menuItems, "show split2", () -> paintCanvas()).selectedProperty();
 			debugQuadBezierShowSplit = addCheckMenuItem(menuItems, "show split", () -> paintCanvas()).selectedProperty();
+			debugQuadBezierShowRaiseCubic = addCheckMenuItem(menuItems, "show raise to cubic", () -> paintCanvas()).selectedProperty();
 		}
 		
 		if (debugFittingBezier) {
@@ -368,8 +375,10 @@ public class DrawingBoardUi {
 			addRadioMenuItem(menuItems, group, "edit end pt", () -> { debugCubicBezierEditPt = debugCurrCubicBezier.endPt; });
 
 			debugCubicBezierShowBoundingBox = addCheckMenuItem(menuItems, "show bounding box", () -> paintCanvas()).selectedProperty();
+			debugCubicBezierShowSplit2 = addCheckMenuItem(menuItems, "show split2", () -> paintCanvas()).selectedProperty();
 			debugCubicBezierShowSplit = addCheckMenuItem(menuItems, "show split", () -> paintCanvas()).selectedProperty();
 			debugCubicBezierShowSplitWeight = addCheckMenuItem(menuItems, "show split weight", () -> paintCanvas()).selectedProperty();
+			debugCubicBezierShowLowerQuad = addCheckMenuItem(menuItems, "show lower to quad", () -> paintCanvas()).selectedProperty();
 		}
 		
 		return toolbar;
@@ -710,7 +719,7 @@ public class DrawingBoardUi {
 		
 		// Debug Quad Bezier Curve
 		if (debugQuadBezier) {
-			paintQuadBezier(gc, debugCurrQuadBezier);
+			paintBezier(gc, debugCurrQuadBezier);
 
 			if (debugQuadBezierShowBoundingBox.get()) {
 				BoundingRect2DBuilder bboxBuider = new BoundingRect2DBuilder();
@@ -721,6 +730,15 @@ public class DrawingBoardUi {
 				gc.rect(bbox.minx, bbox.miny, (bbox.maxx-bbox.minx), (bbox.maxy-bbox.miny));
 				gc.stroke();
 			}
+            if (debugQuadBezierShowSplit2.get()) {
+                Pt2D currTranslate = new Pt2D(150, 0);
+                QuadBezier2D splitLeft = new QuadBezier2D(), splitRight = new QuadBezier2D();
+                BezierMatrixSplit.splitQuadBezierIn2(splitLeft, splitRight, debugCurrQuadBezier);
+                splitLeft.setTranslate(currTranslate);
+                splitRight.setTranslate(currTranslate);
+                paintBezier(gc, splitLeft);
+                paintBezier(gc, splitRight);
+            }
             if (debugQuadBezierShowSplit.get()) {
                 double[] showSplits = new double[] { 0.25, 0.5, 0.75 };
                 val offsetSplit = 60;
@@ -733,10 +751,17 @@ public class DrawingBoardUi {
                     splitLeft.setTranslate(currTranslate);
                     splitRight.setTranslate(currTranslate);
                     splitRight.setTranslate(translateRight);
-                    paintQuadBezier(gc, splitLeft);
-                    paintQuadBezier(gc, splitRight);
+                    paintBezier(gc, splitLeft);
+                    paintBezier(gc, splitRight);
                     currTranslate.x += offsetSplit;
                 }
+            }
+            if (debugQuadBezierShowRaiseCubic.get()) {
+            	CubicBezier2D raiseBezier = new CubicBezier2D();
+            	Pt2D currTranslate = new Pt2D(10, 0);
+            	RaiseLowerBezierDegreeUtil.raiseQuadToCubicBezier(raiseBezier, debugCurrQuadBezier);
+            	raiseBezier.setTranslate(currTranslate);
+                paintBezier(gc, raiseBezier);
             }
 
 		}
@@ -753,12 +778,12 @@ public class DrawingBoardUi {
 					if (showFittingQuadBezier.get()) {
 						// fitting QuadBezier to curr last trace
 						BezierPtsFittting.fitControlPt_QuadBezier(debugCurrTraceFittingQuadBezier, wpts);
-						paintQuadBezier(gc, debugCurrTraceFittingQuadBezier);
+						paintBezier(gc, debugCurrTraceFittingQuadBezier);
 					}
 					if (showFittingCubicBezier.get()) {
 						// fitting QuadBezier to curr last trace
 						BezierPtsFittting.fitControlPts_CubicBezier(debugCurrTraceFittingCubicBezier, wpts);
-						paintCubicBezier(gc, debugCurrTraceFittingCubicBezier);
+						paintBezier(gc, debugCurrTraceFittingCubicBezier);
 					}
 				}
 			}
@@ -766,7 +791,7 @@ public class DrawingBoardUi {
 		
 		// Debug Cubic Bezier Curve
 		if (debugCubicBezier) {
-			paintCubicBezier(gc, debugCurrCubicBezier);
+			paintBezier(gc, debugCurrCubicBezier);
 			
 			if (debugCubicBezierShowBoundingBox.get()) {
 				BoundingRect2DBuilder bboxBuider = new BoundingRect2DBuilder();
@@ -777,6 +802,15 @@ public class DrawingBoardUi {
 				gc.rect(bbox.minx, bbox.miny, (bbox.maxx-bbox.minx), (bbox.maxy-bbox.miny));
 				gc.stroke();
 			}
+            if (debugCubicBezierShowSplit2.get()) {
+                Pt2D currTranslate = new Pt2D(150, 0);
+                CubicBezier2D splitLeft = new CubicBezier2D(), splitRight = new CubicBezier2D();
+                BezierMatrixSplit.splitCubicBezierIn2(splitLeft, splitRight, debugCurrCubicBezier);
+                splitLeft.setTranslate(currTranslate);
+                splitRight.setTranslate(currTranslate);
+                paintBezier(gc, splitLeft);
+                paintBezier(gc, splitRight);
+            }
             if (debugCubicBezierShowSplit.get()) {
                 // split at s=0.25, paint shifted by x+150
                 double[] showSplits = new double[] { 0.25, 0.5, 0.75 };
@@ -790,8 +824,8 @@ public class DrawingBoardUi {
                     splitLeft.setTranslate(currTranslate);
                     splitRight.setTranslate(currTranslate);
                     splitRight.setTranslate(translateRight);
-                    paintCubicBezier(gc, splitLeft);
-                    paintCubicBezier(gc, splitRight);
+                    paintBezier(gc, splitLeft);
+                    paintBezier(gc, splitRight);
                     currTranslate.x += offsetSplit;
                 }
             }
@@ -812,15 +846,22 @@ public class DrawingBoardUi {
                 Pt2D currTranslate = new Pt2D(100, 0);
                 for(val b: splitB) {
                 	b.setTranslate(currTranslate);
-                	paintCubicBezier(gc, b);
+                	paintBezier(gc, b);
                 	// currTranslate.x += 10;
                 }
+            }
+            if (debugCubicBezierShowLowerQuad.get()) {
+            	QuadBezier2D lowerBezier = new QuadBezier2D();
+            	Pt2D currTranslate = new Pt2D(10, 0);
+            	RaiseLowerBezierDegreeUtil.lowerCubicToQuadBezier(lowerBezier, debugCurrCubicBezier);
+            	lowerBezier.setTranslate(currTranslate);
+                paintBezier(gc, lowerBezier);
             }
 		}
 		
 	}
 
-    private void paintQuadBezier(GraphicsContext gc, QuadBezier2D bezier) {
+    private void paintBezier(GraphicsContext gc, QuadBezier2D bezier) {
         int maxStep = 100;
         for(int step = 0; step <= maxStep; step++) {
         	double s = ((double)step) / maxStep;
@@ -840,7 +881,7 @@ public class DrawingBoardUi {
         gc.setStroke(prevStroke);
     }
 
-    private void paintCubicBezier(GraphicsContext gc, CubicBezier2D bezier) {
+    private void paintBezier(GraphicsContext gc, CubicBezier2D bezier) {
         int maxStep = 100;
         for(int step = 0; step <= maxStep; step++) {
         	double s = ((double)step) / maxStep;

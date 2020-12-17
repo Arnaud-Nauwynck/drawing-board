@@ -4,6 +4,10 @@ import fr.an.drawingboard.geom2d.CubicBezier2D;
 import fr.an.drawingboard.geom2d.Pt2D;
 import lombok.val;
 
+/**
+ * http://polymathprogrammer.com/tag/bezier/
+ *
+ */
 public class CubicBezierInflectionPts {
 
 	public static class InflectionPointList {

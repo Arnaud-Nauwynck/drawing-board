@@ -24,6 +24,25 @@ public final class Pt2D {
 		this.y = src.y;
 	}
 
+	public static Pt2D newLinear(double c1, Pt2D pt1, double c2, Pt2D pt2) {
+		double x = c1 * pt1.x + c2 * pt2.x;
+		double y = c1 * pt1.y + c2 * pt2.y;
+		return new Pt2D(x, y);
+	}
+
+	public static Pt2D newLinear(double c1, Pt2D pt1, double c2, Pt2D pt2, double c3, Pt2D pt3) {
+		double x = c1 * pt1.x + c2 * pt2.x + c3 * pt3.x;
+		double y = c1 * pt1.y + c2 * pt2.y + c3 * pt3.y;
+		return new Pt2D(x, y);
+	}
+
+	public static Pt2D newLinear(double c1, Pt2D pt1, double c2, Pt2D pt2, double c3, Pt2D pt3, double c4, Pt2D pt4) {
+		double x = c1 * pt1.x + c2 * pt2.x + c3 * pt3.x + c4 * pt4.x;
+		double y = c1 * pt1.y + c2 * pt2.y + c3 * pt3.y + c4 * pt4.y;
+		return new Pt2D(x, y);
+	}
+
+	
 	public void setLinear(double c1, Pt2D pt1, double c2, Pt2D pt2) {
 		this.x = c1 * pt1.x + c2 * pt2.x;
 		this.y = c1 * pt1.y + c2 * pt2.y;
