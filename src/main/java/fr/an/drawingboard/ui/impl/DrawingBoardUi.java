@@ -131,6 +131,7 @@ public class DrawingBoardUi {
 	private final CubicBezier2D debugCurrCubicBezier = new CubicBezier2D(new Pt2D(100, 0), new Pt2D(200, 100), new Pt2D(200, 200), new Pt2D(100, 300));
 	private BooleanProperty debugCubicBezierShowBoundingBox;
 	private BooleanProperty debugCubicBezierShowSplit;
+	private BooleanProperty debugCubicBezierShowSplitWeight;
 	
 
 	boolean debugFittingBezier = true;
@@ -368,6 +369,7 @@ public class DrawingBoardUi {
 
 			debugCubicBezierShowBoundingBox = addCheckMenuItem(menuItems, "show bounding box", () -> paintCanvas()).selectedProperty();
 			debugCubicBezierShowSplit = addCheckMenuItem(menuItems, "show split", () -> paintCanvas()).selectedProperty();
+			debugCubicBezierShowSplitWeight = addCheckMenuItem(menuItems, "show split weight", () -> paintCanvas()).selectedProperty();
 		}
 		
 		return toolbar;
@@ -791,6 +793,27 @@ public class DrawingBoardUi {
                     paintCubicBezier(gc, splitLeft);
                     paintCubicBezier(gc, splitRight);
                     currTranslate.x += offsetSplit;
+                }
+            }
+            if (debugCubicBezierShowSplitWeight.get()) {
+//                double[] showSplits = new double[] { 0.2, 0.7, };
+//                Pt2D currTranslate = new Pt2D(100, 0);
+//                for(int split = 0; split < showSplits.length-1; split++) {
+//                	double start = showSplits[split];
+//                	double end = showSplits[split+1];
+//                    CubicBezier2D middleBezier = new CubicBezier2D();
+//                    BezierMatrixSplit.middleSplitCubicBezier(middleBezier, start, end, debugCurrCubicBezier);
+//                    middleBezier.setTranslate(currTranslate);
+//                    paintCubicBezier(gc, middleBezier);
+//                }
+                
+                CubicBezier2D[] splitB = new CubicBezier2D[] { new CubicBezier2D(), new CubicBezier2D(), new CubicBezier2D(), new CubicBezier2D()};
+                BezierMatrixSplit.splitWeight4CubicBezier(splitB[0],splitB[1],splitB[2],splitB[3], debugCurrCubicBezier);
+                Pt2D currTranslate = new Pt2D(100, 0);
+                for(val b: splitB) {
+                	b.setTranslate(currTranslate);
+                	paintCubicBezier(gc, b);
+                	// currTranslate.x += 10;
                 }
             }
 		}
