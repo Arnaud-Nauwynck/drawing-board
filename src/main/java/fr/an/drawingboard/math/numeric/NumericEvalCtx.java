@@ -5,6 +5,7 @@ import java.util.Map;
 
 import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.math.expr.Expr;
+import fr.an.drawingboard.math.expr.Expr.LiteralDoubleExpr;
 import fr.an.drawingboard.math.expr.Expr.VariableExpr;
 import fr.an.drawingboard.math.expr.VarDef;
 import fr.an.drawingboard.model.shapedef.PtExpr;
@@ -12,25 +13,36 @@ import lombok.val;
 
 public class NumericEvalCtx {
 
-	/** for VariableExpr */
-	public final Map<VarDef, Double> varValues = new HashMap<>();
+	public final Map<VarDef, Expr> varValues = new HashMap<>();
 
 	// --------------------------------------------------------------------------------------------
 
+	public void put(VarDef varDef, Expr expr) {
+		varValues.put(varDef, expr);
+	}
+
 	public void put(VarDef varDef, double value) {
-		varValues.put(varDef, value);
+		put(varDef, new LiteralDoubleExpr(value));
 	}
 
 	public void put(VariableExpr varExpr, double value) {
 		put(varExpr.varDef, value);
 	}
 
-	public double get(VarDef varDef) {
-		Double found = varValues.get(varDef);
+	public Expr get(VarDef varDef) {
+		Expr found = varValues.get(varDef);
 		if (null == found) {
-			throw new IllegalStateException("no numerical value for var '" + varDef + "'");
+			throw new IllegalStateException("no expr for var '" + varDef + "'");
 		}
-		return found.doubleValue();
+		return found;
+	}
+	
+	public double getEval(VarDef varDef) {
+		Expr found = get(varDef);
+		if (found instanceof LiteralDoubleExpr) {
+			return ((LiteralDoubleExpr) found).value;
+		}
+		return SimpleExprDoubleCtxFunc.evalExpr(found, this);
 	}
 
 	// @Deprecated?
@@ -54,5 +66,11 @@ public class NumericEvalCtx {
 		return new Pt2D(x, y);
 	}
 
+	public void evalPtExpr(Pt2D res, PtExpr ptExpr) {
+		double x = evalExpr(ptExpr.x);
+		double y = evalExpr(ptExpr.y);
+		res.set(x, y);
+	}
+	
 
 }

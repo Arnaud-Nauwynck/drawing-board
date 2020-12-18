@@ -41,7 +41,7 @@ public class NumericExtrapol3EvalQuad1DOptimizeStep {
 
 	public double optimStep(PrepareExtrapol3EvalQuad1DOptimizeStep prepare, NumericEvalCtx ctx, double prevResValue) {
 		// assert double prevResValue = func.eval(ctx);
-		final double x = ctx.get(stepVarDef);
+		final double x = ctx.getEval(stepVarDef);
 		double f_x = prevResValue;
 		
 		double xPlusS = x + step;

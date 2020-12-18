@@ -85,7 +85,7 @@ public class SimpleExprDoubleCtxFunc extends DoubleCtxFunc {
 
 		@Override
 		public Void caseVariable(VariableExpr expr, ResCtx res) {
-			res.value = res.ctx.get(expr.varDef);
+			res.value = res.ctx.getEval(expr.varDef);
 			return null;
 		}
 

@@ -1,15 +1,15 @@
 package fr.an.drawingboard.recognizer.shape;
 
 import fr.an.drawingboard.geom2d.Pt2D;
-import fr.an.drawingboard.model.shape.GesturePathesCtxEval;
-import fr.an.drawingboard.model.shape.PathCtxEval;
-import fr.an.drawingboard.model.shape.PathElementCtxEval;
-import fr.an.drawingboard.model.shape.PathElementCtxEval.CubicBezierPathElementCtxEval;
-import fr.an.drawingboard.model.shape.PathElementCtxEval.DiscretePointsPathElementCtxEval;
-import fr.an.drawingboard.model.shape.PathElementCtxEval.PathElementCtxEvalVisitor;
-import fr.an.drawingboard.model.shape.PathElementCtxEval.QuadBezierPathElementCtxEval;
-import fr.an.drawingboard.model.shape.PathElementCtxEval.SegmentPathElementCtxEval;
-import fr.an.drawingboard.model.shape.ShapeCtxEval;
+import fr.an.drawingboard.model.shapedef.ctxeval.GesturePathesCtxEval;
+import fr.an.drawingboard.model.shapedef.ctxeval.PathCtxEval;
+import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval;
+import fr.an.drawingboard.model.shapedef.ctxeval.ShapeCtxEval;
+import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval.CubicBezierPathElementCtxEval;
+import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval.DiscretePointsPathElementCtxEval;
+import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval.PathElementCtxEvalVisitor;
+import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval.QuadBezierPathElementCtxEval;
+import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval.SegmentPathElementCtxEval;
 import fr.an.drawingboard.util.DrawingValidationUtils;
 import lombok.val;
 

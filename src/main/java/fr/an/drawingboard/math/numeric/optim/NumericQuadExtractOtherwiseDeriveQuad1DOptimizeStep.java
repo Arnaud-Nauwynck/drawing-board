@@ -80,7 +80,7 @@ public class NumericQuadExtractOtherwiseDeriveQuad1DOptimizeStep {
 
 	public double optimStep(PrepareNumericQuadExtractOtherwiseDeriveQuad1DOptimize prepare, NumericEvalCtx ctx, double prevResValue) {
 		// assert double prevResValue = ctx.evalExpr(prepare.expr);
-		final double prevVarValue = ctx.get(stepVarDef);
+		final double prevVarValue = ctx.getEval(stepVarDef);
 		if (prepare.derivOtherNonQuadTermFunc == null) {
 			// pure quadratic
 			double varValue = -0.5 * prepare.b / prepare.a;

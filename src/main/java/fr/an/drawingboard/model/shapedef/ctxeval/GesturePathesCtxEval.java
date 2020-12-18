@@ -1,4 +1,4 @@
-package fr.an.drawingboard.model.shape;
+package fr.an.drawingboard.model.shapedef.ctxeval;
 
 import com.google.common.collect.ImmutableList;
 
@@ -12,6 +12,7 @@ import lombok.val;
  * numerical objects instance of a GesturePathesDef for evaluating on a NumericEvalCtx
  */
 public class GesturePathesCtxEval {
+
 	public final GesturePathesDef def;
 	
 	public final ImmutableList<PathCtxEval> pathes;

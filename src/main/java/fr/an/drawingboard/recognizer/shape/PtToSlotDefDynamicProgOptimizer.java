@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.an.drawingboard.geom2d.Pt2D;
-import fr.an.drawingboard.model.shape.PathElementCtxEval;
-import fr.an.drawingboard.model.shape.PathElementCtxEvalFragment;
+import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval;
+import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEvalFragment;
 import fr.an.drawingboard.model.trace.TracePt;
 import fr.an.drawingboard.recognizer.shape.PtToPathElementLoweringDistUtils.PtToPathElementLoweringDistResult;
 import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder.WeightedTracePt;

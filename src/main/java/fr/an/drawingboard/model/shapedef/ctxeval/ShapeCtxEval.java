@@ -1,4 +1,4 @@
-package fr.an.drawingboard.model.shape;
+package fr.an.drawingboard.model.shapedef.ctxeval;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,11 +34,6 @@ public class ShapeCtxEval {
 		}
 		this.boundingRect = boundingRectBuilder.build();
 	}
-
-//	public void draw(GraphicsContext gc) {
-//		val gcRenderer = new ShapeDefGcRenderer(gc);
-//		gcRenderer.draw(this);
-//	}
 
 	public List<PathElementCtxEval> toPathElementCtxEvals() {
 		List<PathElementCtxEval> res = new ArrayList<>();

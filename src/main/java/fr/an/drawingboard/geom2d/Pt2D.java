@@ -2,9 +2,10 @@ package fr.an.drawingboard.geom2d;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
+@NoArgsConstructor @AllArgsConstructor
 public final class Pt2D {
 	
 	public double x;

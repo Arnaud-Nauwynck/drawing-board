@@ -57,7 +57,7 @@ public class NumericTailorDeriv2Quad1DOptimizeStep {
 			return prevResValue;
 		}
 		double derivValue = prepare.derivFunc.eval(ctx);
-		final double prevVarValue = ctx.get(stepVarDef);
+		final double prevVarValue = ctx.getEval(stepVarDef);
 		double nextVar = prevVarValue - derivValue / deriv2Value;
 
 		ctx.put(stepVarDef, nextVar);

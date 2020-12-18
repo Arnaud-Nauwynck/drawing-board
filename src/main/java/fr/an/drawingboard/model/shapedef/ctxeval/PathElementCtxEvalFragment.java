@@ -1,4 +1,4 @@
-package fr.an.drawingboard.model.shape;
+package fr.an.drawingboard.model.shapedef.ctxeval;
 
 import lombok.AllArgsConstructor;
 

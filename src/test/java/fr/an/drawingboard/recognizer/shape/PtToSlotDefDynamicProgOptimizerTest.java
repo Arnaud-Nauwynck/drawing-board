@@ -6,10 +6,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
-import fr.an.drawingboard.model.shape.PathElementCtxEval;
-import fr.an.drawingboard.model.shape.ShapeCtxEval;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
+import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval;
+import fr.an.drawingboard.model.shapedef.ctxeval.ShapeCtxEval;
 import fr.an.drawingboard.model.trace.TracePt;
 import fr.an.drawingboard.recognizer.shape.PtToSlotDefDynamicProgOptimizer.ProjToPathUpToIndex;
 import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder.WeightedTracePt;

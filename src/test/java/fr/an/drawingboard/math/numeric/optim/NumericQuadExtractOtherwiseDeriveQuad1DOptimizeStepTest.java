@@ -37,7 +37,7 @@ public class NumericQuadExtractOtherwiseDeriveQuad1DOptimizeStepTest {
 		
 		// then
 		// x = -b/(2a) = -3/4
-		double xValue = ctx.get(xDef);
+		double xValue = ctx.getEval(xDef);
 		Assert.assertEquals(-3.0/4, xValue, PREC);
 	}
 
@@ -102,7 +102,7 @@ public class NumericQuadExtractOtherwiseDeriveQuad1DOptimizeStepTest {
 		Assert.assertTrue(-1 != finishedStep);
 		Assert.assertTrue(finishedStep <= expectedMaxFinishedStep);
 		
-		double resX = ctx.get(xDef);
+		double resX = ctx.getEval(xDef);
 		Assert.assertEquals(expectedRes, prevRes, PREC);
 		Assert.assertEquals(expectedX, resX, PREC);
 	}

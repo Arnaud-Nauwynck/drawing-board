@@ -1,8 +1,11 @@
-package fr.an.drawingboard.model.shape;
+package fr.an.drawingboard.model.shapedef.ctxeval;
 
 import fr.an.drawingboard.geom2d.BoundingRect2D;
 import fr.an.drawingboard.geom2d.BoundingRect2D.BoundingRect2DBuilder;
+import fr.an.drawingboard.geom2d.CubicBezier2D;
 import fr.an.drawingboard.geom2d.Pt2D;
+import fr.an.drawingboard.geom2d.QuadBezier2D;
+import fr.an.drawingboard.geom2d.bezier.BezierEnclosingRect2DUtil;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.PathElementDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef.CubicBezierPathElementDef;
@@ -10,7 +13,6 @@ import fr.an.drawingboard.model.shapedef.PathElementDef.DiscretePointsPathElemen
 import fr.an.drawingboard.model.shapedef.PathElementDef.PathElementDefFunc0;
 import fr.an.drawingboard.model.shapedef.PathElementDef.QuadBezierPathElementDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef.SegmentPathElementDef;
-import fr.an.drawingboard.model.shapedef.PtExpr;
 import lombok.val;
 
 /**
@@ -37,8 +39,8 @@ public abstract class PathElementCtxEval {
 		}
 	};
 
-	public Pt2D startPt;
-	public Pt2D endPt;
+	public abstract Pt2D getStartPt();
+	public abstract Pt2D getEndPt();
 
 	public static PathElementCtxEval create(PathElementDef def) {
 		return def.accept(CREATE_FUNC);
@@ -46,11 +48,6 @@ public abstract class PathElementCtxEval {
 	
 	public abstract void eval(NumericEvalCtx ctx);
 
-	public void evalStarEndPt(NumericEvalCtx ctx, PtExpr startPtExpr, PtExpr endPtExpr) {
-		this.startPt = ctx.evalPtExpr(startPtExpr);
-		this.endPt = ctx.evalPtExpr(endPtExpr);
-	}
-	
 	public static abstract class PathElementCtxEvalVisitor {
 		public abstract void caseSegment(SegmentPathElementCtxEval segment);
 		public abstract void caseDiscretePoints(DiscretePointsPathElementCtxEval discretePts);
@@ -63,7 +60,7 @@ public abstract class PathElementCtxEval {
 	public abstract void addEnclosing(BoundingRect2DBuilder boundingRectBuilder);
 
 	public void addEnclosingStarEndPts(BoundingRect2DBuilder boundingRectBuilder) {
-		boundingRectBuilder.enclosingPts(startPt, endPt);
+		boundingRectBuilder.enclosingPts(getStartPt(), getEndPt());
 	}
 	
 	// ------------------------------------------------------------------------
@@ -73,14 +70,17 @@ public abstract class PathElementCtxEval {
 	 */
 	public static class SegmentPathElementCtxEval extends PathElementCtxEval {
 		public final SegmentPathElementDef def;
-
+		public final Pt2D startPt = new Pt2D();
+		public final Pt2D endPt = new Pt2D();
+		
 		public SegmentPathElementCtxEval(SegmentPathElementDef def) {
 			this.def = def;
 		}
 		
 		@Override
 		public void eval(NumericEvalCtx ctx) {
-			super.evalStarEndPt(ctx, def.startPt, def.endPt);
+			ctx.evalPtExpr(startPt, def.startPt);
+			ctx.evalPtExpr(endPt, def.endPt);
 		}
 
 		@Override
@@ -92,6 +92,17 @@ public abstract class PathElementCtxEval {
 		public void addEnclosing(BoundingRect2DBuilder boundingRectBuilder) {
 			super.addEnclosingStarEndPts(boundingRectBuilder);
 		}
+
+		@Override
+		public Pt2D getStartPt() {
+			return startPt;
+		}
+
+		@Override
+		public Pt2D getEndPt() {
+			return endPt;
+		}
+		
 		
 	}
 
@@ -105,17 +116,18 @@ public abstract class PathElementCtxEval {
 		
 		public DiscretePointsPathElementCtxEval(DiscretePointsPathElementDef def) {
 			this.def = def;
-			this.pts = new Pt2D[def.ptExprs.size()];
+			int ptsCount = def.ptExprs.size();
+			this.pts = new Pt2D[ptsCount];
+			for(int i = 0; i < ptsCount; i++) {
+				pts[i] = new Pt2D();
+			}
 		}
 
 		@Override
 		public void eval(NumericEvalCtx ctx) {
 			val boundingRectBuilder = BoundingRect2D.builder();
-			super.evalStarEndPt(ctx, def.startPt, def.endPt);
-			boundingRectBuilder.enclosingPts(startPt, endPt);
-			
 			for(int i = 0; i < pts.length; i++ ) {
-				pts[i] = ctx.evalPtExpr(def.ptExprs.get(i));
+				ctx.evalPtExpr(pts[i], def.ptExprs.get(i));
 				boundingRectBuilder.enclosingPt(pts[i]);
 			}
 			this.boundingRect = boundingRectBuilder.build();
@@ -128,10 +140,20 @@ public abstract class PathElementCtxEval {
 
 		@Override
 		public void addEnclosing(BoundingRect2DBuilder boundingRectBuilder) {
-			super.addEnclosingStarEndPts(boundingRectBuilder);
 			boundingRectBuilder.enclosingBoundingRect(boundingRect);
 		}
 
+		@Override
+		public Pt2D getStartPt() {
+			return pts[0];
+		}
+
+		@Override
+		public Pt2D getEndPt() {
+			return pts[pts.length-1];
+		}
+
+		
 	}
 
 	/**
@@ -139,7 +161,8 @@ public abstract class PathElementCtxEval {
 	 */
 	public static class QuadBezierPathElementCtxEval extends PathElementCtxEval {
 		public final QuadBezierPathElementDef def;
-		public Pt2D controlPt;
+		public final QuadBezier2D bezier = new QuadBezier2D();
+		private BoundingRect2D boundingRect;
 		
 		public QuadBezierPathElementCtxEval(QuadBezierPathElementDef def) {
 			this.def = def;
@@ -147,8 +170,11 @@ public abstract class PathElementCtxEval {
 
 		@Override
 		public void eval(NumericEvalCtx ctx) {
-			super.evalStarEndPt(ctx, def.startPt, def.endPt);
-			this.controlPt = ctx.evalPtExpr(def.controlPt);
+			ctx.evalPtExpr(bezier.startPt, def.startPt);
+			ctx.evalPtExpr(bezier.controlPt, def.controlPt);
+			ctx.evalPtExpr(bezier.endPt, def.endPt);
+		
+			this.boundingRect = null;
 		}
 
 		@Override
@@ -158,10 +184,23 @@ public abstract class PathElementCtxEval {
 
 		@Override
 		public void addEnclosing(BoundingRect2DBuilder boundingRectBuilder) {
-			super.addEnclosingStarEndPts(boundingRectBuilder);
-			boundingRectBuilder.enclosingPt(controlPt);
+			if (boundingRect == null) {
+				val b = BoundingRect2D.builder();
+				BezierEnclosingRect2DUtil.bestEnclosing_QuadBezier(b, bezier);
+				boundingRect = b.build();
+			}
+			boundingRectBuilder.enclosingBoundingRect(boundingRect);
 		}
 		
+		@Override
+		public Pt2D getStartPt() {
+			return bezier.startPt;
+		}
+
+		@Override
+		public Pt2D getEndPt() {
+			return bezier.endPt;
+		}
 	}
 
 	/**
@@ -169,8 +208,8 @@ public abstract class PathElementCtxEval {
 	 */
 	public static class CubicBezierPathElementCtxEval extends PathElementCtxEval {
 		public final CubicBezierPathElementDef def;
-		public Pt2D controlPt1;
-		public Pt2D controlPt2;
+		public final CubicBezier2D bezier = new CubicBezier2D();
+		private BoundingRect2D boundingRect;
 		
 		public CubicBezierPathElementCtxEval(CubicBezierPathElementDef def) {
 			this.def = def;
@@ -178,9 +217,12 @@ public abstract class PathElementCtxEval {
 		
 		@Override
 		public void eval(NumericEvalCtx ctx) {
-			super.evalStarEndPt(ctx, def.startPt, def.endPt);
-			this.controlPt1 = ctx.evalPtExpr(def.controlPt1);
-			this.controlPt2 = ctx.evalPtExpr(def.controlPt2);
+			ctx.evalPtExpr(bezier.startPt, def.startPt);
+			ctx.evalPtExpr(bezier.p1, def.controlPt1);
+			ctx.evalPtExpr(bezier.p2, def.controlPt2);
+			ctx.evalPtExpr(bezier.endPt, def.endPt);
+		
+			this.boundingRect = null;
 		}
 
 		@Override
@@ -190,8 +232,22 @@ public abstract class PathElementCtxEval {
 
 		@Override
 		public void addEnclosing(BoundingRect2DBuilder boundingRectBuilder) {
-			super.addEnclosingStarEndPts(boundingRectBuilder);
-			boundingRectBuilder.enclosingPts(controlPt1, controlPt2);
+			if (boundingRect == null) {
+				val b = BoundingRect2D.builder();
+				BezierEnclosingRect2DUtil.bestEnclosing_CubicBezier(b, bezier);
+				boundingRect = b.build();
+			}
+			boundingRectBuilder.enclosingBoundingRect(boundingRect);
+		}
+
+		@Override
+		public Pt2D getStartPt() {
+			return bezier.startPt;
+		}
+
+		@Override
+		public Pt2D getEndPt() {
+			return bezier.endPt;
 		}
 		
 	}
