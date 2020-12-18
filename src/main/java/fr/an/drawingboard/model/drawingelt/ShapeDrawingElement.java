@@ -1,13 +1,14 @@
 package fr.an.drawingboard.model.drawingelt;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
-import fr.an.drawingboard.math.expr.Expr;
-import fr.an.drawingboard.math.expr.VarDef;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ctxeval.ShapeCtxEval;
-import fr.an.drawingboard.model.varctx.DrawingVarCtxNode;
+import fr.an.drawingboard.model.shapedef.paramdef.ParamDef;
+import fr.an.drawingboard.model.varctx.DrawingCtxTreeNode;
+import fr.an.drawingboard.model.varctx.DrawingVarDef;
 import fr.an.drawingboard.ui.impl.GcRendererHelper;
 import lombok.Getter;
 import lombok.val;
@@ -19,40 +20,48 @@ public class ShapeDrawingElement extends DrawingElement {
 	@Getter
 	private final ShapeCtxEval shapeCtxEval;
 
-	private final NumericEvalCtx shapeVarsCtx;
+	private final Map<ParamDef,DrawingVarDef> paramBindings;
 	
 	// ------------------------------------------------------------------------
 	
-	public ShapeDrawingElement(DrawingVarCtxNode ctxNode, ShapeDef shapeDef, Map<VarDef,Expr> shapeDefVarExpr) {
+	public ShapeDrawingElement(DrawingCtxTreeNode ctxNode, ShapeDef shapeDef, Map<ParamDef,DrawingVarDef> paramBindings) {
 		super(ctxNode);
 		this.shapeDef = shapeDef;
 		this.shapeCtxEval = new ShapeCtxEval(shapeDef);
-		this.shapeVarsCtx = new NumericEvalCtx();
-		for(val varDef: shapeDef.getParams().values()) {
-			Expr expr = shapeDefVarExpr.get(varDef);
-			if (null == expr) {
-				throw new IllegalArgumentException("missing expr for var:" + varDef);
+		// this.evalCtx = new NumericEvalCtx();
+		this.paramBindings = new LinkedHashMap<ParamDef,DrawingVarDef>(paramBindings); 
+		// check params are bound, and no extra params 
+		for(ParamDef paramDef: shapeDef.getParams().values()) {
+			val binding = paramBindings.get(paramDef);
+			if (null == binding) {
+				throw new IllegalArgumentException("missing param:" + paramDef);
 			}
-			shapeDefVarExpr.put(varDef, expr);
 		}
-		if (shapeDefVarExpr.size() != shapeDef.getParams().size()) {
-			throw new IllegalArgumentException("extra unknown var for shapeDef");
+		if (paramBindings.size() != shapeDef.getParams().size()) {
+			throw new IllegalArgumentException("extra param for shape");
 		}
+		this.reevalWithVars();
 	}
 
 	// ------------------------------------------------------------------------
 
-	public void updateShapeVarExpr(VarDef varDef, Expr expr) {
-		if (varDef != shapeDef.getParam(varDef.name)) {
-			throw new IllegalArgumentException("unknown var for shapeDef");
+	public void updateParamBinding(ParamDef paramDef, DrawingVarDef binding) {
+		if (paramDef != shapeDef.getParam(paramDef.name)) {
+			throw new IllegalArgumentException("unknown param for shapeDef");
 		}
-		shapeVarsCtx.put(varDef, expr);
+		paramBindings.put(paramDef, binding);
 		reevalWithVars();
 	}
 
 	@Override
 	public void reevalWithVars() {
-		shapeCtxEval.eval(shapeVarsCtx);
+		NumericEvalCtx evalCtx = new NumericEvalCtx();
+		for(val e : paramBindings.entrySet()) {
+			ParamDef param = e.getKey();
+			DrawingVarDef varDef = e.getValue();
+			evalCtx.put(param.varDef, varDef.getCurrValue());
+		}
+		shapeCtxEval.eval(evalCtx);
 	}
 
 	@Override

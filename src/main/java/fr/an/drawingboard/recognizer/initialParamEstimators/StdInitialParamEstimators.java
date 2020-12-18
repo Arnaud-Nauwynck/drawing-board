@@ -3,8 +3,6 @@ package fr.an.drawingboard.recognizer.initialParamEstimators;
 import java.util.List;
 
 import fr.an.drawingboard.geom2d.Pt2D;
-import fr.an.drawingboard.math.expr.VarDef;
-import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePath;
@@ -34,7 +32,7 @@ public class StdInitialParamEstimators {
 	public static void estimateLineInitialParamsFor( //
 			TraceGesture gesture,
 			GesturePathesDef gestureDef,
-			NumericEvalCtx res) {
+			ParamEvalCtx res) {
 		double estimX, estimY, estimW, estimH;
 		if (! gesture.pathes.isEmpty()) {
 			TracePath firstPath = gesture.pathes.get(0);
@@ -63,7 +61,7 @@ public class StdInitialParamEstimators {
 	public static void estimateLine2InitialParamsFor( //
 			TraceGesture gesture,
 			GesturePathesDef gestureDef,
-			NumericEvalCtx res) {
+			ParamEvalCtx res) {
 		estimateLineInitialParamsFor(gesture, gestureDef, res);
 		// estimate mid point
 		// find stop point if any, otherwise half distance (TODO)
@@ -76,20 +74,20 @@ public class StdInitialParamEstimators {
 			controlPt = path0.pathElements.get(0).endPt.xy();
 		}
 		// fill res ctx
-		VarDef ctrlPtX = gestureDef.getParam("ctrlPtX");
-		VarDef ctrlPtY = gestureDef.getParam("ctrlPtY");
+		val ctrlPtX = gestureDef.getParam("ctrlPtX");
+		val ctrlPtY = gestureDef.getParam("ctrlPtY");
 		res.put(ctrlPtX, controlPt.x);
 		res.put(ctrlPtY, controlPt.y);
 	}
 	
 	private static void fillRectParam(
-			NumericEvalCtx res, // 
+			ParamEvalCtx res, // 
 			GesturePathesDef gestureDef, //  
 			double estimX, double estimY, double estimW, double estimH) {
-		VarDef paramX = gestureDef.getParam("x");
-		VarDef paramY = gestureDef.getParam("y");
-		VarDef paramW = gestureDef.getParam("w");
-		VarDef paramH = gestureDef.getParam("h");
+		val paramX = gestureDef.getParam("x");
+		val paramY = gestureDef.getParam("y");
+		val paramW = gestureDef.getParam("w");
+		val paramH = gestureDef.getParam("h");
 		res.put(paramX, estimX);
 		res.put(paramY, estimY);
 		res.put(paramW, estimW);
@@ -100,7 +98,7 @@ public class StdInitialParamEstimators {
 	public static void estimateRectInitialParamsFor( //
 			TraceGesture gesture,
 			GesturePathesDef gestureDef,
-			NumericEvalCtx res) {
+			ParamEvalCtx res) {
 		// ensure coefs per points are computed
 		WeightedDiscretizationPathPtsBuilder.updatePtCoefs(gesture); // redundant useless?
 		
@@ -210,5 +208,4 @@ public class StdInitialParamEstimators {
 		fillRectParam(res, gestureDef, estimX, estimY, estimW, estimH);
 	}
 
-	
 }

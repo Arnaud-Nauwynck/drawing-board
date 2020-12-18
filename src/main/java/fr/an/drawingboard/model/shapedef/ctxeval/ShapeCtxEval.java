@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
 import fr.an.drawingboard.geom2d.BoundingRect2D;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
+import fr.an.drawingboard.recognizer.initialParamEstimators.ParamEvalCtx;
 import fr.an.drawingboard.util.LsUtils;
 import lombok.val;
 
@@ -25,11 +26,17 @@ public class ShapeCtxEval {
 		this.def = def;
 		this.gestures = ImmutableList.copyOf(LsUtils.map(def.gestures, x -> new GesturePathesCtxEval(x)));
 	}
+
+	public void eval(ParamEvalCtx paramCtx) {
+		eval(paramCtx.evalCtx);
+	}
 	
 	public void eval(NumericEvalCtx ctx) {
 		val boundingRectBuilder = BoundingRect2D.builder();
 		for(val gesture: gestures) {
+			// *** recurse shape->gestures->traces->pathElements ***
 			gesture.eval(ctx);
+			
 			boundingRectBuilder.enclosingBoundingRect(gesture.boundingRect);
 		}
 		this.boundingRect = boundingRectBuilder.build();

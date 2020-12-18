@@ -5,6 +5,7 @@ import fr.an.drawingboard.model.shapedef.PtExpr;
 import fr.an.drawingboard.model.shapedef.RectExpr;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
+import fr.an.drawingboard.model.shapedef.paramdef.ParamCategoryRegistry;
 import fr.an.drawingboard.recognizer.initialParamEstimators.InitialParamForShapeEstimator;
 import fr.an.drawingboard.recognizer.initialParamEstimators.StdInitialParamEstimators;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,8 @@ import lombok.RequiredArgsConstructor;
 public class ShapeDefRegistryBuilder {
 
 	private final ShapeDefRegistry dest;
-
+	private final ParamCategoryRegistry paramCategories;
+	
 	public void addStdShapes() {
 		addLineDef();
 		addLine2Def();
@@ -25,7 +27,7 @@ public class ShapeDefRegistryBuilder {
 	}
 
 	public void addLineDef() {
-		ShapeDef shapeDef = new ShapeDef("line");
+		ShapeDef shapeDef = new ShapeDef("line", paramCategories);
 		RectExpr r = shapeDef.getCoordRectExpr();
 		InitialParamForShapeEstimator paramEstimator = lineParamEstimator();
 		//  PtUL -----> PtUR
@@ -35,11 +37,11 @@ public class ShapeDefRegistryBuilder {
 	}
 	
 	public void addLine2Def() {
-		ShapeDef shapeDef = new ShapeDef("line2");
+		ShapeDef shapeDef = new ShapeDef("line2", paramCategories);
 		RectExpr r = shapeDef.getCoordRectExpr();
 		InitialParamForShapeEstimator paramEstimator = StdInitialParamEstimators.line2ParamEstimator();
-		Expr ctrlPtX = shapeDef.addVarDef("ctrlPtX").expr;
-		Expr ctrlPtY = shapeDef.addVarDef("ctrlPtY").expr;
+		Expr ctrlPtX = shapeDef.addParamDef("ctrlPtX", paramCategories.STD_X).expr;
+		Expr ctrlPtY = shapeDef.addParamDef("ctrlPtY", paramCategories.STD_Y).expr;
 		PtExpr midPt = new PtExpr(ctrlPtX, ctrlPtY);
 		//  PtUL -----> MidPt ---> PtUR
 		shapeDef.addGesture_Segments(paramEstimator, r.ptUL, midPt, r.ptDR);
@@ -49,7 +51,7 @@ public class ShapeDefRegistryBuilder {
 	
 
 	public void addRectangleDef() {
-		ShapeDef shapeDef = new ShapeDef("rectangle");
+		ShapeDef shapeDef = new ShapeDef("rectangle", paramCategories);
 		RectExpr r = shapeDef.getCoordRectExpr();
 		// clock-wise gesture
 		//  PtUL -----> PtUR
@@ -64,7 +66,7 @@ public class ShapeDefRegistryBuilder {
 	}
 	
 	public void addVCrossDef() {
-		ShapeDef shapeDef = new ShapeDef("vcross");
+		ShapeDef shapeDef = new ShapeDef("vcross", paramCategories);
 		RectExpr r = shapeDef.getCoordRectExpr();
 		// gesture
 		//  PtUL    ->  PtUR
@@ -80,7 +82,7 @@ public class ShapeDefRegistryBuilder {
 	}
 
 	public void addHCrossDef() {
-		ShapeDef shapeDef = new ShapeDef("hcross");
+		ShapeDef shapeDef = new ShapeDef("hcross", paramCategories);
 		RectExpr r = shapeDef.getCoordRectExpr();
 		// gesture
 		//  PtUL      PtUR
@@ -95,7 +97,7 @@ public class ShapeDefRegistryBuilder {
 	}
 	
 	public void addZDef() {
-		ShapeDef shapeDef = new ShapeDef("z");
+		ShapeDef shapeDef = new ShapeDef("z", paramCategories);
 		RectExpr r = shapeDef.getCoordRectExpr();
 		// gesture
 		//  PtUL----+ PtUR
@@ -109,7 +111,7 @@ public class ShapeDefRegistryBuilder {
 	}
 
 	public void addNDef() {
-		ShapeDef shapeDef = new ShapeDef("n");
+		ShapeDef shapeDef = new ShapeDef("n", paramCategories);
 		RectExpr r = shapeDef.getCoordRectExpr();
 		// gesture
 		//  PtUL      PtUR

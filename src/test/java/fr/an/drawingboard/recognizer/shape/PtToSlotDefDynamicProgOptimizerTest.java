@@ -5,12 +5,13 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
 import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval;
 import fr.an.drawingboard.model.shapedef.ctxeval.ShapeCtxEval;
+import fr.an.drawingboard.model.shapedef.paramdef.ParamCategoryRegistry;
 import fr.an.drawingboard.model.trace.TracePt;
+import fr.an.drawingboard.recognizer.initialParamEstimators.ParamEvalCtx;
 import fr.an.drawingboard.recognizer.shape.PtToSlotDefDynamicProgOptimizer.ProjToPathUpToIndex;
 import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder.WeightedTracePt;
 import fr.an.drawingboard.stddefs.shapedef.ShapeDefRegistryBuilder;
@@ -49,19 +50,19 @@ public class PtToSlotDefDynamicProgOptimizerTest {
 	@AllArgsConstructor
 	private static class PtToFragTestScenario {
 		ShapeCtxEval shape;
-		NumericEvalCtx ctx;
+		ParamEvalCtx ctx;
 		PtToSlotDefDynamicProgOptimizer sut;
 	}
 
 	private PtToFragTestScenario createLineTestScenario() {
 		ShapeDefRegistry registry = new ShapeDefRegistry();
-		new ShapeDefRegistryBuilder(registry).addStdShapes();
+		new ShapeDefRegistryBuilder(registry, ParamCategoryRegistry.INSTANCE).addStdShapes();
 		ShapeDef shapeDef = registry.getShapeDef("line");
 
 		//     x=0      50      100
 		// y=0  +---------------->
 		// 
-		NumericEvalCtx ctx = new NumericEvalCtx();
+		ParamEvalCtx ctx = new ParamEvalCtx();
 		ctx.put(shapeDef.getParam("x"), 50);
 		ctx.put(shapeDef.getParam("w"), 50);
 		ctx.put(shapeDef.getParam("y"), 0);

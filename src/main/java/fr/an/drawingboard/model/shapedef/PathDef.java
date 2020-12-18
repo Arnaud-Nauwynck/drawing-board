@@ -3,6 +3,8 @@ package fr.an.drawingboard.model.shapedef;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.an.drawingboard.model.shapedef.paramdef.ParametrizableEltDef;
+
 /**
  * definition of a path (with algebric expr), similar to javafx.scene.shape.Path
  *

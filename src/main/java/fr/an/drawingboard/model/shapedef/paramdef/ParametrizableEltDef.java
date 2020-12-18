@@ -1,4 +1,4 @@
-package fr.an.drawingboard.model.shapedef;
+package fr.an.drawingboard.model.shapedef.paramdef;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -14,7 +14,7 @@ public abstract class ParametrizableEltDef {
 	private ParametrizableEltDef parent;
 	
 	@Getter
-	private final Map<String,VarDef> params = new LinkedHashMap<>();
+	private final Map<String,ParamDef> params = new LinkedHashMap<>();
 
 	// --------------------------------------------------------------------------------------------
 
@@ -27,14 +27,14 @@ public abstract class ParametrizableEltDef {
 
 	// --------------------------------------------------------------------------------------------
 
-	public VarDef addVarDef(String name) {
-		VarDef res = new VarDef(name); // TODO add namespace for printing unambiguously ??
+	public ParamDef addParamDef(String name, ParamCategory paramCategory) {
+		ParamDef res = new ParamDef(this, name, paramCategory); 
 		params.put(name, res);
 		return res;
 	}
 	
-	public VarDef getParam(String name) {
-		VarDef res = params.get(name);
+	public ParamDef getParam(String name) {
+		ParamDef res = params.get(name);
 		if (res == null && parent != null) {
 			res = parent.getParam(name);
 		}
@@ -42,7 +42,7 @@ public abstract class ParametrizableEltDef {
 	}
 
 	public VariableExpr getParamExpr(String name) {
-		return getParam(name).expr;
+		return getParam(name).varDef.expr;
 	}
 
 }

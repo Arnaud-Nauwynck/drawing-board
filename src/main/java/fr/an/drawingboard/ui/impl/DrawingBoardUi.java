@@ -1,6 +1,7 @@
 package fr.an.drawingboard.ui.impl;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import fr.an.drawingboard.geom2d.BoundingRect2D;
@@ -15,11 +16,14 @@ import fr.an.drawingboard.geom2d.bezier.BezierPtsFittting;
 import fr.an.drawingboard.geom2d.bezier.PtToBezierDistanceMinSolver;
 import fr.an.drawingboard.geom2d.bezier.PtToBezierDistanceMinSolver.PtToCurveDistanceMinSolverResult;
 import fr.an.drawingboard.geom2d.bezier.RaiseLowerBezierDegreeUtil;
-import fr.an.drawingboard.math.numeric.NumericEvalCtx;
+import fr.an.drawingboard.model.drawingelt.DrawingElement;
+import fr.an.drawingboard.model.drawingelt.TraceDrawingElement;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
 import fr.an.drawingboard.model.shapedef.ctxeval.ShapeCtxEval;
+import fr.an.drawingboard.model.shapedef.paramdef.ParamCategoryRegistry;
+import fr.an.drawingboard.model.shapedef.paramdef.ParamDef;
 import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePath;
 import fr.an.drawingboard.model.trace.TracePathElement;
@@ -27,7 +31,10 @@ import fr.an.drawingboard.model.trace.TracePathElement.DiscretePointsTracePathEl
 import fr.an.drawingboard.model.trace.TracePathElementBuilder;
 import fr.an.drawingboard.model.trace.TracePt;
 import fr.an.drawingboard.model.trace.TraceShape;
-import fr.an.drawingboard.model.varctx.DrawingVarCtxNode;
+import fr.an.drawingboard.model.varctx.DrawingCtxTreeNode;
+import fr.an.drawingboard.model.varctx.DrawingCtxTreeNode.SimilarVarCostFunction;
+import fr.an.drawingboard.model.varctx.DrawingVarDef;
+import fr.an.drawingboard.recognizer.initialParamEstimators.ParamEvalCtx;
 import fr.an.drawingboard.recognizer.shape.MatchShapeToCostExprBuilder;
 import fr.an.drawingboard.recognizer.shape.TraceGestureDefMatching;
 import fr.an.drawingboard.recognizer.shape.TraceGestureDefMatchingBuilder;
@@ -86,17 +93,21 @@ public class DrawingBoardUi {
 	
 
 	// model
-	private TraceShape traceShape = new TraceShape();
+	private TraceShape currTraceShape = null; //  = new TraceShape();
+	private TraceGesture currGesture;
+	private TracePath currPath;
+	private TracePathElementBuilder currPathElementBuilder;
 
-	private DrawingVarCtxNode drawingRootNode = DrawingVarCtxNode.createRootNode();
-		
+	private DrawingCtxTreeNode drawingRootNode = DrawingCtxTreeNode.createRootNode();
+	private DrawingCtxTreeNode currNode = drawingRootNode;
+	
 	TooNarrowPtsSimplifier tooNarrowPtsSimplifier = new TooNarrowPtsSimplifier();
 	AlmostAlignedPtsSimplifier almostAlignedPtsSimplifier = new AlmostAlignedPtsSimplifier();
 	StopPointDetector stopPointDetector = new StopPointDetector();
 	TracePathElementDetector pathElementDetector = new TracePathElementDetector();
 	MatchShapeToCostExprBuilder matchShapeToCostExprBuilder = new MatchShapeToCostExprBuilder();
 	int discretizationPrecision = 30;
-	Function<NumericEvalCtx,NumericEvalCtx> paramCtxInitTransformer;
+	Function<ParamEvalCtx,ParamEvalCtx> paramCtxInitTransformer;
 	
 	boolean showSettingsStopPointDetector = false;
 	BooleanProperty showSettingsAlmostAlignedPtsSimplifier;
@@ -104,16 +115,17 @@ public class DrawingBoardUi {
 	// 
 	private double currLineWidth = 2;
 	
-	private TraceGesture currGesture;
-	private TracePath currPath;
-	private TracePathElementBuilder currPathElementBuilder;
 
 	private ShapeDefRegistry shapeDefRegistry;
 
 	private ShapeCtxEval currMatchShape;
-	private NumericEvalCtx currMatchParamCtx;
+	private ParamEvalCtx currMatchParamCtx;
 	private TraceGestureDefMatching currTraceGestureDefMatching;
 
+	private SimilarVarCostFunction varCostFunc = DrawingCtxTreeNode.DEFAULT_SimilarVarCostEvaluator;
+	private double maxVarCostOrDefine = 50;
+	private double maxVarDiffOrDefine = 30;
+	
 	boolean debugDistPt = false;
 	private Pt2D debugCurrDistEditPt = null;
 	private final Pt2D debugDistEditPt = new Pt2D(300, 200);
@@ -146,7 +158,7 @@ public class DrawingBoardUi {
 
 	public DrawingBoardUi() {
 		shapeDefRegistry = new ShapeDefRegistry();
-		new ShapeDefRegistryBuilder(shapeDefRegistry).addStdShapes();
+		new ShapeDefRegistryBuilder(shapeDefRegistry, ParamCategoryRegistry.INSTANCE).addStdShapes();
 		
 		this.canvas = new Canvas(1000, 500);
 		Node toolbar = createToolbar();
@@ -200,19 +212,7 @@ public class DrawingBoardUi {
 		Button button = new Button("Del");
 		toolbarItems.add(button);
 		button.setOnAction(event -> {
-			// remove last
-			TraceGesture lastGesture = traceShape.getLast();
-			if (lastGesture != null) {
-				lastGesture.removeLastPath();
-				if (lastGesture.isEmpty()) {
-					traceShape.remove(lastGesture);
-				}
-			}
-			if (currMatchShape != null) {
-				currMatchShape = null;
-			}
-			currTraceGestureDefMatching = null;
-			
+			removeLastNode();	
 			paintCanvas();
 		});
 		
@@ -245,17 +245,17 @@ public class DrawingBoardUi {
 				addParamCtxTransformer(paramShifterMenu, group, ".", null);
 				addParamCtxTransformer(paramShifterMenu, group, "->", 
 						ctx -> {
-							val xDef = ctx.findVarByName("x");
-							ctx.put(xDef, ctx.getEval(xDef) + 50);
+							val xDef = ctx.paramByName("x");
+							ctx.put(xDef, ctx.get(xDef) + 50);
 							return ctx;
 						});
 				addParamCtxTransformer(paramShifterMenu, group, "x2", 
 						ctx -> {
-							val wDef = ctx.findVarByName("w");
-							double wValue = ctx.getEval(wDef);
+							val wDef = ctx.paramByName("w");
+							double wValue = ctx.get(wDef);
 							ctx.put(wDef, wValue * 2);
-							val hDef = ctx.findVarByName("h");
-							ctx.put(hDef, ctx.getEval(hDef) * 2);
+							val hDef = ctx.paramByName("h");
+							ctx.put(hDef, ctx.get(hDef) * 2);
 							return ctx;
 						});
 			}
@@ -288,7 +288,7 @@ public class DrawingBoardUi {
 			toolbarItems.add(menu);
 			List<MenuItem> menuItems = menu.getItems();
 			addMenuItem(menuItems, "Rm Pts", () -> {
-				TraceGesture gesture = (currGesture != null)? currGesture : traceShape.getLast();
+				TraceGesture gesture = currOrLastGesture();
 				if (gesture != null) {
 					almostAlignedPtsSimplifier.simplifyGestureLines(gesture);
 					tooNarrowPtsSimplifier.simplifyTooNarrowPts(gesture);
@@ -297,14 +297,14 @@ public class DrawingBoardUi {
 				}
 			});
 			addMenuItem(menuItems, "Rm Narrow Pts only", () -> {
-				TraceGesture gesture = (currGesture != null)? currGesture : traceShape.getLast();
+				TraceGesture gesture = currOrLastGesture();
 				if (gesture != null) {
 					tooNarrowPtsSimplifier.simplifyTooNarrowPts(gesture);
 					paintCanvas();
 				}
 			});
 			addMenuItem(menuItems, "Rm Aligned Pts only", () -> {
-				TraceGesture gesture = (currGesture != null)? currGesture : traceShape.getLast();
+				TraceGesture gesture = currOrLastGesture();
 				if (gesture != null) {
 					almostAlignedPtsSimplifier.simplifyGestureLines(gesture);
 					paintCanvas();
@@ -324,6 +324,8 @@ public class DrawingBoardUi {
 			addMatchShapeItem(recognizeItems, "R(DL->UR..)", "rectangle", 1);
 			addMatchShapeItem(recognizeItems, "HCross", "hcross", 0);
 		}
+		
+		toolbarItems.add(createMatchShapeButton("Rect", "rectangle", 0));
 		
 		if (debugDistPt) {
 			MenuButton menu = new MenuButton("Debug Dist Pt");
@@ -382,6 +384,33 @@ public class DrawingBoardUi {
 		return toolbar;
 	}
 
+	private void removeLastNode() {
+		DrawingCtxTreeNode lastChildNode = this.drawingRootNode.lastChildNode();
+		if (lastChildNode != null) {
+			this.drawingRootNode.removeChild(lastChildNode);
+			currTraceShape = null; currGesture = null; currPath = null;
+		}
+	}
+	
+	private void removeCurrTraceLastGesture() {
+		// remove last
+		if (currTraceShape != null) {
+			TraceGesture gesture = currOrLastGesture();
+			if (gesture != null) {
+				gesture.removeLastPath();
+				if (gesture.isEmpty()) {
+					currTraceShape.remove(gesture);
+				}
+			}
+			currTraceShape = null;
+		}
+		
+		if (currMatchShape != null) {
+			currMatchShape = null;
+		}
+		currTraceGestureDefMatching = null;
+	}
+
 	private MenuItem addMenuItem(List<MenuItem> parent, String label, Runnable action) {
 		MenuItem res = new MenuItem(label);
 		res.setOnAction(e -> action.run());
@@ -411,7 +440,7 @@ public class DrawingBoardUi {
 		return res;
 	}
 	
-	private RadioMenuItem addParamCtxTransformer(Menu menu, ToggleGroup group, String label, Function<NumericEvalCtx, NumericEvalCtx> transformer) {
+	private RadioMenuItem addParamCtxTransformer(Menu menu, ToggleGroup group, String label, Function<ParamEvalCtx, ParamEvalCtx> transformer) {
 		RadioMenuItem res = new RadioMenuItem(label);
 		res.setToggleGroup(group);
 		res.setOnAction(e -> {
@@ -425,6 +454,10 @@ public class DrawingBoardUi {
 		MenuItem res = new MenuItem(label);
 		res.setOnAction(e -> onClickMatchShapeDef(shapeName, gestureIndex));
 		items.add(res);
+	}
+
+	private Button createMatchShapeButton(String label, String shapeName, int gestureIndex) {
+		return createButton(label, () -> onClickMatchShapeDef(shapeName, gestureIndex));
 	}
 
 	private void installCanvasHandler() {
@@ -484,6 +517,11 @@ public class DrawingBoardUi {
 					WeightedDiscretizationPathPtsBuilder.updatePtCoefs(currGesture);
 					currGesture = null;
 				}
+				
+				// TODO recognize trace? ... add drawingElt
+				DrawingCtxTreeNode traceNode = drawingRootNode.addChildCtx_GenerateNameFor("trace");
+				traceNode.addDrawingElementTrace(currTraceShape);
+				currTraceShape = null;
 				
 				// remove too small lines ?
 				
@@ -565,13 +603,33 @@ public class DrawingBoardUi {
 
 	}
 	
-
-	private TraceGesture currOrAppendGesture() { 
-		 if (currGesture == null) {
-			 currGesture = traceShape.appendNewGesture();
-		 }
-		 return currGesture;
+	private TraceGesture currOrLastGesture() {
+		if (currTraceShape != null) {
+			return (currGesture != null)? currGesture : currTraceShape.getLast();
+		}
+		// lastDrawingElt is trace?
+		DrawingCtxTreeNode lastNode = this.drawingRootNode.lastChildNode();
+		if (lastNode == null) {
+			return null;
+		}
+		DrawingElement drawingElt = lastNode.lastDrawingElement();
+		if (drawingElt instanceof TraceDrawingElement) {
+			TraceShape lastTrace = ((TraceDrawingElement) drawingElt).getTrace();
+			return lastTrace.getLast();
+		}
+		return null;
 	}
+
+	private TraceGesture currOrAppendGesture() {
+		if (currTraceShape == null) {
+			currTraceShape = new TraceShape();
+		}
+		if (currGesture == null) {
+			currGesture = currTraceShape.appendNewGesture();
+		}
+		return currGesture;
+	}
+
 	private TracePath currOrAppendPath() { 
 		 if (currPath == null) {
 			 TraceGesture gesture = currOrAppendGesture();
@@ -597,7 +655,8 @@ public class DrawingBoardUi {
 	
 	private void tryMatchShape(ShapeDef currMatchShapeDef, int gestureIndex) {
 		GesturePathesDef gestureDef = currMatchShapeDef.gestures.get(gestureIndex);
-		TraceGesture matchGesture = traceShape.getLast();
+		
+		TraceGesture matchGesture = currOrLastGesture();
 		if (matchGesture == null) {
 			return;
 		}
@@ -605,7 +664,7 @@ public class DrawingBoardUi {
 //			return; // ??
 //		}
 
-		this.currMatchParamCtx = new NumericEvalCtx();
+		this.currMatchParamCtx = new ParamEvalCtx();
 		
 		gestureDef.initalParamEstimator.estimateInitialParamsFor(
 				matchGesture, gestureDef, currMatchParamCtx);
@@ -634,7 +693,16 @@ public class DrawingBoardUi {
 		
 		
 		this.currMatchShape = new ShapeCtxEval(currMatchShapeDef);
-		this.currMatchShape.eval(currMatchParamCtx);
+		this.currMatchShape.eval(currMatchParamCtx.evalCtx);
+		
+		removeLastNode();
+		
+		DrawingCtxTreeNode shapeNodeCtx = this.drawingRootNode.addChildCtx_GenerateNameFor(currMatchShapeDef.name);
+		Map<ParamDef, Double> paramValues = currMatchParamCtx.getParamValuesCopy();
+		Map<ParamDef, DrawingVarDef> paramBindings = shapeNodeCtx.resolveSimilarOrDefineVarExpr(paramValues, varCostFunc, maxVarCostOrDefine, maxVarDiffOrDefine);
+		
+		shapeNodeCtx.addDrawingElementShape(currMatchShapeDef, paramBindings);
+		this.currMatchShape = null;
 		
 		paintCanvas();
 	}
@@ -661,7 +729,9 @@ public class DrawingBoardUi {
 		gc.setLineWidth(currLineWidth);
 		gc.setStroke(currLineColor);
 		
-		gcRenderer.draw(traceShape);
+		if (currTraceShape != null) {
+			gcRenderer.draw(currTraceShape);
+		}
 
 		gc.setLineWidth(currLineWidth);
 		gc.setStroke(currLineColor);
@@ -760,7 +830,7 @@ public class DrawingBoardUi {
 
 		if (debugFittingBezier) {
 			if (showFittingQuadBezier.get() || showFittingCubicBezier.get()) {
-				TraceGesture lastGesture = this.traceShape.getLast();
+				TraceGesture lastGesture = currOrLastGesture();
 				TracePath lastTrace = (lastGesture != null)? lastGesture.getLast() : null;
 				TracePathElement lastPathElt = (lastTrace != null)? lastTrace.getLastPathElement() : null;
 				if (lastPathElt instanceof DiscretePointsTracePathElement) {

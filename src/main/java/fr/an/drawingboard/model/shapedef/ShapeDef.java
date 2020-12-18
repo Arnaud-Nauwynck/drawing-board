@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.an.drawingboard.math.expr.VarDef;
+import fr.an.drawingboard.model.shapedef.paramdef.ParamCategoryRegistry;
+import fr.an.drawingboard.model.shapedef.paramdef.ParamDef;
+import fr.an.drawingboard.model.shapedef.paramdef.ParametrizableEltDef;
 import fr.an.drawingboard.recognizer.initialParamEstimators.InitialParamForShapeEstimator;
 import lombok.AllArgsConstructor;
 
@@ -16,12 +18,12 @@ public class ShapeDef extends ParametrizableEltDef {
 
 	// --------------------------------------------------------------------------------------------
 
-	public ShapeDef(String name) {
+	public ShapeDef(String name, ParamCategoryRegistry paramCategories) {
 		this.name = name;
-		addVarDef("x");
-		addVarDef("y");
-		addVarDef("w");
-		addVarDef("h");
+		addParamDef("x", paramCategories.STD_X);
+		addParamDef("y", paramCategories.STD_Y);
+		addParamDef("w", paramCategories.STD_W);
+		addParamDef("h", paramCategories.STD_H);
 	}
 
 	// --------------------------------------------------------------------------------------------
@@ -50,10 +52,10 @@ public class ShapeDef extends ParametrizableEltDef {
 	
 	@AllArgsConstructor
 	public static class CoordParams {
-		public final VarDef x;
-		public final VarDef y;
-		public final VarDef w;
-		public final VarDef h;
+		public final ParamDef x;
+		public final ParamDef y;
+		public final ParamDef w;
+		public final ParamDef h;
 	}
 	public CoordParams getCoordParams() {
 		return new CoordParams(getParam("x"), getParam("y"), getParam("w"), getParam("h"));

@@ -9,6 +9,7 @@ import fr.an.drawingboard.model.shapedef.PathElementDef.CubicBezierPathElementDe
 import fr.an.drawingboard.model.shapedef.PathElementDef.DiscretePointsPathElementDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef.QuadBezierPathElementDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef.SegmentPathElementDef;
+import fr.an.drawingboard.model.shapedef.paramdef.ParametrizableEltDef;
 import fr.an.drawingboard.recognizer.initialParamEstimators.InitialParamForShapeEstimator;
 import fr.an.drawingboard.util.DrawingValidationUtils;
 

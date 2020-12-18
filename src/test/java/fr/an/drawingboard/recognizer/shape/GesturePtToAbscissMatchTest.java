@@ -5,14 +5,15 @@ import org.junit.Test;
 import com.google.common.collect.ImmutableList;
 
 import fr.an.drawingboard.geom2d.Pt2D;
-import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
+import fr.an.drawingboard.model.shapedef.paramdef.ParamCategoryRegistry;
 import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePath;
 import fr.an.drawingboard.model.trace.TracePathElement.SegmentTracePathElement;
 import fr.an.drawingboard.model.trace.TracePt;
+import fr.an.drawingboard.recognizer.initialParamEstimators.ParamEvalCtx;
 import fr.an.drawingboard.recognizer.shape.GesturePtToAbscissMatch.GestureMatchPt;
 import fr.an.drawingboard.stddefs.shapedef.ShapeDefRegistryBuilder;
 import lombok.val;
@@ -32,12 +33,12 @@ public class GesturePtToAbscissMatchTest {
 		
 		// build shapeDef
 		ShapeDefRegistry reg = new ShapeDefRegistry();
-		new ShapeDefRegistryBuilder(reg).addStdShapes();
+		new ShapeDefRegistryBuilder(reg, ParamCategoryRegistry.INSTANCE).addStdShapes();
 		ShapeDef shapeDef = reg.getShapeDef("line");
 		GesturePathesDef gestureDef = shapeDef.gestures.get(0);
 		
 		
-		NumericEvalCtx paramCtx = new NumericEvalCtx();
+		ParamEvalCtx paramCtx = new ParamEvalCtx();
 		
 		
 		gestureDef.initalParamEstimator.estimateInitialParamsFor(

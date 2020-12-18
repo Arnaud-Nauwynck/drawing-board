@@ -9,7 +9,6 @@ import fr.an.drawingboard.math.expr.Expr;
 import fr.an.drawingboard.math.expr.Expr.VariableExpr;
 import fr.an.drawingboard.math.expr.ExprBuilder;
 import fr.an.drawingboard.math.expr.VarDef;
-import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef.PathElementDefEntry;
 import fr.an.drawingboard.model.shapedef.PathDef;
@@ -18,6 +17,7 @@ import fr.an.drawingboard.model.shapedef.PtExpr;
 import fr.an.drawingboard.model.shapedef.PtExpr.PtExprBuilder;
 import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePt;
+import fr.an.drawingboard.recognizer.initialParamEstimators.ParamEvalCtx;
 import fr.an.drawingboard.recognizer.trace.PathDistLengthesUtils;
 import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder;
 import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder.WeightedTracePt;
@@ -62,7 +62,7 @@ public class GesturePtToAbscissMatch {
 	// TODO does not work yet ...
 	public GesturePtToAbscissMatch(TraceGesture gesture, GesturePathesDef gestureDef, //
 			int discretizationPrecision, //
-			NumericEvalCtx currInitialParamCtx) {
+			ParamEvalCtx currInitialParamCtx) {
 		this.gesture = gesture;
 		this.gestureDef = gestureDef;
 		// discretize pts for gesture
@@ -133,7 +133,7 @@ public class GesturePtToAbscissMatch {
 			ExprBuilder b = ExprBuilder.INSTANCE;
 			VarDef varDef = new VarDef("pathEltAbsciss" + ptIndex);
 			
-			currInitialParamCtx.put(varDef, currS);
+			currInitialParamCtx.evalCtx.put(varDef, currS);
 			VariableExpr exprS = varDef.expr;
 			Expr expr1minusS = b.minus(b.lit1(), exprS);
 

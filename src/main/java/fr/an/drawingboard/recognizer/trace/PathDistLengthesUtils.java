@@ -15,6 +15,7 @@ import fr.an.drawingboard.model.shapedef.PathElementDef.QuadBezierPathElementDef
 import fr.an.drawingboard.model.shapedef.PathElementDef.SegmentPathElementDef;
 import fr.an.drawingboard.model.shapedef.PtExpr;
 import fr.an.drawingboard.model.trace.TracePt;
+import fr.an.drawingboard.recognizer.initialParamEstimators.ParamEvalCtx;
 import lombok.val;
 
 public class PathDistLengthesUtils {
@@ -67,7 +68,7 @@ public class PathDistLengthesUtils {
 
 	public static List<Double> evalEstimateDistLengthes(
 			GesturePathesDef gestureDef, 
-			NumericEvalCtx evalCtx) {
+			ParamEvalCtx evalCtx) {
 		List<Double> res = new ArrayList<>();
 		for(val pathDef: gestureDef.pathes) {
 			for(val pathElementDef : pathDef.pathElements) {
@@ -78,7 +79,7 @@ public class PathDistLengthesUtils {
 		return res;
 	}
 	
-	public static double evalEstimatePathElementDefDistLength(PathElementDef pathElementDef, NumericEvalCtx evalCtx) {
+	public static double evalEstimatePathElementDefDistLength(PathElementDef pathElementDef, ParamEvalCtx evalCtx) {
 		return pathElementDef.accept(new PathElementDefFunc0<Double>() {
 			@Override
 			public Double caseSegmentDef(SegmentPathElementDef def) {

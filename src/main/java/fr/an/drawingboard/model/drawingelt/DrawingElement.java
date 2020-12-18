@@ -1,27 +1,27 @@
 package fr.an.drawingboard.model.drawingelt;
 
-import fr.an.drawingboard.model.varctx.DrawingVarCtxNode;
+import fr.an.drawingboard.model.varctx.DrawingCtxTreeNode;
 import fr.an.drawingboard.ui.impl.GcRendererHelper;
 
 public abstract class DrawingElement {
 
-	private DrawingVarCtxNode ctxNode;
+	private DrawingCtxTreeNode ctxNode;
 //	private String name;
 	
 	// ------------------------------------------------------------------------
 	
-	protected DrawingElement(DrawingVarCtxNode ctxNode) {
+	protected DrawingElement(DrawingCtxTreeNode ctxNode) {
 		this.ctxNode = ctxNode;
 	}
 
 	// ------------------------------------------------------------------------
 	
-	public DrawingVarCtxNode getCtxNode() {
+	public DrawingCtxTreeNode getCtxNode() {
 		return ctxNode;
 	}
 
 
-	public void _setCtxNode(DrawingVarCtxNode ctxNode) {
+	public void _setCtxNode(DrawingCtxTreeNode ctxNode) {
 		this.ctxNode = ctxNode;
 	}
 

@@ -5,6 +5,7 @@ import java.util.List;
 
 import fr.an.drawingboard.math.expr.Expr;
 import fr.an.drawingboard.math.expr.ExprBuilder;
+import fr.an.drawingboard.model.shapedef.paramdef.ParametrizableEltDef;
 import fr.an.drawingboard.model.trace.TracePathElementType;
 import fr.an.drawingboard.util.DrawingValidationUtils;
 
