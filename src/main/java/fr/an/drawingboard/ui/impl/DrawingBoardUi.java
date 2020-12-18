@@ -144,6 +144,7 @@ public class DrawingBoardUi {
 	BooleanProperty showFittingCubicBezier;
 	private final QuadBezier2D debugCurrTraceFittingQuadBezier = new QuadBezier2D();
 	private final CubicBezier2D debugCurrTraceFittingCubicBezier = new CubicBezier2D();
+
 	// --------------------------------------------------------------------------------------------
 
 	public DrawingBoardUi() {
@@ -508,20 +509,20 @@ public class DrawingBoardUi {
 		public void onMouseDragged(MouseEvent e) {
 			// System.out.println("mouse dragged");
 			if (debugDistPt && null != debugCurrDistEditPt) {
-				debugCurrDistEditPt.x = e.getSceneX();
-				debugCurrDistEditPt.y = e.getSceneY();
+				debugCurrDistEditPt.x = e.getX();
+				debugCurrDistEditPt.y = e.getY();
 				paintCanvas();
 				return;
 			}
 			if (debugQuadBezier && null != debugQuadBezierEditPt) {
-				debugQuadBezierEditPt.x = e.getSceneX();
-				debugQuadBezierEditPt.y = e.getSceneY();
+				debugQuadBezierEditPt.x = e.getX();
+				debugQuadBezierEditPt.y = e.getY();
 				paintCanvas();
 				return;
 			}
 			if (debugCubicBezier && null != debugCubicBezierEditPt) {
-				debugCubicBezierEditPt.x = e.getSceneX();
-				debugCubicBezierEditPt.y = e.getSceneY();
+				debugCubicBezierEditPt.x = e.getX();
+				debugCubicBezierEditPt.y = e.getY();
 				paintCanvas();
 				return;
 			}
@@ -531,8 +532,7 @@ public class DrawingBoardUi {
 
 				// append point to current pathElement
 				int pressure = 1; // not managed yet
-				int x = (int) (e.getSceneX() - canvas.getLayoutX());
-				int y = (int) (e.getSceneY() - canvas.getLayoutY());
+				double x = e.getX(), y = e.getY();
 				long time = System.currentTimeMillis();
 				TracePt pt = currPathElementBuilder.appendTracePt(x, y, time, pressure);
 
@@ -862,12 +862,17 @@ public class DrawingBoardUi {
 	}
 
     private void paintBezier(GraphicsContext gc, QuadBezier2D bezier) {
-        int maxStep = 100;
-        for(int step = 0; step <= maxStep; step++) {
-        	double s = ((double)step) / maxStep;
-        	Pt2D pt = bezier.eval(s);
-        	drawPtCircle(gc, pt, 1);
-        }
+//        int maxStep = 100;
+//        for(int step = 0; step <= maxStep; step++) {
+//        	double s = ((double)step) / maxStep;
+//        	Pt2D pt = bezier.eval(s);
+//        	drawPtCircle(gc, pt, 1);
+//        }
+    	gc.beginPath();
+    	gc.moveTo(bezier.startPt.x, bezier.startPt.y);
+    	gc.quadraticCurveTo(bezier.controlPt.x, bezier.controlPt.y, bezier.endPt.x, bezier.endPt.y);
+    	gc.stroke();
+    	
         Paint prevStroke = gc.getStroke();
         gc.setStroke(Color.RED);
         drawPtCircle(gc, bezier.startPt, 3);
@@ -882,12 +887,16 @@ public class DrawingBoardUi {
     }
 
     private void paintBezier(GraphicsContext gc, CubicBezier2D bezier) {
-        int maxStep = 100;
-        for(int step = 0; step <= maxStep; step++) {
-        	double s = ((double)step) / maxStep;
-        	Pt2D pt = bezier.eval(s);
-        	drawPtCircle(gc, pt, 1);
-        }
+//        int maxStep = 100;
+//        for(int step = 0; step <= maxStep; step++) {
+//        	double s = ((double)step) / maxStep;
+//        	Pt2D pt = bezier.eval(s);
+//        	drawPtCircle(gc, pt, 1);
+//        }
+    	gc.beginPath();
+    	gc.moveTo(bezier.startPt.x, bezier.startPt.y);
+    	gc.bezierCurveTo(bezier.p1.x, bezier.p1.y, bezier.p2.x, bezier.p2.y, bezier.endPt.x, bezier.endPt.y);
+    	gc.stroke();
 
         Paint prevStroke = gc.getStroke();
         gc.setStroke(Color.RED);

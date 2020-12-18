@@ -32,6 +32,9 @@ public class TraceGestureDefMatchingBuilder {
 				discretizationPrecision);
 
 		Iterator<WeightedTracePt> currTracePtIter = tracePts.iterator(); 
+		if (! currTracePtIter.hasNext()) {
+			return gestureDefMatching;
+		}
 		WeightedTracePt currTracePt = currTracePtIter.next();
 		InterpolatedTracePt currMatchTracePt = new InterpolatedTracePt(currTracePt.pt);
 		

@@ -20,7 +20,7 @@ public class TracePathElementBuilder {
 	}
 
 	
-	public TracePt appendTracePt(int x, int y, long time, int pressure) {
+	public TracePt appendTracePt(double x, double y, long time, int pressure) {
 		double pathAbsciss;
 		if (tracePts.isEmpty()) {
 			pathAbsciss = 0;

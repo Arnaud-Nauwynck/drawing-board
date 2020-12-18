@@ -4,6 +4,7 @@ import fr.an.drawingboard.model.trace.TracePathElementBuilder;
 import fr.an.drawingboard.model.trace.TracePt;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.val;
 
 public class StopPointDetector {
 
@@ -79,7 +80,7 @@ public class StopPointDetector {
 		StringBuilder debugMsg = null;
 		if (debugPrint) {
 			debugMsg = new StringBuilder();
-			int dx = pt.x - prevPt.x, dy = pt.y - prevPt.y;
+			val dx = pt.x - prevPt.x, dy = pt.y - prevPt.y;
 			debugMsg.append("pt[" + (count-1) + "] move:" + dx + "," + dy 
 				+ " dist:" + dist + " ?< " + moveThresholdPerTime
 				+ " dt:" + dt + " ?> " + stationaryThresholdMillis);
@@ -91,16 +92,14 @@ public class StopPointDetector {
 		if (!stopPoint && count > 8) {
 			TracePt pt4 = curr.tracePt(count - 7);
 			TracePt pt2 = curr.tracePt(count - 3);
-			int prevMoveX = pt2.x - pt4.x; 
-			int prevMoveY = pt2.y - pt4.y; 
-			int moveX = pt.x - pt2.x; 
-			int moveY = pt.y - pt2.y; 
-			double squarePrevMove = moveX * moveX + moveY * moveY;
-			double squareMove = prevMoveX * prevMoveX + prevMoveY * prevMoveY;
+			val prevMoveX = pt2.x - pt4.x, prevMoveY = pt2.y - pt4.y; 
+			val moveX = pt.x - pt2.x, moveY = pt.y - pt2.y; 
+			val squarePrevMove = moveX * moveX + moveY * moveY;
+			val squareMove = prevMoveX * prevMoveX + prevMoveY * prevMoveY;
 			
-			double scalarProduct = moveX * prevMoveX + moveY * prevMoveY;
-			double normsProduct = Math.sqrt(squarePrevMove * squareMove);
-			double cosAngleMove = scalarProduct / normsProduct;
+			val scalarProduct = moveX * prevMoveX + moveY * prevMoveY;
+			val normsProduct = Math.sqrt(squarePrevMove * squareMove);
+			val cosAngleMove = scalarProduct / normsProduct;
 			if (debugPrint) {
 				debugMsg.append(" move prev^2:" + squarePrevMove + " move^2:" + squareMove
 						+ " >=? " + (moveThresholdFastChange*moveThresholdFastChange)

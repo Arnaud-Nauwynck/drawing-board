@@ -8,8 +8,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TracePt {
 	
-	public final int x;
-	public final int y;
+	public final double x;
+	public final double y;
 	
 	public final long time;
 	public final int pressure;
@@ -39,7 +39,7 @@ public class TracePt {
 		return distRoundedPixel(pt0.x, pt0.y, pt1.x, pt1.y); 
 	}
 	
-	public static double distRoundedPixel(int x0, int y0, int x1, int y1) {
+	public static double distRoundedPixel(double x0, double y0, double x1, double y1) {
 		double dx = Math.abs(x1 - x0);
 		double dy = Math.abs(y1 - y0);
 		double roundDx = Math.max(0, dx - 0.5);
