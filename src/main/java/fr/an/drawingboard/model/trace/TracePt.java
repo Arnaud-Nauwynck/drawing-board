@@ -15,8 +15,6 @@ public class TracePt {
 	public final int pressure;
 		
 	public final double pathAbsciss;
-
-	public double coefInPathes; // set from 
 	
 	boolean isStopPoint;
 	boolean isMergeStopPoint;

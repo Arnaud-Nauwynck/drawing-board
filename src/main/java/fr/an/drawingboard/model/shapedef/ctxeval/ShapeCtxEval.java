@@ -35,7 +35,7 @@ public class ShapeCtxEval {
 		val boundingRectBuilder = BoundingRect2D.builder();
 		for(val gesture: gestures) {
 			// *** recurse shape->gestures->traces->pathElements ***
-			gesture.eval(ctx);
+			gesture.update(ctx);
 			
 			boundingRectBuilder.enclosingBoundingRect(gesture.boundingRect);
 		}

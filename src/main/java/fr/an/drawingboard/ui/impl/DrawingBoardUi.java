@@ -1,5 +1,6 @@
 package fr.an.drawingboard.ui.impl;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -16,12 +17,13 @@ import fr.an.drawingboard.geom2d.bezier.BezierPtsFittting;
 import fr.an.drawingboard.geom2d.bezier.PtToBezierDistanceMinSolver;
 import fr.an.drawingboard.geom2d.bezier.PtToBezierDistanceMinSolver.PtToCurveDistanceMinSolverResult;
 import fr.an.drawingboard.geom2d.bezier.RaiseLowerBezierDegreeUtil;
+import fr.an.drawingboard.geom2d.utils.PolygonalDistUtils;
 import fr.an.drawingboard.model.drawingelt.DrawingElement;
 import fr.an.drawingboard.model.drawingelt.TraceDrawingElement;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
-import fr.an.drawingboard.model.shapedef.ctxeval.ShapeCtxEval;
+import fr.an.drawingboard.model.shapedef.ctxeval.GesturePathesCtxEval;
 import fr.an.drawingboard.model.shapedef.paramdef.ParamCategoryRegistry;
 import fr.an.drawingboard.model.shapedef.paramdef.ParamDef;
 import fr.an.drawingboard.model.trace.TraceGesture;
@@ -36,14 +38,16 @@ import fr.an.drawingboard.model.varctx.DrawingCtxTreeNode.SimilarVarCostFunction
 import fr.an.drawingboard.model.varctx.DrawingVarDef;
 import fr.an.drawingboard.recognizer.initialParamEstimators.ParamEvalCtx;
 import fr.an.drawingboard.recognizer.shape.MatchShapeToCostExprBuilder;
-import fr.an.drawingboard.recognizer.shape.TraceGestureDefMatching;
-import fr.an.drawingboard.recognizer.shape.TraceGestureDefMatchingBuilder;
+import fr.an.drawingboard.recognizer.shape.TraceSymbolLevenshteinEditOptimizer;
+import fr.an.drawingboard.recognizer.shape.TraceSymbolLevenshteinEditOptimizer.PathCtxEvalSymbol;
+import fr.an.drawingboard.recognizer.shape.TraceSymbolLevenshteinEditOptimizer.TracePathSymbol;
+import fr.an.drawingboard.recognizer.shape.TraceSymbolLevenshteinEditOptimizer.TraceSymbolLevensteinDist;
+import fr.an.drawingboard.recognizer.shape.TraceSymbolMatchCostFunction;
 import fr.an.drawingboard.recognizer.trace.AlmostAlignedPtsSimplifier;
 import fr.an.drawingboard.recognizer.trace.StopPointDetector;
 import fr.an.drawingboard.recognizer.trace.TooNarrowPtsSimplifier;
+import fr.an.drawingboard.recognizer.trace.TraceDiscretisationPtsBuilder;
 import fr.an.drawingboard.recognizer.trace.TracePathElementDetector;
-import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder;
-import fr.an.drawingboard.recognizer.trace.WeightedPtsBuilder;
 import fr.an.drawingboard.stddefs.shapedef.ShapeDefRegistryBuilder;
 import fr.an.drawingboard.util.LsUtils;
 import javafx.beans.property.BooleanProperty;
@@ -70,8 +74,10 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
+import lombok.AllArgsConstructor;
 import lombok.val;
 
+@SuppressWarnings("deprecation")
 public class DrawingBoardUi {
 
 	int paintCount = 0;
@@ -93,24 +99,22 @@ public class DrawingBoardUi {
 	
 
 	// model
-	private TraceShape currTraceShape = null; //  = new TraceShape();
 	private TraceGesture currGesture;
 	private TracePath currPath;
 	private TracePathElementBuilder currPathElementBuilder;
 
 	private DrawingCtxTreeNode drawingRootNode = DrawingCtxTreeNode.createRootNode();
-	private DrawingCtxTreeNode currNode = drawingRootNode;
 	
-	TooNarrowPtsSimplifier tooNarrowPtsSimplifier = new TooNarrowPtsSimplifier();
-	AlmostAlignedPtsSimplifier almostAlignedPtsSimplifier = new AlmostAlignedPtsSimplifier();
-	StopPointDetector stopPointDetector = new StopPointDetector();
-	TracePathElementDetector pathElementDetector = new TracePathElementDetector();
-	MatchShapeToCostExprBuilder matchShapeToCostExprBuilder = new MatchShapeToCostExprBuilder();
-	int discretizationPrecision = 30;
-	Function<ParamEvalCtx,ParamEvalCtx> paramCtxInitTransformer;
+	private TooNarrowPtsSimplifier tooNarrowPtsSimplifier = new TooNarrowPtsSimplifier();
+	private AlmostAlignedPtsSimplifier almostAlignedPtsSimplifier = new AlmostAlignedPtsSimplifier();
+	private StopPointDetector stopPointDetector = new StopPointDetector();
+	private TracePathElementDetector pathElementDetector = new TracePathElementDetector();
+	@SuppressWarnings({ "unused" })
+	private MatchShapeToCostExprBuilder matchShapeToCostExprBuilder = new MatchShapeToCostExprBuilder();
+	private Function<ParamEvalCtx,ParamEvalCtx> paramCtxInitTransformer;
 	
-	boolean showSettingsStopPointDetector = false;
-	BooleanProperty showSettingsAlmostAlignedPtsSimplifier;
+	private boolean showSettingsStopPointDetector = false;
+	private BooleanProperty showSettingsAlmostAlignedPtsSimplifier;
 	
 	// 
 	private double currLineWidth = 2;
@@ -118,28 +122,29 @@ public class DrawingBoardUi {
 
 	private ShapeDefRegistry shapeDefRegistry;
 
-	private ShapeCtxEval currMatchShape;
-	private ParamEvalCtx currMatchParamCtx;
-	private TraceGestureDefMatching currTraceGestureDefMatching;
-
+	private TraceDiscretisationPtsBuilder traceDiscretisationPtsBuilder = new TraceDiscretisationPtsBuilder();
+	private TraceSymbolMatchCostFunction traceSymbolMatchCostFunc = new TraceSymbolMatchCostFunction();
+	
+	private Map<String,MatchToShapeDef> currMatchPerShape = new HashMap<>();
+	private MatchToShapeDef currMatchToShapeDef;
+	
 	private SimilarVarCostFunction varCostFunc = DrawingCtxTreeNode.DEFAULT_SimilarVarCostEvaluator;
 	private double maxVarCostOrDefine = 50;
 	private double maxVarDiffOrDefine = 30;
 	
-	boolean debugDistPt = false;
-	private Pt2D debugCurrDistEditPt = null;
+	private Pt2D currEditPt = null;
+
+	private boolean debugDistPt = false;
 	private final Pt2D debugDistEditPt = new Pt2D(300, 200);
 	
-	boolean debugQuadBezier = false;
-	private Pt2D debugQuadBezierEditPt = null;
+	private boolean debugQuadBezier = false;
 	private final QuadBezier2D debugCurrQuadBezier = new QuadBezier2D(new Pt2D(100, 0), new Pt2D(200, 100), new Pt2D(100, 200));
 	private BooleanProperty debugQuadBezierShowBoundingBox;
 	private BooleanProperty debugQuadBezierShowSplit2;
 	private BooleanProperty debugQuadBezierShowSplit;
 	private BooleanProperty debugQuadBezierShowRaiseCubic;
 	
-	boolean debugCubicBezier = false;
-	private Pt2D debugCubicBezierEditPt = null;
+	private boolean debugCubicBezier = false;
 	private final CubicBezier2D debugCurrCubicBezier = new CubicBezier2D(new Pt2D(100, 0), new Pt2D(200, 100), new Pt2D(200, 200), new Pt2D(100, 300));
 	private BooleanProperty debugCubicBezierShowBoundingBox;
 	private BooleanProperty debugCubicBezierShowSplit2;
@@ -148,9 +153,9 @@ public class DrawingBoardUi {
 	private BooleanProperty debugCubicBezierShowLowerQuad;
 	
 
-	boolean debugFittingBezier = false;
-	BooleanProperty showFittingQuadBezier;
-	BooleanProperty showFittingCubicBezier;
+	private boolean debugFittingBezier = false;
+	private BooleanProperty showFittingQuadBezier;
+	private BooleanProperty showFittingCubicBezier;
 	private final QuadBezier2D debugCurrTraceFittingQuadBezier = new QuadBezier2D();
 	private final CubicBezier2D debugCurrTraceFittingCubicBezier = new CubicBezier2D();
 
@@ -212,7 +217,7 @@ public class DrawingBoardUi {
 		Button button = new Button("Del");
 		toolbarItems.add(button);
 		button.setOnAction(event -> {
-			removeLastNode();	
+			removeLastNode();
 			paintCanvas();
 		});
 		
@@ -288,25 +293,22 @@ public class DrawingBoardUi {
 			toolbarItems.add(menu);
 			List<MenuItem> menuItems = menu.getItems();
 			addMenuItem(menuItems, "Rm Pts", () -> {
-				TraceGesture gesture = currOrLastGesture();
-				if (gesture != null) {
-					almostAlignedPtsSimplifier.simplifyGestureLines(gesture);
-					tooNarrowPtsSimplifier.simplifyTooNarrowPts(gesture);
-					almostAlignedPtsSimplifier.simplifyGestureLines(gesture);
+				if (currGesture != null) {
+					almostAlignedPtsSimplifier.simplifyGestureLines(currGesture);
+					tooNarrowPtsSimplifier.simplifyTooNarrowPts(currGesture);
+					almostAlignedPtsSimplifier.simplifyGestureLines(currGesture);
 					paintCanvas();
 				}
 			});
 			addMenuItem(menuItems, "Rm Narrow Pts only", () -> {
-				TraceGesture gesture = currOrLastGesture();
-				if (gesture != null) {
-					tooNarrowPtsSimplifier.simplifyTooNarrowPts(gesture);
+				if (currGesture != null) {
+					tooNarrowPtsSimplifier.simplifyTooNarrowPts(currGesture);
 					paintCanvas();
 				}
 			});
 			addMenuItem(menuItems, "Rm Aligned Pts only", () -> {
-				TraceGesture gesture = currOrLastGesture();
-				if (gesture != null) {
-					almostAlignedPtsSimplifier.simplifyGestureLines(gesture);
+				if (currGesture != null) {
+					almostAlignedPtsSimplifier.simplifyGestureLines(currGesture);
 					paintCanvas();
 				}
 			});
@@ -326,6 +328,7 @@ public class DrawingBoardUi {
 		}
 		
 		toolbarItems.add(createMatchShapeButton("Rect", "rectangle", 0));
+		toolbarItems.add(createButton("match best", () -> tryMatchBestShape()));
 		
 		if (debugDistPt) {
 			MenuButton menu = new MenuButton("Debug Dist Pt");
@@ -333,8 +336,8 @@ public class DrawingBoardUi {
 			List<MenuItem> menuItems = menu.getItems();
 			ToggleGroup group = new ToggleGroup();
 
-			addRadioMenuItem(menuItems, group, "stop edit dist pt", () -> { debugCurrDistEditPt = null; });
-			addRadioMenuItem(menuItems, group, "edit dist pt", () -> { debugCurrDistEditPt = debugDistEditPt; });
+			addRadioMenuItem(menuItems, group, "stop edit dist pt", () -> { currEditPt = null; });
+			addRadioMenuItem(menuItems, group, "edit dist pt", () -> { currEditPt = debugDistEditPt; });
 		}
 
 		if (debugQuadBezier) {
@@ -343,10 +346,10 @@ public class DrawingBoardUi {
 			List<MenuItem> menuItems = menu.getItems();
 			ToggleGroup group = new ToggleGroup();
 
-			addRadioMenuItem(menuItems, group, "stop edit pt", () -> { debugQuadBezierEditPt = null; });
-			addRadioMenuItem(menuItems, group, "edit start pt", () -> { debugQuadBezierEditPt = debugCurrQuadBezier.startPt; });
-			addRadioMenuItem(menuItems, group, "edit ctrl pt", () -> { debugQuadBezierEditPt = debugCurrQuadBezier.controlPt; });
-			addRadioMenuItem(menuItems, group, "edit end pt", () -> { debugQuadBezierEditPt = debugCurrQuadBezier.endPt; });
+			addRadioMenuItem(menuItems, group, "stop edit pt", () -> { currEditPt = null; });
+			addRadioMenuItem(menuItems, group, "edit start pt", () -> { currEditPt = debugCurrQuadBezier.startPt; });
+			addRadioMenuItem(menuItems, group, "edit ctrl pt", () -> { currEditPt = debugCurrQuadBezier.controlPt; });
+			addRadioMenuItem(menuItems, group, "edit end pt", () -> { currEditPt = debugCurrQuadBezier.endPt; });
 			
 			debugQuadBezierShowBoundingBox = addCheckMenuItem(menuItems, "show bounding box", () -> paintCanvas()).selectedProperty();
 			debugQuadBezierShowSplit2 = addCheckMenuItem(menuItems, "show split2", () -> paintCanvas()).selectedProperty();
@@ -368,11 +371,11 @@ public class DrawingBoardUi {
 			List<MenuItem> menuItems = menu.getItems();
 			ToggleGroup group = new ToggleGroup();
 
-			addRadioMenuItem(menuItems, group, "stop edit pt", () -> { debugCubicBezierEditPt = null; });
-			addRadioMenuItem(menuItems, group, "edit start pt", () -> { debugCubicBezierEditPt = debugCurrCubicBezier.startPt; });
-			addRadioMenuItem(menuItems, group, "edit ctrl1 pt", () -> { debugCubicBezierEditPt = debugCurrCubicBezier.p1; });
-			addRadioMenuItem(menuItems, group, "edit ctrl2 pt", () -> { debugCubicBezierEditPt = debugCurrCubicBezier.p2; });
-			addRadioMenuItem(menuItems, group, "edit end pt", () -> { debugCubicBezierEditPt = debugCurrCubicBezier.endPt; });
+			addRadioMenuItem(menuItems, group, "stop edit pt", () -> { currEditPt = null; });
+			addRadioMenuItem(menuItems, group, "edit start pt", () -> { currEditPt = debugCurrCubicBezier.startPt; });
+			addRadioMenuItem(menuItems, group, "edit ctrl1 pt", () -> { currEditPt = debugCurrCubicBezier.p1; });
+			addRadioMenuItem(menuItems, group, "edit ctrl2 pt", () -> { currEditPt = debugCurrCubicBezier.p2; });
+			addRadioMenuItem(menuItems, group, "edit end pt", () -> { currEditPt = debugCurrCubicBezier.endPt; });
 
 			debugCubicBezierShowBoundingBox = addCheckMenuItem(menuItems, "show bounding box", () -> paintCanvas()).selectedProperty();
 			debugCubicBezierShowSplit2 = addCheckMenuItem(menuItems, "show split2", () -> paintCanvas()).selectedProperty();
@@ -388,27 +391,11 @@ public class DrawingBoardUi {
 		DrawingCtxTreeNode lastChildNode = this.drawingRootNode.lastChildNode();
 		if (lastChildNode != null) {
 			this.drawingRootNode.removeChild(lastChildNode);
-			currTraceShape = null; currGesture = null; currPath = null;
+			currGesture = null; currPath = null;
+			
+			currMatchPerShape.clear();
+			currMatchToShapeDef = null;
 		}
-	}
-	
-	private void removeCurrTraceLastGesture() {
-		// remove last
-		if (currTraceShape != null) {
-			TraceGesture gesture = currOrLastGesture();
-			if (gesture != null) {
-				gesture.removeLastPath();
-				if (gesture.isEmpty()) {
-					currTraceShape.remove(gesture);
-				}
-			}
-			currTraceShape = null;
-		}
-		
-		if (currMatchShape != null) {
-			currMatchShape = null;
-		}
-		currTraceGestureDefMatching = null;
 	}
 
 	private MenuItem addMenuItem(List<MenuItem> parent, String label, Runnable action) {
@@ -500,9 +487,10 @@ public class DrawingBoardUi {
 		@Override
 		public void onMousePressed(MouseEvent e) {
 			// System.out.println("mouse pressed " + e.getClickCount());
-			canvas.requestFocus(); // otherwise KeyEvent not captured by canvas
-
-			currOrAppendPath();
+			canvas.requestFocus();
+			
+			currGesture = new TraceGesture();
+			currPath = new TracePath(); // currGesture.appendNewPath();
 			currPathElementBuilder = new TracePathElementBuilder();
 		}
 		@Override
@@ -511,19 +499,23 @@ public class DrawingBoardUi {
 			
 			if (currPathElementBuilder != null) {
 				flushStopPointOrMouseReleased();
-				currPathElementBuilder = null;
-				currPath = null;
-				if (currGesture != null) {
-					WeightedDiscretizationPathPtsBuilder.updatePtCoefs(currGesture);
-					currGesture = null;
+			
+				if (currPath != null) {
+					// remove too small lines ?
+					// TODO recognize trace? ... add drawingElt
+					currGesture.add(currPath);
+					
+					DrawingCtxTreeNode traceNode = drawingRootNode.addChildCtx_GenerateNameFor("trace");
+					
+					val traceShape = new TraceShape();
+					traceShape.add(currGesture);
+					traceNode.addDrawingElementTrace(traceShape);
+				
 				}
 				
-				// TODO recognize trace? ... add drawingElt
-				DrawingCtxTreeNode traceNode = drawingRootNode.addChildCtx_GenerateNameFor("trace");
-				traceNode.addDrawingElementTrace(currTraceShape);
-				currTraceShape = null;
-				
-				// remove too small lines ?
+				currPathElementBuilder = null;
+				currPath = null;
+				currGesture = null;
 				
 				paintCanvas();
 			}
@@ -543,21 +535,9 @@ public class DrawingBoardUi {
 		@Override
 		public void onMouseDragged(MouseEvent e) {
 			// System.out.println("mouse dragged");
-			if (debugDistPt && null != debugCurrDistEditPt) {
-				debugCurrDistEditPt.x = e.getX();
-				debugCurrDistEditPt.y = e.getY();
-				paintCanvas();
-				return;
-			}
-			if (debugQuadBezier && null != debugQuadBezierEditPt) {
-				debugQuadBezierEditPt.x = e.getX();
-				debugQuadBezierEditPt.y = e.getY();
-				paintCanvas();
-				return;
-			}
-			if (debugCubicBezier && null != debugCubicBezierEditPt) {
-				debugCubicBezierEditPt.x = e.getX();
-				debugCubicBezierEditPt.y = e.getY();
+			if (null != currEditPt) {
+				currEditPt.x = e.getX();
+				currEditPt.y = e.getY();
 				paintCanvas();
 				return;
 			}
@@ -576,75 +556,72 @@ public class DrawingBoardUi {
 					boolean stop = stopPointDetector.onNewTracePt(currPathElementBuilder, pt);
 					if (stop) {
 						flushStopPointOrMouseReleased();
+						if (pt.isStopPoint()) {
+							// remove from prev?
+						}
+						
+						// currGesture = new TraceGesture();
+						// currPath = currGesture.appendNewPath();
 					}
 				}
 				
 				paintCanvas();
 			}
 		}
+
 		private void flushStopPointOrMouseReleased() {
 			// recognize segment, discrete points curve, or quad/cubic bezier...
 			TracePathElement pathElement = pathElementDetector.recognizePathElement(currPathElementBuilder);
-			
+			boolean isEmpty = false;
 			if (pathElement != null) {
-				// append a new pathElement(Builder) to current path
-				if (currPath == null) { 
-					currPath = currOrAppendPath(); // should not occur?
+				if (pathElement instanceof DiscretePointsTracePathElement) {
+					val pathElement2 = (DiscretePointsTracePathElement) pathElement;
+					isEmpty = pathElement2.tracePts.size() <= 2;
 				}
-				currPath.add(pathElement);
-				val pt = currPathElementBuilder.lastPt();
-				if (pt != null) {
-					currPathElementBuilder = new TracePathElementBuilder(pt);
+				if (!isEmpty && pathElement.startPt.xy().distTo(pathElement.endPt.xy()) < 10) {
+					// TOCHANGE.. more condition
+					// do not add almost empty element
+					isEmpty = true;
 				}
-			} else {
-				// do not add small lines? .. convert to point (or circle / disk)
+				
+				if (!isEmpty) {
+					currPath.add(pathElement);
+				}
+			}
+			
+			val pt = currPathElementBuilder.lastPt();
+			if (pt != null) {
+				currPathElementBuilder = new TracePathElementBuilder(pt);
 			}
 		}
 
-	}
-	
-	private TraceGesture currOrLastGesture() {
-		if (currTraceShape != null) {
-			return (currGesture != null)? currGesture : currTraceShape.getLast();
-		}
-		// lastDrawingElt is trace?
-		DrawingCtxTreeNode lastNode = this.drawingRootNode.lastChildNode();
-		if (lastNode == null) {
-			return null;
-		}
-		DrawingElement drawingElt = lastNode.lastDrawingElement();
-		if (drawingElt instanceof TraceDrawingElement) {
-			TraceShape lastTrace = ((TraceDrawingElement) drawingElt).getTrace();
-			return lastTrace.getLast();
-		}
-		return null;
-	}
-
-	private TraceGesture currOrAppendGesture() {
-		if (currTraceShape == null) {
-			currTraceShape = new TraceShape();
-		}
-		if (currGesture == null) {
-			currGesture = currTraceShape.appendNewGesture();
-		}
-		return currGesture;
-	}
-
-	private TracePath currOrAppendPath() { 
-		 if (currPath == null) {
-			 TraceGesture gesture = currOrAppendGesture();
-			 currPath = gesture.appendNewPath();
-		 }
-		 return currPath;
 	}
 
 	// Match recognizer
 	// --------------------------------------------------------------------------------------------
 
+	private TraceGesture lastTraceGesture() {
+		if (currGesture != null) {
+			return currGesture;
+		}
+		val lastNode = drawingRootNode.lastChildNode();
+		if (lastNode == null) {
+			return null;
+		}
+		DrawingElement drawing = lastNode.lastDrawingElement();
+		if (drawing == null) {
+			return null;
+		}
+		if (drawing instanceof TraceDrawingElement) {
+			TraceDrawingElement e = (TraceDrawingElement) drawing;
+			TraceShape shape = e.getTrace();
+			return shape.getLast();
+		}
+		return null;
+	}
+
 	private void onClickClearMatchShapeDef() {
-		this.currMatchParamCtx = null;
-		this.currTraceGestureDefMatching = null;
-		this.currMatchShape = null;
+		this.currMatchPerShape.clear();
 		paintCanvas();
 	}
 	
@@ -653,58 +630,103 @@ public class DrawingBoardUi {
 		tryMatchShape(shapeDef, gestureIndex);
 	}
 	
-	private void tryMatchShape(ShapeDef currMatchShapeDef, int gestureIndex) {
-		GesturePathesDef gestureDef = currMatchShapeDef.gestures.get(gestureIndex);
+	@AllArgsConstructor
+	public static class MatchToShapeDef {
+		ShapeDef shapeDef;
+		GesturePathesDef gestureDef;
 		
-		TraceGesture matchGesture = currOrLastGesture();
-		if (matchGesture == null) {
+		ParamEvalCtx matchParamCtx;
+		GesturePathesCtxEval shapeCtxEval;
+		TraceSymbolLevenshteinEditOptimizer matchOptimizer;
+		// PtToSlotDefDynamicProgOptimizer ptToDefOptimizer;
+		double cost() {
+			return matchOptimizer.getResultCost();
+		}
+	}
+
+	
+	
+	private void tryMatchBestShape() {
+		TraceGesture traceGesture = lastTraceGesture();
+		if (traceGesture == null) {
 			return;
 		}
-//		if (matchGesture.recognizedShape != null) {
-//			return; // ??
-//		}
-
-		this.currMatchParamCtx = new ParamEvalCtx();
+		List<TracePathSymbol> tracePathSymbols = TracePathSymbol.traceGestureToSourceSymbols(traceGesture, traceDiscretisationPtsBuilder);
 		
-		gestureDef.initalParamEstimator.estimateInitialParamsFor(
-				matchGesture, gestureDef, currMatchParamCtx);
-
-		if (paramCtxInitTransformer != null) {
-			this.currMatchParamCtx = paramCtxInitTransformer.apply(currMatchParamCtx);
+		double bestCost = Double.MAX_VALUE;
+		MatchToShapeDef bestMatchToShapeDef = null;
+		for(val shapeDef: shapeDefRegistry.shapeDefs.values()) {
+			for(val gestureDef: shapeDef.gestures) {
+				MatchToShapeDef matchToShapeDef = computeMatchTraceToDef(traceGesture, tracePathSymbols, 
+						shapeDef, gestureDef);
+				double cost = matchToShapeDef.cost();
+				if (cost < bestCost) {
+					bestCost = cost;
+					bestMatchToShapeDef = matchToShapeDef;
+				}
+			}
 		}
-		
-		this.currTraceGestureDefMatching = TraceGestureDefMatchingBuilder.match(gestureDef, 
-				matchGesture, discretizationPrecision, 
-				currMatchParamCtx);
-		
-//		this.currGesturePtToAbscissMatch = new GesturePtToAbscissMatch(matchGesture, gestureDef, 
-//				discretizationPrecision, 
-//				currMatchParamCtx);
-			
-//			Expr costExpr = matchShapeToCostExprBuilder.costMatchGestureWithAbsciss(
-//					matchGesture,
-//					gestureDef, 
-//					currMatchIndexToAbsciss);
-//
-			// TODO ..
-			
-					
-		// TODO .. choice + optim steps
-		
-		
-		this.currMatchShape = new ShapeCtxEval(currMatchShapeDef);
-		this.currMatchShape.eval(currMatchParamCtx.evalCtx);
-		
-		removeLastNode();
-		
-		DrawingCtxTreeNode shapeNodeCtx = this.drawingRootNode.addChildCtx_GenerateNameFor(currMatchShapeDef.name);
-		Map<ParamDef, Double> paramValues = currMatchParamCtx.getParamValuesCopy();
-		Map<ParamDef, DrawingVarDef> paramBindings = shapeNodeCtx.resolveSimilarOrDefineVarExpr(paramValues, varCostFunc, maxVarCostOrDefine, maxVarDiffOrDefine);
-		
-		shapeNodeCtx.addDrawingElementShape(currMatchShapeDef, paramBindings);
-		this.currMatchShape = null;
+		this.currMatchToShapeDef = bestMatchToShapeDef;
 		
 		paintCanvas();
+	}
+
+	
+	
+	private void tryMatchShape(ShapeDef currMatchShapeDef, int gestureIndex) {
+		GesturePathesDef gestureDef = currMatchShapeDef.gestures.get(gestureIndex);
+		TraceGesture traceGesture = lastTraceGesture();
+		if (traceGesture == null) {
+			return;
+		}
+
+		List<TracePathSymbol> tracePathSymbols = TracePathSymbol.traceGestureToSourceSymbols(traceGesture, traceDiscretisationPtsBuilder);
+		
+		MatchToShapeDef matchToShapeDef = computeMatchTraceToDef(traceGesture, tracePathSymbols, 
+				currMatchShapeDef, gestureDef);
+		
+		
+		DrawingCtxTreeNode shapeNodeCtx = this.drawingRootNode.addChildCtx_GenerateNameFor(currMatchShapeDef.name);
+		Map<ParamDef, Double> paramValues = matchToShapeDef.matchParamCtx.getParamValuesCopy();
+		Map<ParamDef, DrawingVarDef> paramBindings =
+				shapeNodeCtx.defineVarExpr(paramValues);
+				// shapeNodeCtx.resolveSimilarOrDefineVarExpr(paramValues, varCostFunc, maxVarCostOrDefine, maxVarDiffOrDefine);
+		
+		shapeNodeCtx.addDrawingElementShape(currMatchShapeDef, paramBindings);
+		this.currMatchPerShape.clear();
+		
+		this.currMatchToShapeDef = matchToShapeDef;
+		
+		paintCanvas();
+	}
+
+	private MatchToShapeDef computeMatchTraceToDef(
+			TraceGesture traceGesture,
+			List<TracePathSymbol> sourceSymbols,
+			ShapeDef shapeDef, 
+			GesturePathesDef gestureDef
+			) {
+		// initial param estimation
+		ParamEvalCtx matchParamCtx = new ParamEvalCtx();
+		gestureDef.initalParamEstimator.estimateInitialParamsFor(
+				traceGesture, gestureDef, matchParamCtx);
+
+		if (paramCtxInitTransformer != null) {
+			matchParamCtx = paramCtxInitTransformer.apply(matchParamCtx);
+		}
+
+		// eval gestureDef for param
+		GesturePathesCtxEval gestureCtxEval = new GesturePathesCtxEval(gestureDef); 
+		gestureCtxEval.update(matchParamCtx.evalCtx);
+
+		// pathElements between stop points as 'symbol' (to match on traceSymbols)
+		List<PathCtxEvalSymbol> targetSymbols = PathCtxEvalSymbol.gestureCtxToTargetSymbols(gestureCtxEval);
+		
+		// compute Levenstein edit distance bewteen traceSymbols and ctxEvalSymbols
+		TraceSymbolLevenshteinEditOptimizer matchOptimizer = 
+				TraceSymbolLevenshteinEditOptimizer.computeMatch(traceSymbolMatchCostFunc, sourceSymbols, targetSymbols);
+		
+		return new MatchToShapeDef(shapeDef, gestureDef, matchParamCtx, gestureCtxEval, matchOptimizer);
 	}
 
 	// --------------------------------------------------------------------------------------------
@@ -729,8 +751,11 @@ public class DrawingBoardUi {
 		gc.setLineWidth(currLineWidth);
 		gc.setStroke(currLineColor);
 		
-		if (currTraceShape != null) {
-			gcRenderer.draw(currTraceShape);
+		if (currGesture != null) {
+			gcRenderer.draw(currGesture);
+		}
+		if (currPath != null) {
+			gcRenderer.draw(currPath);
 		}
 
 		gc.setLineWidth(currLineWidth);
@@ -742,14 +767,14 @@ public class DrawingBoardUi {
 		
 		drawingRootNode.recursiveDraw(gcRenderer);
 		
-		if (currMatchShape != null) {
-			gcRenderer.draw(currMatchShape);
-			if (debugMatchPtToAbsciss.get()) {
-				if (currTraceGestureDefMatching != null) {
-// TODO 					drawPtToAbscissMatch(gc, currTraceGestureDefMatching);
-				}
-			}
-		}
+//		if (currMatchShapeCtxEval != null) {
+//			gcRenderer.draw(currMatchShapeCtxEval);
+//			if (debugMatchPtToAbsciss.get()) {
+//				if (currTraceGestureDefMatching != null) {
+//// TODO 					drawPtToAbscissMatch(gc, currTraceGestureDefMatching);
+//				}
+//			}
+//		}
 		
 		if (debugDistPt) {
 			Paint prevStroke = gc.getStroke();
@@ -830,13 +855,12 @@ public class DrawingBoardUi {
 
 		if (debugFittingBezier) {
 			if (showFittingQuadBezier.get() || showFittingCubicBezier.get()) {
-				TraceGesture lastGesture = currOrLastGesture();
-				TracePath lastTrace = (lastGesture != null)? lastGesture.getLast() : null;
+				TracePath lastTrace = currPath;
 				TracePathElement lastPathElt = (lastTrace != null)? lastTrace.getLastPathElement() : null;
 				if (lastPathElt instanceof DiscretePointsTracePathElement) {
 					List<TracePt> lastTracePts = ((DiscretePointsTracePathElement) lastPathElt).tracePts;
 					List<Pt2D> lastPts = LsUtils.map(lastTracePts, tracePt -> new Pt2D(tracePt.x, tracePt.y));
-					List<WeightedPt2D> wpts = WeightedPtsBuilder.ptsToWeightedPts_polygonalDistance(lastPts);
+					List<WeightedPt2D> wpts = PolygonalDistUtils.ptsToWeightedPts_polygonalDistance(lastPts);
 					if (showFittingQuadBezier.get()) {
 						// fitting QuadBezier to curr last trace
 						BezierPtsFittting.fitControlPt_QuadBezier(debugCurrTraceFittingQuadBezier, wpts);
@@ -920,7 +944,25 @@ public class DrawingBoardUi {
                 gcRenderer.drawBezier(lowerBezier);
             }
 		}
-		
+
+		if (this.currMatchToShapeDef != null) {
+			Paint prevStroke = gc.getStroke();
+			gc.setStroke(Color.BLUE);
+			val optimizer = currMatchToShapeDef.matchOptimizer;
+			List<TraceSymbolLevensteinDist> editPath = optimizer.getResultEditPath();
+			for(val edit: editPath) {
+				switch(edit.editOp) {
+				case Match:
+					this.traceSymbolMatchCostFunc.drawCost(gcRenderer, edit.sourceSymbol, edit.targetSymbol);
+					break;
+				case DeleteSource:
+					break;
+				case InsertTarget:
+					break;
+				}
+			}
+			gc.setStroke(prevStroke);
+		}
 	}
 
 }

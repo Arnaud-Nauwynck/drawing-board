@@ -222,5 +222,17 @@ public class ExprBuilder {
 		Expr distY = minus(startY, endY);
 		return sum(square(distX), square(distY));
 	}
-	
+
+	public Expr linear(double coef0, Expr expr0, double coef1, Expr expr1) {
+		return sum(mult(coef0, expr0), mult(coef1, expr1));
+	}
+
+	public Expr linear(double coef0, Expr expr0, double coef1, Expr expr1, double coef2, Expr expr2) {
+		return sum(mult(coef0, expr0), mult(coef1, expr1), mult(coef2, expr2));
+	}
+
+	public Expr linear(double coef0, Expr expr0, double coef1, Expr expr1, double coef2, Expr expr2, double coef3, Expr expr3) {
+		return sum(mult(coef0, expr0), mult(coef1, expr1), mult(coef2, expr2), mult(coef3, expr3));
+	}
+
 }

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import fr.an.drawingboard.geom2d.Pt2D;
+import fr.an.drawingboard.geom2d.utils.DistinctPt2DListBuilder;
 import fr.an.drawingboard.util.DrawingValidationUtils;
 import javafx.scene.paint.Color;
 import lombok.val;
@@ -37,6 +39,10 @@ public class TraceGesture {
 		return res;
 	}
 	
+	public void add(TracePath path) {
+		this.pathes.add(path);
+	}
+
 
 	public List<Double> pathDistLengths() {
 		List<Double> res = new ArrayList<>(pathes.size());
@@ -46,21 +52,22 @@ public class TraceGesture {
 		return res;
 	}
 
-	public static class TracePathWithElement {
+
+	public static class TracePathElementEntry {
 		public TracePath path;
 		public TracePathElement pathElement;
 	}
 
-	public Iterator<TracePathWithElement> iteratorPathWithElement() {
-		return new TracePathWithElementIterator(pathes.iterator());
+	public Iterator<TracePathElementEntry> iteratorPathElementEntries() {
+		return new TracePathElementEntryIterator(pathes.iterator());
 	}
 
-	private static class TracePathWithElementIterator implements Iterator<TracePathWithElement> {
-		final TracePathWithElement curr = new TracePathWithElement();
+	private static class TracePathElementEntryIterator implements Iterator<TracePathElementEntry> {
+		final TracePathElementEntry curr = new TracePathElementEntry();
 		final Iterator<TracePath> pathIter;
 		Iterator<TracePathElement> pathElementIter;
 
-		private TracePathWithElementIterator(Iterator<TracePath> pathIter) {
+		private TracePathElementEntryIterator(Iterator<TracePath> pathIter) {
 			this.pathIter = pathIter;
 		}
 
@@ -73,7 +80,7 @@ public class TraceGesture {
 		}
 
 		@Override
-		public TracePathWithElement next() {
+		public TracePathElementEntry next() {
 			if (curr.path == null) {
 				DrawingValidationUtils.checkTrue(pathIter.hasNext(), "hasNext");
 				curr.path = pathIter.next();

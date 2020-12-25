@@ -1,5 +1,8 @@
 package fr.an.drawingboard.geom2d;
 
+import fr.an.drawingboard.math.expr.Expr;
+import fr.an.drawingboard.math.expr.ExprBuilder;
+import fr.an.drawingboard.model.shapedef.PtExpr;
 import lombok.AllArgsConstructor;
 
 /**
@@ -36,6 +39,10 @@ public class CubicBezier2D {
 		return new Pt2D(eval_x(s), eval_y(s));
 	}
 
+	public void eval(Pt2D res, double s) {
+		res.set(eval_x(s), eval_y(s));
+	}
+
 	public static Pt2D eval(double s, Pt2D p0, Pt2D p1, Pt2D p2, Pt2D p3) {
 		return new Pt2D(evalB(s, p0.x, p1.x, p2.x, p3.x), evalB(s, p0.y, p1.y, p2.y, p3.y));
 	}
@@ -55,6 +62,20 @@ public class CubicBezier2D {
 		double s2 = s*s;
 		double _1s2 = _1s * _1s;
 		return _1s2*_1s * p0 + 3*_1s2*s * p1 + 3*_1s*s2 * p2 + s2*s * p3;
+	}
+	
+	public static PtExpr pointExprAtParam(double s, PtExpr p0, PtExpr p1, PtExpr p2, PtExpr p3) {
+		ExprBuilder b = ExprBuilder.INSTANCE;
+		double s2 = s*s, s3 = s2*s, cs = 1.0-s, cs2 = cs*cs, cs3=cs2*cs;
+		Expr x = b.linear(cs3, p0.x, 3*cs2*s, p1.x, 3*cs*s2, p2.x, s3, p3.x);
+		Expr y = b.linear(cs3, p0.y, 3*cs2*s, p1.y, 3*cs*s2, p2.y, s3, p3.y);
+		return new PtExpr(x, y);
+	}
+
+	public static Expr exprAtParam(double s, Expr p0, Expr p1, Expr p2, Expr p3) {
+		ExprBuilder b = ExprBuilder.INSTANCE;
+		double s2 = s*s, s3 = s2*s, cs = 1.0-s, cs2 = cs*cs, cs3=cs2*cs;
+		return b.linear(cs3, p0, 3*cs2*s, p1, 3*cs*s2, p2, s3, p3);
 	}
 	
 	public void setTranslate(Pt2D vect) {

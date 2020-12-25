@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.an.drawingboard.geom2d.Pt2D;
+import fr.an.drawingboard.geom2d.WeightedPt2D;
 import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval;
 import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEvalFragment;
-import fr.an.drawingboard.model.trace.TracePt;
 import fr.an.drawingboard.recognizer.shape.PtToPathElementLoweringDistUtils.PtToPathElementLoweringDistResult;
-import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder.WeightedTracePt;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.val;
 
 /**
@@ -55,18 +55,23 @@ import lombok.val;
  */
 public class PtToSlotDefDynamicProgOptimizer {
 
-	private final List<WeightedTracePt> pts = new ArrayList<>();
+	private final List<WeightedPt2D> pts = new ArrayList<>();
 	
 	private final List<PathElementCtxEvalFragment> defFragments = new ArrayList<>();
 	
+	@Getter
 	/*pp*/ final List<ProjToPathUpToIndex> currProjToPathUpToIndexes = new ArrayList<>();
-	
+
+	@Getter
+	/*pp*/ final List<List<ProjToPathUpToIndex>> debugPrevByPts = new ArrayList<>();
+
 	@AllArgsConstructor
 	public static class ProjToPathUpToIndex {
-		public final WeightedTracePt pt;
+		public final WeightedPt2D pt;
 		public final int maxDefFragmentIndex;
 		public final PathElementCtxEvalFragment pathElementFragment;
 		public final double projToPathParam;
+		public final Pt2D projPt;
 		public final ProjToPathUpToIndex prevPtToSlot;
 		public final double minCostValue;
 	}
@@ -79,19 +84,20 @@ public class PtToSlotDefDynamicProgOptimizer {
 			val frag = new PathElementCtxEvalFragment(pathElement, 0.0, 1.0);
 			this.defFragments.add(frag);
 			
-			currProjToPathUpToIndexes.add(new ProjToPathUpToIndex(null, fragIndex, frag, 0.0, null, 0.0));
+			currProjToPathUpToIndexes.add(new ProjToPathUpToIndex(null, fragIndex, frag, 0.0, null, null, 0.0));
 		
 			fragIndex++;
 		}
 	}
 	
-	public void addPt(WeightedTracePt weigthedPt) {
+	public void addPt(WeightedPt2D weigthedPt) {
 		pts.add(weigthedPt);
 		
-		final TracePt tracePt = weigthedPt.pt;
-		final Pt2D pt = tracePt.xy();
-		final double weight = weigthedPt.ptWeight;
+		final Pt2D pt = weigthedPt.pt;
+		final double weight = weigthedPt.weight;
 		final int fragCount = defFragments.size();
+		
+		List<ProjToPathUpToIndex> prevProjToPathUpToIndexes = new ArrayList<>(currProjToPathUpToIndexes);
 		
 		PtToPathElementLoweringDistResult resDist = new PtToPathElementLoweringDistResult();
 		if (pts.size() == 1) {
@@ -104,11 +110,10 @@ public class PtToSlotDefDynamicProgOptimizer {
 				double distPtProj = resDist.resultDist;
 				double pathParam = resDist.resultProjPathParam;
 				double minCostValue = weight * distPtProj * distPtProj;
-				
-				currProjToPathUpToIndexes.set(p, new ProjToPathUpToIndex(null, p, projToFrag, pathParam, null, minCostValue));
+				Pt2D projPt = resDist.resultProjPt; 
+				currProjToPathUpToIndexes.set(p, new ProjToPathUpToIndex(null, p, projToFrag, pathParam, projPt, null, minCostValue));
 			}
 			
-			return;
 		} else {
 			for(int p = 0; p < fragCount; p++) {
 				// eval new bestCost(P) .. i.e. with constraint proj(pt)<=p, and point added
@@ -116,7 +121,8 @@ public class PtToSlotDefDynamicProgOptimizer {
 				int bestProjIndex = 0;
 				PathElementCtxEvalFragment bestProjToFrag = null;
 				double bestProjToPathParam = 0.0;
-				for(int projIndex = 0; projIndex < p; projIndex++) {
+				Pt2D bestProjPt = null;
+				for(int projIndex = 0; projIndex <= p; projIndex++) {
 					PathElementCtxEvalFragment projToFrag = defFragments.get(projIndex);
 					PathElementCtxEval projTo = projToFrag.pathElement; // TODO fragment dist NOT IMPLEMENTED YET... 
 					
@@ -127,7 +133,10 @@ public class PtToSlotDefDynamicProgOptimizer {
 					// condition for: minCostValue ?>? prevCost + weight * distPtProj * distPtProj
 					// <=> distPtProj*distPtProj < (minCostValue - prevCost) / weight
 					double squareLowerDist = (minCostValue - prevCost) / weight;
-					if (squareLowerDist > 0) {
+					boolean debugSkipOptim = true;
+					if (debugSkipOptim || minCostValue == Double.MAX_VALUE
+						||	squareLowerDist > 0
+						) {
 						double ifLowerThanDist = Math.sqrt(squareLowerDist);
 						
 						boolean foundLower = PtToPathElementLoweringDistUtils.evalMinDistIfLowerThan(resDist, pt, projTo, ifLowerThanDist);
@@ -138,19 +147,41 @@ public class PtToSlotDefDynamicProgOptimizer {
 								minCostValue = cost;
 								bestProjIndex = projIndex;
 								bestProjToPathParam = resDist.resultProjPathParam;
+								bestProjPt = resDist.resultProjPt;
 							}
 						}
 					}
 				} // for projIndex
 				
 				// TODO
-				ProjToPathUpToIndex prevPtToSlot = null; // TODO
+				ProjToPathUpToIndex prevPtToSlot = 
+						// currProjToPathUpToIndexes.get(p); // ??
+						prevProjToPathUpToIndexes.get(p);
 				
 				val projPt = new ProjToPathUpToIndex(weigthedPt, p,
-						bestProjToFrag, bestProjToPathParam, prevPtToSlot, minCostValue);
+						bestProjToFrag, bestProjToPathParam, bestProjPt, prevPtToSlot, minCostValue);
 				currProjToPathUpToIndexes.set(p, projPt);
 				
 			} // for p
+			
+		}// end else pts.size() > 1
+		debugPrevByPts.add(new ArrayList<>(currProjToPathUpToIndexes));
+	}
+	
+	public double getTotalCost() {
+		ProjToPathUpToIndex resPt = currProjToPathUpToIndexes.get(defFragments.size()-1);
+		return resPt.minCostValue;
+	}
+
+	public ProjToPathUpToIndex[] getResultPerPt() {
+		int ptsCount = pts.size();
+		val res = new ProjToPathUpToIndex[ptsCount];
+		ProjToPathUpToIndex resPt = currProjToPathUpToIndexes.get(defFragments.size()-1);
+		res[ptsCount-1] = resPt;
+		for(int i = ptsCount-2; i >= 0; i--) {
+			resPt = resPt.prevPtToSlot;
+			res[i] = resPt;
 		}
+		return res;
 	}
 }

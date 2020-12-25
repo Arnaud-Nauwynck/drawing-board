@@ -1,5 +1,8 @@
 package fr.an.drawingboard.model.shapedef.ctxeval;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.common.collect.ImmutableList;
 
 import fr.an.drawingboard.geom2d.BoundingRect2D;
@@ -23,13 +26,23 @@ public class GesturePathesCtxEval {
 		this.pathes = ImmutableList.copyOf(LsUtils.map(def.pathes, x -> new PathCtxEval(x)));
 	}
 
-	public void eval(NumericEvalCtx ctx) {
+	public void update(NumericEvalCtx ctx) {
 		val boundingRectBuilder = BoundingRect2D.builder();
 		for(val path: pathes) {
-			path.eval(ctx);
+			path.update(ctx);
 			boundingRectBuilder.enclosingBoundingRect(path.boundingRect);
 		}
 		this.boundingRect = boundingRectBuilder.build();
+	}
+
+	public List<PathElementCtxEval> toPathElementCtxEvals() {
+		List<PathElementCtxEval> res = new ArrayList<>();
+		for(val path: pathes) {
+			for (val pathElt: path.pathElements) {
+				res.add(pathElt);
+			}
+		}
+		return res;
 	}
 
 }

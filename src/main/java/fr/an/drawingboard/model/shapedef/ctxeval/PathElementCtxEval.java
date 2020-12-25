@@ -1,11 +1,16 @@
 package fr.an.drawingboard.model.shapedef.ctxeval;
 
+import java.util.Arrays;
+
 import fr.an.drawingboard.geom2d.BoundingRect2D;
 import fr.an.drawingboard.geom2d.BoundingRect2D.BoundingRect2DBuilder;
 import fr.an.drawingboard.geom2d.CubicBezier2D;
 import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.geom2d.QuadBezier2D;
 import fr.an.drawingboard.geom2d.bezier.BezierEnclosingRect2DUtil;
+import fr.an.drawingboard.geom2d.bezier.BezierLenUtils;
+import fr.an.drawingboard.math.expr.Expr;
+import fr.an.drawingboard.math.expr.ExprBuilder;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.PathElementDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef.CubicBezierPathElementDef;
@@ -13,6 +18,7 @@ import fr.an.drawingboard.model.shapedef.PathElementDef.DiscretePointsPathElemen
 import fr.an.drawingboard.model.shapedef.PathElementDef.PathElementDefFunc0;
 import fr.an.drawingboard.model.shapedef.PathElementDef.QuadBezierPathElementDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef.SegmentPathElementDef;
+import fr.an.drawingboard.model.shapedef.PtExpr;
 import lombok.val;
 
 /**
@@ -39,14 +45,43 @@ public abstract class PathElementCtxEval {
 		}
 	};
 
-	public abstract Pt2D getStartPt();
-	public abstract Pt2D getEndPt();
-
 	public static PathElementCtxEval create(PathElementDef def) {
 		return def.accept(CREATE_FUNC);
 	}
+
+	// ------------------------------------------------------------------------
+
+	private double dist;
+	private boolean dirtyDist = true;
 	
-	public abstract void eval(NumericEvalCtx ctx);
+	public abstract Pt2D getStartPt();
+	public abstract Pt2D getEndPt();
+
+	public void update(NumericEvalCtx ctx) {
+		doUpdate(ctx);
+		dirtyDist = true;
+	}
+	protected abstract void doUpdate(NumericEvalCtx ctx);
+
+	public double getDist() {
+		if (dirtyDist) {
+			this.dist = computeDist();
+			dirtyDist = false;
+		}
+		return dist;
+	}
+	protected abstract double computeDist();
+	
+	public abstract void pointAtParam(Pt2D res, double param);
+	
+	public Pt2D pointAtParam(double param) {
+		Pt2D res = new Pt2D();
+		pointAtParam(res, param);
+		return res;
+	}
+	
+	public abstract PtExpr pointExprAtParam(double s);
+	
 
 	public static abstract class PathElementCtxEvalVisitor {
 		public abstract void caseSegment(SegmentPathElementCtxEval segment);
@@ -78,9 +113,27 @@ public abstract class PathElementCtxEval {
 		}
 		
 		@Override
-		public void eval(NumericEvalCtx ctx) {
+		public void doUpdate(NumericEvalCtx ctx) {
 			ctx.evalPtExpr(startPt, def.startPt);
 			ctx.evalPtExpr(endPt, def.endPt);
+		}
+		
+		@Override
+		protected double computeDist() {
+			return startPt.distTo(endPt);
+		}
+
+		@Override
+		public void pointAtParam(Pt2D res, double s) {
+			res.setLinear(1-s, startPt, s, endPt);
+		}
+
+		@Override
+		public PtExpr pointExprAtParam(double s) {
+			ExprBuilder b = ExprBuilder.INSTANCE;
+			Expr x = b.linear(1-s, def.startPt.x, s, def.endPt.x);
+			Expr y = b.linear(1-s, def.startPt.y, s, def.endPt.y);
+			return new PtExpr(x, y);
 		}
 
 		@Override
@@ -112,25 +165,100 @@ public abstract class PathElementCtxEval {
 	public static class DiscretePointsPathElementCtxEval extends PathElementCtxEval {
 		public final DiscretePointsPathElementDef def;
 		public final Pt2D[] pts;
+		public final double[] ptsDist;
 		public BoundingRect2D boundingRect;
 		
 		public DiscretePointsPathElementCtxEval(DiscretePointsPathElementDef def) {
 			this.def = def;
 			int ptsCount = def.ptExprs.size();
 			this.pts = new Pt2D[ptsCount];
+			this.ptsDist = new double[ptsCount];
 			for(int i = 0; i < ptsCount; i++) {
 				pts[i] = new Pt2D();
 			}
 		}
 
 		@Override
-		public void eval(NumericEvalCtx ctx) {
+		public void doUpdate(NumericEvalCtx ctx) {
 			val boundingRectBuilder = BoundingRect2D.builder();
-			for(int i = 0; i < pts.length; i++ ) {
+			ctx.evalPtExpr(pts[0], def.ptExprs.get(0));
+			boundingRectBuilder.enclosingPt(pts[0]);
+			this.ptsDist[0] = 0.0;
+			for(int i = 1; i < pts.length; i++ ) {
 				ctx.evalPtExpr(pts[i], def.ptExprs.get(i));
 				boundingRectBuilder.enclosingPt(pts[i]);
+				this.ptsDist[i] = ptsDist[i-1] + pts[i-1].distTo(pts[i]);
 			}
 			this.boundingRect = boundingRectBuilder.build();
+		}
+
+		@Override
+		protected double computeDist() {
+			double sum = 0;
+			Pt2D prev = pts[0];
+			for(int i = 1; i < pts.length; i++ ) {
+				Pt2D pt = pts[i];
+				sum += prev.distTo(pt);
+				prev = pt;
+			}
+			return sum;
+		}
+
+		@Override
+		public void pointAtParam(Pt2D res, double param) {
+			if (param <= 0.0) {
+				res.set(pts[0]);
+			} else if (param >= 1.0) {
+				res.set(pts[pts.length-1]);
+			} else {
+				double totalDist = ptsDist[pts.length-1];
+				double targetDist = totalDist * param;
+				int foundIndex = Arrays.binarySearch(ptsDist, targetDist);
+				if (foundIndex > 0) {
+					// found exact
+					res.set(pts[foundIndex]);
+				} else {
+					// found between pts
+					int indexBefore = -(foundIndex+1);
+					double distBefore = ptsDist[indexBefore];
+					double distAfter = ptsDist[indexBefore+1];
+					double inv = 1.0 / (distAfter - distBefore);
+					double c0 = (targetDist-distBefore)*inv;
+					double c1 = (distAfter-targetDist)*inv;
+					res.setLinear(c0, pts[indexBefore], c1, pts[indexBefore+1]);
+				}
+			}
+		}
+
+		@Override
+		public PtExpr pointExprAtParam(double param) {
+			ExprBuilder b = ExprBuilder.INSTANCE;
+			if (param <= 0.0) {
+				return def.startPt;
+			} else if (param >= 1.0) {
+				return def.endPt;
+			} else {
+				double totalDist = ptsDist[pts.length-1];
+				double targetDist = totalDist * param;
+				int foundIndex = Arrays.binarySearch(ptsDist, targetDist);
+				if (foundIndex > 0) {
+					// found exact
+					return def.ptExpr(foundIndex);
+				} else {
+					// found between pts
+					int indexBefore = -(foundIndex+1);
+					double distBefore = ptsDist[indexBefore];
+					double distAfter = ptsDist[indexBefore+1];
+					double inv = 1.0 / (distAfter - distBefore);
+					double c0 = (targetDist-distBefore)*inv;
+					double c1 = (distAfter-targetDist)*inv;
+					PtExpr ptBefore = def.ptExpr(indexBefore);
+					PtExpr ptAfter = def.ptExpr(indexBefore+1);
+					Expr x = b.linear(c0, ptBefore.x, c1, ptAfter.x);
+					Expr y = b.linear(c0, ptBefore.y, c1, ptAfter.y);
+					return new PtExpr(x, y);
+				}
+			}
 		}
 
 		@Override
@@ -169,12 +297,27 @@ public abstract class PathElementCtxEval {
 		}
 
 		@Override
-		public void eval(NumericEvalCtx ctx) {
+		public void doUpdate(NumericEvalCtx ctx) {
 			ctx.evalPtExpr(bezier.startPt, def.startPt);
 			ctx.evalPtExpr(bezier.controlPt, def.controlPt);
 			ctx.evalPtExpr(bezier.endPt, def.endPt);
 		
 			this.boundingRect = null;
+		}
+
+		@Override
+		protected double computeDist() {
+			return BezierLenUtils.len(bezier);
+		}
+
+		@Override
+		public void pointAtParam(Pt2D res, double param) {
+			bezier.eval(res, param);
+		}
+
+		@Override
+		public PtExpr pointExprAtParam(double s) {
+			return QuadBezier2D.pointExprAtParam(s, def.startPt, def.controlPt, def.endPt);
 		}
 
 		@Override
@@ -216,13 +359,28 @@ public abstract class PathElementCtxEval {
 		}
 		
 		@Override
-		public void eval(NumericEvalCtx ctx) {
+		public void doUpdate(NumericEvalCtx ctx) {
 			ctx.evalPtExpr(bezier.startPt, def.startPt);
 			ctx.evalPtExpr(bezier.p1, def.controlPt1);
 			ctx.evalPtExpr(bezier.p2, def.controlPt2);
 			ctx.evalPtExpr(bezier.endPt, def.endPt);
 		
 			this.boundingRect = null;
+		}
+
+		@Override
+		protected double computeDist() {
+			return BezierLenUtils.len(bezier);
+		}
+
+		@Override
+		public void pointAtParam(Pt2D res, double param) {
+			bezier.eval(res, param);
+		}
+
+		@Override
+		public PtExpr pointExprAtParam(double s) {
+			return CubicBezier2D.pointExprAtParam(s, def.startPt, def.controlPt1, def.controlPt2, def.endPt);
 		}
 
 		@Override
@@ -251,5 +409,5 @@ public abstract class PathElementCtxEval {
 		}
 		
 	}
-		
+
 }

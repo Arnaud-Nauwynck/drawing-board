@@ -1,4 +1,4 @@
-package fr.an.drawingboard.recognizer.trace;
+package fr.an.drawingboard.geom2d.utils;
 
 import java.util.List;
 
@@ -9,8 +9,9 @@ import com.google.common.collect.ImmutableList;
 
 import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.geom2d.WeightedPt2D;
+import fr.an.drawingboard.geom2d.utils.PolygonalDistUtils;
 
-public class WeightedPtsBuilderTest {
+public class PolygonalDistUtilsTest {
 
 	private static final double PREC = 1e-9;
 	
@@ -20,7 +21,7 @@ public class WeightedPtsBuilderTest {
 		Pt2D p0 = new Pt2D(0, 0), p1 = new Pt2D(1, 0), p2 = new Pt2D(2, 0), p3 = new Pt2D(3, 0);
 		List<Pt2D> pts = ImmutableList.of(p0, p1, p2, p3);
 		// when
-		List<WeightedPt2D> res = WeightedPtsBuilder.ptsToWeightedPts_polygonalDistance(pts);
+		List<WeightedPt2D> res = PolygonalDistUtils.ptsToWeightedPts_polygonalDistance(pts);
 		// then
 		Assert.assertEquals(4, res.size());
 		WeightedPt2D wp0 = res.get(0), wp1 = res.get(1), wp2 = res.get(2), wp3 = res.get(3);
@@ -40,7 +41,7 @@ public class WeightedPtsBuilderTest {
 		Pt2D p0 = new Pt2D(0, 0), p1 = new Pt2D(1, 0), p2 = new Pt2D(9, 0), p3 = new Pt2D(10, 0);
 		List<Pt2D> pts = ImmutableList.of(p0, p1, p2, p3);
 		// when
-		List<WeightedPt2D> res = WeightedPtsBuilder.ptsToWeightedPts_polygonalDistance(pts);
+		List<WeightedPt2D> res = PolygonalDistUtils.ptsToWeightedPts_polygonalDistance(pts);
 		// then
 		Assert.assertEquals(4, res.size());
 		WeightedPt2D wp0 = res.get(0), wp1 = res.get(1), wp2 = res.get(2), wp3 = res.get(3);

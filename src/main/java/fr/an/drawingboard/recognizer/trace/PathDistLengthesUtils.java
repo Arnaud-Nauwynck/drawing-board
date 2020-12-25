@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 
 import fr.an.drawingboard.geom2d.Pt2D;
-import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.GesturePathesDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef.CubicBezierPathElementDef;
@@ -20,7 +19,7 @@ import lombok.val;
 
 public class PathDistLengthesUtils {
 
-
+	// TODO cf WeightedPtsBuilder
 	public static double[] ptsToRatioDistLengthes(List<Pt2D> pts) {
 		int ptCount = pts.size();
 		double[] len_pt0_pti = new double[ptCount];

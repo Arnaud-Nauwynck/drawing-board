@@ -20,66 +20,6 @@ import lombok.val;
 
 public class WeightedDiscretizationPathPtsBuilder {
 
-	public static void updatePtCoefs(TraceGesture gesture) {
-		List<Double> pathDistLengths = gesture.pathDistLengths();
-		double distLengthTotal = PathDistLengthesUtils.sum(pathDistLengths);
-		double renormCoefTotal = 1.0 / distLengthTotal;
-		final int pathesCount = gesture.pathes.size();
-		for (int pathi = 0; pathi < pathesCount; pathi++) {
-			TracePath path = gesture.pathes.get(pathi);
-			double pathDistLength = pathDistLengths.get(pathi);
-			double renormPath = pathDistLength * renormCoefTotal;
-
-			for (val pathElement : path.pathElements) {
-				pathElement.visit(new TracePathElementVisitor() {
-					@Override
-					public void caseSegment(SegmentTracePathElement elt) {
-						elt.startPt.coefInPathes = 0.5 * renormPath;
-						elt.endPt.coefInPathes = 0.5 * renormPath;
-					}
-					@Override
-					public void caseDiscretePts(DiscretePointsTracePathElement elt) {
-						List<TracePt> tracePts = elt.tracePts;
-						final int ptsCount = tracePts.size();
-						if (ptsCount > 1) {
-							double eltDistLength = elt.pathDistLength();
-							double renormPathPts = renormPath / eltDistLength;
-							double firstPtDist = tracePts.get(1).pathAbsciss - tracePts.get(0).pathAbsciss;
-							tracePts.get(0).coefInPathes = renormPathPts * firstPtDist;
-							for (int pti = 1; pti < ptsCount - 1; pti++) {
-								// double distBeforePt = abscissTracePt[pti] - abscissTracePt[pti-1];
-								// double distAfterPt = abscissTracePt[pti+1] - abscissTracePt[pti];
-								TracePt ptBefore = tracePts.get(pti - 1);
-								TracePt ptAfter = tracePts.get(pti + 1);
-								double avgDistPt_ip1_im1 = 0.5 * (ptAfter.pathAbsciss - ptBefore.pathAbsciss);
-								tracePts.get(pti).coefInPathes = avgDistPt_ip1_im1 * renormPath;
-							}
-							double lastPtDist = tracePts.get(ptsCount - 1).pathAbsciss
-									- tracePts.get(ptsCount - 2).pathAbsciss;
-							tracePts.get(ptsCount - 1).coefInPathes = renormPathPts * lastPtDist;
-						} else {
-							// ??
-						}
-					}
-					@Override
-					public void caseQuadBezier(QuadBezierTracePathElement elt) {
-						double coefPt = 1.0 / 3;
-						elt.startPt.coefInPathes = coefPt * renormPath;
-						// elt.controlPt .. = coefPt * renormPath;
-						elt.endPt.coefInPathes = coefPt * renormPath;
-					}
-					@Override
-					public void caseCubicBezier(CubicBezierTracePathElement elt) {
-						double coefPt = 1.0 / 4;
-						elt.startPt.coefInPathes = coefPt * renormPath;
-						// elt.controlPt1 ..
-						// elt.controlPt2 ..
-						elt.endPt.coefInPathes = coefPt * renormPath;
-					}
-				});
-			}
-		}
-	}
 
 	@RequiredArgsConstructor
 	public static class WeightedTracePt {
@@ -93,6 +33,7 @@ public class WeightedDiscretizationPathPtsBuilder {
 	 * builder of List<WeightedDiscretizationPt> to add weighted pts
 	 * avoid duplicate with consecutive same pts by summing coef
 	 */
+	@Deprecated // TODO
 	protected static class ListWeightedDiscretizationBuilder {
 		private List<WeightedTracePt> pts = new ArrayList<>(50);
 		private TracePath currTracePath;
@@ -134,6 +75,7 @@ public class WeightedDiscretizationPathPtsBuilder {
 	 * @param discretizationPrecision
 	 * @return
 	 */
+	@Deprecated // TODO
 	public static ImmutableList<WeightedTracePt> weigthedDiscretizationPts(
 			TraceGesture gesture, int discretizationPrecision
 			) {

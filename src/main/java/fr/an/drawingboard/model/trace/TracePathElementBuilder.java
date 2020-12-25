@@ -19,6 +19,9 @@ public class TracePathElementBuilder {
 		this.tracePts.add(startPt);
 	}
 
+	public boolean isEmpty() {
+		return tracePts.size() < 2;
+	}
 	
 	public TracePt appendTracePt(double x, double y, long time, int pressure) {
 		double pathAbsciss;

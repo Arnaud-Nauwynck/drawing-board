@@ -3,7 +3,9 @@ package fr.an.drawingboard.model.trace;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.an.drawingboard.geom2d.CubicBezier2D;
 import fr.an.drawingboard.geom2d.Pt2D;
+import fr.an.drawingboard.geom2d.QuadBezier2D;
 
 /**
  * curve path element: Segment, continuous polyline curve, Bezier Curve, .. 
@@ -173,6 +175,10 @@ public abstract class TracePathElement {
 			double d2 = TracePt.dist(controlPt, endPt);
 			return 0.5 * (d1 + d2);
 		}
+		
+		public QuadBezier2D toQuadBezier() {
+			return new QuadBezier2D(startPt.xy(), controlPt, endPt.xy());
+		}
 	}
 
 
@@ -222,6 +228,10 @@ public abstract class TracePathElement {
 			double d2 = TracePt.dist(controlPt1, controlPt2);
 			double d3 = TracePt.dist(controlPt2, endPt);
 			return 1.0/3.0 * (d1 + d2 + d3);
+		}
+
+		public CubicBezier2D toCubicBezier() {
+			return new CubicBezier2D(startPt.xy(), controlPt1, controlPt2, endPt.xy());
 		}
 
 	}

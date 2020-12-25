@@ -154,7 +154,18 @@ public class DrawingCtxTreeNode {
 		}
 		return ancestorDepth*10 + diff;
 	};
-	
+
+	public Map<ParamDef,DrawingVarDef> defineVarExpr(Map<ParamDef, Double> paramValues) {
+		Map<ParamDef,DrawingVarDef> res = new HashMap<>();
+		for(val e : paramValues.entrySet()) {
+			val paramDef = e.getKey();
+			double value = e.getValue();
+			val binding = addVarDef_GenerateNameFor(paramDef.name, paramDef.paramCategory, value);
+			res.put(paramDef, binding);
+		}
+		return res;
+	}
+
 	public Map<ParamDef,DrawingVarDef> resolveSimilarOrDefineVarExpr(Map<ParamDef, Double> paramValues, 
 			SimilarVarCostFunction costFunc, double maxCostOrDefine, double maxDiffOrDefine) {
 		Map<ParamDef,DrawingVarDef> res = new HashMap<>();

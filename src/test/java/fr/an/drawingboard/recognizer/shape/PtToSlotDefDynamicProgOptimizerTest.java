@@ -5,15 +5,15 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import fr.an.drawingboard.geom2d.Pt2D;
+import fr.an.drawingboard.geom2d.WeightedPt2D;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
 import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval;
 import fr.an.drawingboard.model.shapedef.ctxeval.ShapeCtxEval;
 import fr.an.drawingboard.model.shapedef.paramdef.ParamCategoryRegistry;
-import fr.an.drawingboard.model.trace.TracePt;
 import fr.an.drawingboard.recognizer.initialParamEstimators.ParamEvalCtx;
 import fr.an.drawingboard.recognizer.shape.PtToSlotDefDynamicProgOptimizer.ProjToPathUpToIndex;
-import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder.WeightedTracePt;
 import fr.an.drawingboard.stddefs.shapedef.ShapeDefRegistryBuilder;
 import lombok.AllArgsConstructor;
 import lombok.val;
@@ -34,9 +34,9 @@ public class PtToSlotDefDynamicProgOptimizerTest {
 		//        +Pt0
 		//         10,15
 		int pt0y = 15;
-		TracePt tracePt = new TracePt(10, pt0y, 1L, 0, 0);
+		Pt2D pt = new Pt2D(10, pt0y);
 		double weight0 = 1.0;
-		WeightedTracePt weigthedPt = new WeightedTracePt(null, null, tracePt , weight0);
+		WeightedPt2D weigthedPt = new WeightedPt2D(pt , weight0);
 
 		// when
 		sut.addPt(weigthedPt);
@@ -64,7 +64,7 @@ public class PtToSlotDefDynamicProgOptimizerTest {
 		// 
 		ParamEvalCtx ctx = new ParamEvalCtx();
 		ctx.put(shapeDef.getParam("x"), 50);
-		ctx.put(shapeDef.getParam("w"), 50);
+		ctx.put(shapeDef.getParam("w"), 100);
 		ctx.put(shapeDef.getParam("y"), 0);
 		ctx.put(shapeDef.getParam("h"), 0);
 		

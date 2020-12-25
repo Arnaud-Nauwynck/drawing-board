@@ -23,6 +23,7 @@ public class PtToPathElementLoweringDistUtils {
 		// public int resultBestPathElementPtIndex;
 		public double resultDist;
 		public double resultProjPathParam; // in [0.0, 1.0]
+		public Pt2D resultProjPt;
 	}
 
 	public static boolean evalMinDistIfLowerThan(PtToPathElementLoweringDistResult resDist, 
@@ -153,15 +154,16 @@ public class PtToPathElementLoweringDistUtils {
 	public static boolean evalMinDistIfLowerThan_SegmentPt2D(PtToPathElementLoweringDistResult res, 
 			Pt2D p, Pt2D a, Pt2D b, double ifLowerThan) {
 		val x = p.x, y = p.y, ax = a.x, ay = a.y, bx = b.x, by = b.y;
-		val minx = Math.min(ax, bx);
-		if ((x + ifLowerThan) < minx) return false;
-		val miny = Math.min(ay, by);
-		if ((y + ifLowerThan) < miny) return false;
-		val maxx = Math.max(ay, by);
-		if ((x -ifLowerThan) > maxx) return false;
-		val maxy = Math.min(ay, by);
-		if ((y - ifLowerThan) < maxy) return false;
-
+		if (ifLowerThan != Double.MAX_VALUE) {
+			val minx = Math.min(ax, bx);
+			if ((x + ifLowerThan) < minx) return false;
+			val miny = Math.min(ay, by);
+			if ((y + ifLowerThan) < miny) return false;
+			val maxx = Math.max(ay, by);
+			if ((x -ifLowerThan) > maxx) return false;
+			val maxy = Math.min(ay, by);
+			if ((y - ifLowerThan) < maxy) return false;
+		}
 		// case1        case2        case3
 		//  p            p            pt
 		//  +      u     +             +
@@ -176,16 +178,19 @@ public class PtToPathElementLoweringDistUtils {
 		double scalar_ap_ab = ap_x * ab_x + ap_y * ab_y;
 		double dist;
 		double resultProjPathParam;
+		Pt2D resultPt;
 		if (scalar_ap_ab <= 0.0) {
 			// case 1
 			dist = Math.sqrt(ap_x*ap_x + ap_y*ap_y); // =|ap|
 			resultProjPathParam = 0.0;
+			resultPt = a;
 		} else {
 			double norm_ab = ab_x * ab_x + ab_y * ab_y; // 'ab'
 			if (scalar_ap_ab >= norm_ab) { // includes case norm_ab==0.0
 				// case 3
 				dist = Math.sqrt(bp_x*bp_x + bp_y*bp_y); // =|bp|
 				resultProjPathParam = 1.0;
+				resultPt = b;
 			} else {
 				// case 2
 				val inv_norm_ab = 1.0 / norm_ab;
@@ -194,12 +199,14 @@ public class PtToPathElementLoweringDistUtils {
 				val hp_x = x-h_x, hp_y = y - h_y;
 				dist = Math.sqrt(hp_x * hp_x + hp_y * hp_y);
 				resultProjPathParam = s;
+				resultPt = new Pt2D(h_x, h_y);
 			}
 		}
 
 		if (dist < ifLowerThan) {
 			res.resultDist = dist;
 			res.resultProjPathParam = resultProjPathParam;
+			res.resultProjPt = resultPt;
 			return true;
 		}
 		return false;

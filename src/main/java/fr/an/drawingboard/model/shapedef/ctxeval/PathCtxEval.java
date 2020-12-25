@@ -1,5 +1,8 @@
 package fr.an.drawingboard.model.shapedef.ctxeval;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.common.collect.ImmutableList;
 
 import fr.an.drawingboard.geom2d.BoundingRect2D;
@@ -24,12 +27,21 @@ public class PathCtxEval {
 		this.pathElements = ImmutableList.copyOf(LsUtils.map(def.pathElements, x -> PathElementCtxEval.create(x)));
 	}
 	
-	public void eval(NumericEvalCtx ctx) {
+	public void update(NumericEvalCtx ctx) {
 		val boundingRectBuilder = BoundingRect2D.builder();
 		for(val pathElement: pathElements) {
-			pathElement.eval(ctx);
+			pathElement.update(ctx);
 			pathElement.addEnclosing(boundingRectBuilder);
 		}
 		this.boundingRect = boundingRectBuilder.build();
 	}
+
+	public List<PathElementCtxEval> toPathElementCtxEvals() {
+		List<PathElementCtxEval> res = new ArrayList<>();
+		for (val pathElt: pathElements) {
+			res.add(pathElt);
+		}
+		return res;
+	}
+
 }

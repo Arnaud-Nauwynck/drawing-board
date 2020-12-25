@@ -1,5 +1,6 @@
 package fr.an.drawingboard.recognizer.shape;
 
+@Deprecated
 public class MatchShapeToCostExprBuilder {
 
 //	public Expr costMatchGestureWithAbsciss(

@@ -42,6 +42,10 @@ public class TraceShape {
 		return (gestures.isEmpty())? null : gestures.get(gestures.size() - 1);
 	}
 
+	public void add(TraceGesture p) {
+		this.gestures.add(p);
+	}
+
 	public void remove(TraceGesture p) {
 		this.gestures.remove(p);
 	}
