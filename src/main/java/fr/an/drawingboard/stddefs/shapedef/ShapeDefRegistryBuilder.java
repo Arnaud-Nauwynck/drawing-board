@@ -23,10 +23,13 @@ public class ShapeDefRegistryBuilder {
 		addVCrossDef();
 		addHCrossDef();
 		addZDef();
+		addInvZDef();
 		addNDef();
+		addInvNDef();
 		addnDef();
 		addUDef();
 		addCDef();
+		addCUpDef();
 		addInvCDef();
 	}
 
@@ -114,6 +117,20 @@ public class ShapeDefRegistryBuilder {
 		dest.addShapeDef(shapeDef);
 	}
 
+	public void addInvZDef() {
+		ShapeDef shapeDef = new ShapeDef("inv z", paramCategories);
+		RectExpr r = shapeDef.getCoordRectExpr();
+		// gesture
+		//  PtUL<---- PtUR
+		//       \      
+		//        \ 
+		//         \        
+		//  PtDL<--- PtDR
+		InitialParamForShapeEstimator paramEstimator = rectParamEstimator();
+		shapeDef.addGesture_Segments(paramEstimator, r.ptUR, r.ptUL, r.ptDR, r.ptDL);
+		dest.addShapeDef(shapeDef);
+	}
+	
 	public void addNDef() {
 		ShapeDef shapeDef = new ShapeDef("N", paramCategories);
 		RectExpr r = shapeDef.getCoordRectExpr();
@@ -128,6 +145,20 @@ public class ShapeDefRegistryBuilder {
 		dest.addShapeDef(shapeDef);
 	}
 
+	public void addInvNDef() {
+		ShapeDef shapeDef = new ShapeDef("inv N", paramCategories);
+		RectExpr r = shapeDef.getCoordRectExpr();
+		// gesture
+		//  PtUL     PtUR
+		//    /\      /\
+		//    |     / |
+		//    |    /  |        
+		//  PtDL <   PtDR
+		InitialParamForShapeEstimator paramEstimator = rectParamEstimator();
+		shapeDef.addGesture_Segments(paramEstimator, r.ptDR, r.ptUR, r.ptDL, r.ptUL);
+		dest.addShapeDef(shapeDef);
+	}
+	
 	public void addUDef() {
 		ShapeDef shapeDef = new ShapeDef("u", paramCategories);
 		RectExpr r = shapeDef.getCoordRectExpr();
@@ -170,8 +201,23 @@ public class ShapeDefRegistryBuilder {
 		dest.addShapeDef(shapeDef);
 	}
 
+	public void addCUpDef() {
+		ShapeDef shapeDef = new ShapeDef("c up", paramCategories);
+		RectExpr r = shapeDef.getCoordRectExpr();
+		// gesture
+		//  PtUL----->PtUR
+		//    /\             
+		//    |       
+		//    |              
+		//  PtDL <--- PtDR
+		InitialParamForShapeEstimator paramEstimator = rectParamEstimator();
+		shapeDef.addGesture_Segments(paramEstimator, r.ptDR, r.ptDL, r.ptUL, r.ptUR);
+		dest.addShapeDef(shapeDef);
+	}
+
+	
 	public void addInvCDef() {
-		ShapeDef shapeDef = new ShapeDef("c", paramCategories);
+		ShapeDef shapeDef = new ShapeDef("inv c", paramCategories);
 		RectExpr r = shapeDef.getCoordRectExpr();
 		// gesture
 		//  PtUL----->PtUR

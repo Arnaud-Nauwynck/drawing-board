@@ -327,10 +327,13 @@ public class DrawingBoardUi {
 			addMatchShapeItem(recognizeItems, "HCross", "hcross", 0);
 			addMatchShapeItem(recognizeItems, "VCross", "vcross", 0);
 			addMatchShapeItem(recognizeItems, "Z", "z", 0);
+			addMatchShapeItem(recognizeItems, "inv Z", "inv z", 0);
 			addMatchShapeItem(recognizeItems, "U", "u", 0);
 			addMatchShapeItem(recognizeItems, "N", "n", 0);
+			addMatchShapeItem(recognizeItems, "inv N", "inv n", 0);
 			addMatchShapeItem(recognizeItems, "C", "c", 0);
-			addMatchShapeItem(recognizeItems, "invC", "invC", 0);
+			addMatchShapeItem(recognizeItems, "C(DR->DL..)", "c up", 0);
+			addMatchShapeItem(recognizeItems, "inv C", "inv c", 0);
 		}
 		
 		toolbarItems.add(createMatchShapeButton("Rect", "rectangle", 0));
@@ -969,8 +972,10 @@ public class DrawingBoardUi {
 					this.traceSymbolMatchCostFunc.drawCost(gcRenderer, edit.sourceSymbol, edit.targetSymbol);
 					break;
 				case MergeDeleteSource:
+					// TODO
 					break;
 				case SplitInsertSource:
+					// TODO
 					break;
 				}
 			}
