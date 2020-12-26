@@ -15,8 +15,8 @@ import lombok.val;
 public class TracePtRenormCoefsHelper {
 
 	public static List<Integer> countPts(TraceGesture gesture) {
-		List<Integer> res = new ArrayList<>(gesture.pathes.size());
-		for(val path : gesture.pathes) {
+		List<Integer> res = new ArrayList<>(gesture.size());
+		for(val path : gesture.pathes()) {
 			res.add(countPts(path));
 		}
 		return res;

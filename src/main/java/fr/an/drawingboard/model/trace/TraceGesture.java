@@ -15,7 +15,7 @@ public class TraceGesture {
 	public Color color;
 	public int lineWidth;
 	
-	public List<TracePath> pathes = new ArrayList<>();
+	private List<TracePath> pathes = new ArrayList<>();
 	
 	// ------------------------------------------------------------------------
 	
@@ -25,34 +25,42 @@ public class TraceGesture {
 		}
 	}
 
+	public int size() {
+		return pathes.size();
+	}
+
 	public boolean isEmpty() {
 		return pathes.isEmpty();
+	}
+	
+	public TracePath get(int i) {
+		return pathes.get(i);
 	}
 	
 	public TracePath getLast() {
 		return (pathes.isEmpty())? null : pathes.get(pathes.size() - 1);
 	}
 	
-	public TracePath appendNewPath() {
-		val res = new TracePath();
-		pathes.add(res);
-		return res;
-	}
-	
-	public void add(TracePath path) {
+	public void addPath(TracePath path) {
 		this.pathes.add(path);
 	}
 
 
 	public List<Double> pathDistLengths() {
 		List<Double> res = new ArrayList<>(pathes.size());
-		for(val path : pathes) {
+		for(val path : pathes()) {
 			res.add(path.pathDistLength());
 		}
 		return res;
 	}
 
 
+	public Iterable<TracePath> pathes() {
+		return pathes;
+	}
+	
+	
+	
 	public static class TracePathElementEntry {
 		public TracePath path;
 		public TracePathElement pathElement;

@@ -20,7 +20,7 @@ public class TooNarrowPtsSimplifier {
 	protected double simplifyMergePtDist = 5; 
 
 	public void simplifyTooNarrowPts(TraceGesture gesture) {
-		for(val path: gesture.pathes) {
+		for(val path: gesture.pathes()) {
 			simplifyTooNarrowPts(path);
 		}
 	}

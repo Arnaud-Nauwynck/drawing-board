@@ -45,7 +45,7 @@ public class ShapeCtxEval {
 	public List<PathElementCtxEval> toPathElementCtxEvals() {
 		List<PathElementCtxEval> res = new ArrayList<>();
 		for(val gesture: gestures) {
-			for(val path: gesture.pathes) {
+			for(val path: gesture.pathes()) {
 				for (val pathElt: path.pathElements) {
 					res.add(pathElt);
 				}

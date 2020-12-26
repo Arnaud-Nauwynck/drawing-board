@@ -33,6 +33,10 @@ public class GesturePathesDef extends ParametrizableEltDef {
 
 	// --------------------------------------------------------------------------------------------
 
+	public Iterable<PathDef> pathes() {
+		return pathes;
+	}
+
 	public PathDef addPath(List<PathElementDef> pathElements) {
 		PathDef res = new PathDef(pathElements);
 		pathes.add(res);

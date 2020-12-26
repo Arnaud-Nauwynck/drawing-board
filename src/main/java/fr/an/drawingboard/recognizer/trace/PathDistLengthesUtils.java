@@ -69,7 +69,7 @@ public class PathDistLengthesUtils {
 			GesturePathesDef gestureDef, 
 			ParamEvalCtx evalCtx) {
 		List<Double> res = new ArrayList<>();
-		for(val pathDef: gestureDef.pathes) {
+		for(val pathDef: gestureDef.pathes()) {
 			for(val pathElementDef : pathDef.pathElements) {
 				double dist = evalEstimatePathElementDefDistLength(pathElementDef, evalCtx);
 				res.add(dist);

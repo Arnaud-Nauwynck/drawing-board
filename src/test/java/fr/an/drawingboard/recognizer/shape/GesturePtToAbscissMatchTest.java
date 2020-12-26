@@ -24,12 +24,13 @@ public class GesturePtToAbscissMatchTest {
 	public void test_SegmentTracePathElement() {
 		// build trace
 		TraceGesture gesture = new TraceGesture();
-		TracePath path = gesture.appendNewPath();
+		val path = new TracePath();
+		gesture.addPath(path);
 		TracePt startPt = new TracePt(0, 0, 0, 0, 0);
 		final int endX = 100, endY = 200;
 		TracePt endPt = new TracePt(endX, endY, 0, 0, 0);
 		SegmentTracePathElement pathElement = new SegmentTracePathElement(startPt, endPt);
-		path.add(pathElement);
+		path.addPathElement(pathElement);
 		
 		// build shapeDef
 		ShapeDefRegistry reg = new ShapeDefRegistry();

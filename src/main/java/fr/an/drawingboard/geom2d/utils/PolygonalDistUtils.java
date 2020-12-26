@@ -23,7 +23,8 @@ public class PolygonalDistUtils {
 		double[] avgNeightboorsDist = new double[ptsCount];
 		dist[0] = 0.0;
 		avgNeightboorsDist[0] = pts.get(0).distTo(pts.get(1));
-		for(int i = 1; i < ptsCount-2; i++) {
+		avgNeightboorsDist[1] = 0.5 * avgNeightboorsDist[0];  
+		for(int i = 1; i < ptsCount-1; i++) {
 			val dist_i_ip1 = pts.get(i).distTo(pts.get(i+1));
 			dist[i] = dist[i-1] + dist_i_ip1;
 			val dist_i_ip1_div2 = 0.5 * dist_i_ip1;

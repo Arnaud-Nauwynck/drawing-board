@@ -83,9 +83,9 @@ public class WeightedDiscretizationPathPtsBuilder {
 		List<Double> pathDistLengths = gesture.pathDistLengths();
 		double distLengthTotal = PathDistLengthesUtils.sum(pathDistLengths);
 		double renormCoefTotal = 1.0 / distLengthTotal;
-		final int pathesCount = gesture.pathes.size();
+		final int pathesCount = gesture.size();
 		for (int pathi = 0; pathi < pathesCount; pathi++) {
-			TracePath path = gesture.pathes.get(pathi);
+			TracePath path = gesture.get(pathi);
 			double pathDistLength = pathDistLengths.get(pathi);
 			double renormPath = pathDistLength * renormCoefTotal;
 

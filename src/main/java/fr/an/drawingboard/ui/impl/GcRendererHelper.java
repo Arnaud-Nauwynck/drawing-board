@@ -3,6 +3,8 @@ package fr.an.drawingboard.ui.impl;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.swing.border.StrokeBorder;
+
 import fr.an.drawingboard.geom2d.CubicBezier2D;
 import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.geom2d.QuadBezier2D;
@@ -46,7 +48,7 @@ public class GcRendererHelper {
 	}
 	
 	public void draw(TraceGesture gesture) {
-		for (val path : gesture.pathes) {
+		for (val path : gesture.pathes()) {
 			draw(path);
 		}
 	}
@@ -58,9 +60,17 @@ public class GcRendererHelper {
 	}
 
 	public void draw(GesturePathesCtxEval gesture) {
-		for(val path : gesture.pathes) {
+		for(val path : gesture.pathes()) {
 			draw(path);
 		}
+	}
+
+
+	public void draw(Paint paint, GesturePathesCtxEval gesture) {
+		Paint prevStroke = gc.getStroke();
+		gc.setStroke(paint);
+		draw(gesture);
+		gc.setStroke(prevStroke);
 	}
 
 	public void draw(PathCtxEval path) {

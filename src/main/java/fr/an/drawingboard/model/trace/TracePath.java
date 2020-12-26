@@ -11,7 +11,11 @@ public class TracePath {
 
 	public List<TracePathElement> pathElements = new ArrayList<>();
 
-	public void add(TracePathElement pathElement) {
+	public boolean isEmpty() {
+		return pathElements.isEmpty();
+	}
+
+	public void addPathElement(TracePathElement pathElement) {
 		this.pathElements.add(pathElement);
 	}
 

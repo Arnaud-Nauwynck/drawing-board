@@ -52,7 +52,7 @@ public class TraceDiscretisationPtsBuilder {
 	}
 
 	public void discretizeToPts(DistinctPt2DListBuilder res, TraceGesture gesture) {
-		for(val path: gesture.pathes) {
+		for(val path: gesture.pathes()) {
 			discretizeToPts(res, path);
 		}
 	}

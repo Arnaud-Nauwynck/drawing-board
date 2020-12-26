@@ -15,7 +15,6 @@ import fr.an.drawingboard.model.trace.TracePath;
 import fr.an.drawingboard.recognizer.trace.TraceDiscretisationPtsBuilder;
 import fr.an.drawingboard.util.LsUtils;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.val;
 
 public class TraceSymbolLevenshteinEditOptimizer {
@@ -29,7 +28,7 @@ public class TraceSymbolLevenshteinEditOptimizer {
 		final List<ParamWeightedPt2D> pts;
 				
 		public static List<TracePathSymbol> traceGestureToSourceSymbols(TraceGesture traceGesture, TraceDiscretisationPtsBuilder traceDiscretisationPtsBuilder) {
-			return LsUtils.map(traceGesture.pathes, path -> {
+			return LsUtils.map(traceGesture.pathes(), path -> {
 				List<Pt2D> discretizedPts = traceDiscretisationPtsBuilder.discretizeToPts(path);
 				val pts = PolygonalDistUtils.ptsParamWeightedPts_polygonalDistance(discretizedPts);
 				return new TracePathSymbol(path, pts);
@@ -60,12 +59,15 @@ public class TraceSymbolLevenshteinEditOptimizer {
 	}
 
 	public static enum LevensteinEditOp {
-		InsertTarget, Match, DeleteSource
+		SplitInsertSource, Match, MergeDeleteSource
+		// , DeleteSource
 	}
 	
 	@AllArgsConstructor
 	public static class TraceSymbolLevensteinDist {
+		public TraceSymbolLevensteinDist prev;
 		public double cost;
+		public double editCost;
 		public LevensteinEditOp editOp;
 		public TracePathSymbol sourceSymbol;
 		public PathCtxEvalSymbol targetSymbol;
@@ -111,10 +113,10 @@ public class TraceSymbolLevenshteinEditOptimizer {
 		double costJ = 0.0;
 		TraceSymbolLevensteinDist[] nextDist = new TraceSymbolLevensteinDist[targetSymbolsCount+1];
 		
-		nextDist[0] = new TraceSymbolLevensteinDist(0, LevensteinEditOp.InsertTarget, null, null);
+		nextDist[0] = new TraceSymbolLevensteinDist(null, 0, 0, LevensteinEditOp.SplitInsertSource, null, null);
 		for (int j = 0; j < targetSymbolsCount; j++) {
 			costJ += costFunction.insertionCost(startPt, this.targetSymbols[j+1]);
-			nextDist[j+1] = new TraceSymbolLevensteinDist(costJ, LevensteinEditOp.InsertTarget, null, targetSymbols[j+1]);
+			nextDist[j+1] = new TraceSymbolLevensteinDist(null, costJ, costJ, LevensteinEditOp.SplitInsertSource, null, targetSymbols[j+1]);
 		}
 		distFirstSourceSymbols.add(nextDist);
 	}
@@ -130,7 +132,7 @@ public class TraceSymbolLevenshteinEditOptimizer {
 		Pt2D startPt = ptAtStart.element.getStartPt();
 		double delCost = costFunction.deletionCost(src, startPt);
 		double cost = ((prevDist != null)? prevDist[0].cost : 0.0) + delCost;
-		nextDist[0] = new TraceSymbolLevensteinDist(cost, LevensteinEditOp.DeleteSource, src, targetSymbols[0]);
+		nextDist[0] = new TraceSymbolLevensteinDist(null, cost, delCost, LevensteinEditOp.MergeDeleteSource, src, targetSymbols[0]);
 		}
 			
 		for(int j = 0; j < targetSymbolsCount; j++) {
@@ -139,34 +141,40 @@ public class TraceSymbolLevenshteinEditOptimizer {
 			// 					   nextDist[j] + insertionCost(j))
 			
 			PathCtxEvalSymbol targetSymbol = targetSymbols[j+1];
+			TraceSymbolLevensteinDist prev;
+			LevensteinEditOp op;
+			double nextCost, nextEditCost;
 			
 			double addMatchCost = costFunction.matchCost(src, targetSymbol);
-			double nextCostMatch = prevDist[j].cost + addMatchCost;
+			nextCost = prevDist[j].cost + addMatchCost;
+			nextEditCost = addMatchCost;
+			prev = prevDist[j];
+			op = LevensteinEditOp.Match;
 		
-			Pt2D srcStartPt = src.startPt(); // endPt?
-			double addDeletionCost = costFunction.deletionCost(src, srcStartPt);
-			double nextCostDeletion = prevDist[j+1].cost + addDeletionCost;
+//			Pt2D targetStartPt = targetSymbol.pts.get(0).pt;
+//			double addDeletionCost = costFunction.deletionCost(src, targetStartPt);
+//			double nextCostDeletion = prevDist[j+1].cost + addDeletionCost;
+//			if (nextCostDeletion <= nextCost) {
+//				prev = prevDist[j+1];
+//				op = LevensteinEditOp.MergeDeleteSource;				
+//				nextCost = nextCostDeletion;
+//				nextEditCost = addDeletionCost;
+//			}
+//
+//			if (j != 0) {
+//				Pt2D srcStartPt = src.startPt();
+//					// ?? endPt();
+//				double addInsertionCost = costFunction.insertionCost(srcStartPt, targetSymbol);
+//				double nextCostInsertion = nextDist[j].cost + addInsertionCost;
+//				if (nextCostInsertion < nextCost) {
+//					prev =  nextDist[j];
+//					op = LevensteinEditOp.SplitInsertSource;
+//					nextCost = nextCostInsertion;
+//					nextEditCost = addInsertionCost;
+//				}
+//			}
 			
-			double nextCostInsertion = Double.MAX_VALUE;
-			if (j != 0) {
-				double addInsertionCost = costFunction.insertionCost(srcStartPt, targetSymbol);
-				nextCostInsertion = nextDist[j].cost + addInsertionCost;
-			}
-			
-			LevensteinEditOp op;
-			double nextMinCost;
-			if (nextCostMatch <= nextCostDeletion) {
-				op = LevensteinEditOp.Match;
-				nextMinCost = nextCostMatch;
-			} else {
-				op = LevensteinEditOp.DeleteSource;				
-				nextMinCost = nextCostDeletion;
-			}
-			if (nextCostInsertion < nextMinCost) {
-				op = LevensteinEditOp.InsertTarget;
-				nextMinCost = nextCostInsertion;
-			}
-			nextDist[j+1] = new TraceSymbolLevensteinDist(nextMinCost, op, src, targetSymbol);
+			nextDist[j+1] = new TraceSymbolLevensteinDist(prev, nextCost, nextEditCost, op, src, targetSymbol);
 		}
 		distFirstSourceSymbols.add(nextDist);
 	}
@@ -189,14 +197,15 @@ public class TraceSymbolLevenshteinEditOptimizer {
 				currSourceIdx--;	
 				currTargetIdx--;
 				break;
-			case InsertTarget:
+			case SplitInsertSource:
 				currTargetIdx--;
 				break;
-			case DeleteSource:
-				currSourceIdx--;	
+			case MergeDeleteSource:
+				currSourceIdx--;
 				break;
 			}
 			curr = distFirstSourceSymbols.get(currTargetIdx)[currSourceIdx];
+			
 		}
 		// revert
 		for(int start = 0, end = res.size()-1; start < end; start++,end--) {

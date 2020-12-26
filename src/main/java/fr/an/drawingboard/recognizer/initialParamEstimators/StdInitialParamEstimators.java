@@ -38,8 +38,8 @@ public class StdInitialParamEstimators {
 			GesturePathesDef gestureDef,
 			ParamEvalCtx res) {
 		double estimX, estimY, estimW, estimH;
-		if (! gesture.pathes.isEmpty()) {
-			TracePath firstPath = gesture.pathes.get(0);
+		if (! gesture.isEmpty()) {
+			TracePath firstPath = gesture.get(0);
 			List<TracePathElement> pathElements = firstPath.pathElements;
 			if (pathElements != null && pathElements.size() > 0) {
 				TracePathElement firstPathElt = pathElements.get(0);
@@ -70,7 +70,7 @@ public class StdInitialParamEstimators {
 		// estimate mid point
 		// find stop point if any, otherwise half distance (TODO)
 		Pt2D controlPt;
-		TracePath path0 = gesture.pathes.get(0);
+		TracePath path0 = gesture.get(0);
 		if (path0.pathElements.size() == 2) {
 			controlPt = path0.pathElements.get(0).endPt.xy();
 		} else {
@@ -127,7 +127,7 @@ public class StdInitialParamEstimators {
 		val discretization = new TraceDiscretisationPtsBuilder();
 		val avg = new  AvgAndRectBuilder();
 		{ // compute avgX, avgY, minX, maxX, minY, maxY
-			for(val path : gesture.pathes) {
+			for(val path : gesture.pathes()) {
 				for(val pathElement : path.pathElements) {
 					switch (pathElement.getType()) {
 					case Segment: {

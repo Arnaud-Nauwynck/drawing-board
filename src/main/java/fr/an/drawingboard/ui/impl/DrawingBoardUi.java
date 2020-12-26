@@ -323,8 +323,14 @@ public class DrawingBoardUi {
 			addMatchShapeItem(recognizeItems, "Line", "line", 0);
 			addMatchShapeItem(recognizeItems, "Line2", "line2", 0);
 			addMatchShapeItem(recognizeItems, "Rect", "rectangle", 0);
-			addMatchShapeItem(recognizeItems, "R(DL->UR..)", "rectangle", 1);
+			addMatchShapeItem(recognizeItems, "Rect(DL->UR..)", "rectangle", 1);
 			addMatchShapeItem(recognizeItems, "HCross", "hcross", 0);
+			addMatchShapeItem(recognizeItems, "VCross", "vcross", 0);
+			addMatchShapeItem(recognizeItems, "Z", "z", 0);
+			addMatchShapeItem(recognizeItems, "U", "u", 0);
+			addMatchShapeItem(recognizeItems, "N", "n", 0);
+			addMatchShapeItem(recognizeItems, "C", "c", 0);
+			addMatchShapeItem(recognizeItems, "invC", "invC", 0);
 		}
 		
 		toolbarItems.add(createMatchShapeButton("Rect", "rectangle", 0));
@@ -500,17 +506,16 @@ public class DrawingBoardUi {
 			if (currPathElementBuilder != null) {
 				flushStopPointOrMouseReleased();
 			
-				if (currPath != null) {
+				if (currPath != null && !currPath.isEmpty()) {
 					// remove too small lines ?
 					// TODO recognize trace? ... add drawingElt
-					currGesture.add(currPath);
-					
+					currGesture.addPath(currPath);
+				}
+				if (currGesture != null && !currGesture.isEmpty()) {
 					DrawingCtxTreeNode traceNode = drawingRootNode.addChildCtx_GenerateNameFor("trace");
-					
 					val traceShape = new TraceShape();
 					traceShape.add(currGesture);
 					traceNode.addDrawingElementTrace(traceShape);
-				
 				}
 				
 				currPathElementBuilder = null;
@@ -585,7 +590,11 @@ public class DrawingBoardUi {
 				}
 				
 				if (!isEmpty) {
-					currPath.add(pathElement);
+					currPath.addPathElement(pathElement);
+					
+					currGesture.addPath(currPath);
+					// currPath = null; // ??
+					currPath = new TracePath();
 				}
 			}
 			
@@ -638,6 +647,8 @@ public class DrawingBoardUi {
 		ParamEvalCtx matchParamCtx;
 		GesturePathesCtxEval shapeCtxEval;
 		TraceSymbolLevenshteinEditOptimizer matchOptimizer;
+		List<TraceSymbolLevensteinDist> resultEditPath;
+		
 		// PtToSlotDefDynamicProgOptimizer ptToDefOptimizer;
 		double cost() {
 			return matchOptimizer.getResultCost();
@@ -722,11 +733,12 @@ public class DrawingBoardUi {
 		// pathElements between stop points as 'symbol' (to match on traceSymbols)
 		List<PathCtxEvalSymbol> targetSymbols = PathCtxEvalSymbol.gestureCtxToTargetSymbols(gestureCtxEval);
 		
-		// compute Levenstein edit distance bewteen traceSymbols and ctxEvalSymbols
+		// compute Levenstein edit distance bewteen source traceSymbols and target shapeDef Symbols
 		TraceSymbolLevenshteinEditOptimizer matchOptimizer = 
 				TraceSymbolLevenshteinEditOptimizer.computeMatch(traceSymbolMatchCostFunc, sourceSymbols, targetSymbols);
 		
-		return new MatchToShapeDef(shapeDef, gestureDef, matchParamCtx, gestureCtxEval, matchOptimizer);
+		List<TraceSymbolLevensteinDist> resultEditPath = matchOptimizer.getResultEditPath();
+		return new MatchToShapeDef(shapeDef, gestureDef, matchParamCtx, gestureCtxEval, matchOptimizer, resultEditPath);
 	}
 
 	// --------------------------------------------------------------------------------------------
@@ -946,18 +958,19 @@ public class DrawingBoardUi {
 		}
 
 		if (this.currMatchToShapeDef != null) {
+			gcRenderer.draw(Color.GRAY, currMatchToShapeDef.shapeCtxEval);
+			
 			Paint prevStroke = gc.getStroke();
 			gc.setStroke(Color.BLUE);
-			val optimizer = currMatchToShapeDef.matchOptimizer;
-			List<TraceSymbolLevensteinDist> editPath = optimizer.getResultEditPath();
+			List<TraceSymbolLevensteinDist> editPath = currMatchToShapeDef.resultEditPath;
 			for(val edit: editPath) {
 				switch(edit.editOp) {
 				case Match:
 					this.traceSymbolMatchCostFunc.drawCost(gcRenderer, edit.sourceSymbol, edit.targetSymbol);
 					break;
-				case DeleteSource:
+				case MergeDeleteSource:
 					break;
-				case InsertTarget:
+				case SplitInsertSource:
 					break;
 				}
 			}

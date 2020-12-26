@@ -20,7 +20,7 @@ public class AlmostAlignedPtsSimplifier {
 	protected double maxAngleChange = 7 *Math.PI/180;
 
 	public void simplifyGestureLines(TraceGesture gesture) {
-		for(val path: gesture.pathes) {
+		for(val path: gesture.pathes()) {
 			simplifyAlmostAlignedPts(path);
 		}
 	}

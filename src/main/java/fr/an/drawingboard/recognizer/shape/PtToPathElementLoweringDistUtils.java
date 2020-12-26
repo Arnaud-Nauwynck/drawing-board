@@ -50,7 +50,7 @@ public class PtToPathElementLoweringDistUtils {
 		if (boundRectDist > ifLowerThan) {
 			return false;
 		}
-		for(val path: to.pathes) {
+		for(val path: to.pathes()) {
 			boolean tmpres = evalMinDistIfLowerThan(resDist, from, path, ifLowerThan);
 			if (tmpres) {
 				res = true;

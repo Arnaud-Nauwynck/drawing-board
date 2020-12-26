@@ -24,6 +24,10 @@ public class ShapeDefRegistryBuilder {
 		addHCrossDef();
 		addZDef();
 		addNDef();
+		addnDef();
+		addUDef();
+		addCDef();
+		addInvCDef();
 	}
 
 	public void addLineDef() {
@@ -111,7 +115,7 @@ public class ShapeDefRegistryBuilder {
 	}
 
 	public void addNDef() {
-		ShapeDef shapeDef = new ShapeDef("n", paramCategories);
+		ShapeDef shapeDef = new ShapeDef("N", paramCategories);
 		RectExpr r = shapeDef.getCoordRectExpr();
 		// gesture
 		//  PtUL      PtUR
@@ -124,7 +128,62 @@ public class ShapeDefRegistryBuilder {
 		dest.addShapeDef(shapeDef);
 	}
 
+	public void addUDef() {
+		ShapeDef shapeDef = new ShapeDef("u", paramCategories);
+		RectExpr r = shapeDef.getCoordRectExpr();
+		// gesture
+		//  PtUL      PtUR
+		//    |      /\      
+		//    |       |
+		//    \/      |        
+		//  PtDL ---> PtDR
+		InitialParamForShapeEstimator paramEstimator = rectParamEstimator();
+		shapeDef.addGesture_Segments(paramEstimator, r.ptUL, r.ptDL, r.ptDR, r.ptUR);
+		dest.addShapeDef(shapeDef);
+	}
+
+	public void addnDef() {
+		ShapeDef shapeDef = new ShapeDef("n", paramCategories);
+		RectExpr r = shapeDef.getCoordRectExpr();
+		// gesture
+		//  PtUL----> PtUR
+		//    /\       |      
+		//    |        |
+		//    |        \/        
+		//  PtDL      PtDR
+		InitialParamForShapeEstimator paramEstimator = rectParamEstimator();
+		shapeDef.addGesture_Segments(paramEstimator, r.ptDL, r.ptUL, r.ptUR, r.ptDR);
+		dest.addShapeDef(shapeDef);
+	}
 	
+	public void addCDef() {
+		ShapeDef shapeDef = new ShapeDef("c", paramCategories);
+		RectExpr r = shapeDef.getCoordRectExpr();
+		// gesture
+		//  PtUL<-----PtUR
+		//    |             
+		//    |       
+		//    \/              
+		//  PtDL ---> PtDR
+		InitialParamForShapeEstimator paramEstimator = rectParamEstimator();
+		shapeDef.addGesture_Segments(paramEstimator, r.ptUR, r.ptUL, r.ptDL, r.ptDR);
+		dest.addShapeDef(shapeDef);
+	}
+
+	public void addInvCDef() {
+		ShapeDef shapeDef = new ShapeDef("c", paramCategories);
+		RectExpr r = shapeDef.getCoordRectExpr();
+		// gesture
+		//  PtUL----->PtUR
+		//             |             
+		//             |       
+		//            \/              
+		//  PtDL <--- PtDR
+		InitialParamForShapeEstimator paramEstimator = rectParamEstimator();
+		shapeDef.addGesture_Segments(paramEstimator, r.ptUL, r.ptUR, r.ptDR, r.ptDL);
+		dest.addShapeDef(shapeDef);
+	}
+
 	private InitialParamForShapeEstimator rectParamEstimator() {
 		return StdInitialParamEstimators.rectParamEstimator();
 	}
