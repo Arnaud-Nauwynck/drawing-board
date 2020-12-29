@@ -1,4 +1,6 @@
-package fr.an.drawingboard.model.shapedef.ctxeval;
+package fr.an.drawingboard.model.shapedef.obj;
+
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -9,15 +11,17 @@ import fr.an.drawingboard.math.expr.ExprBuilder;
 import fr.an.drawingboard.math.expr.VarDef;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.PathElementDef.SegmentPathElementDef;
+import fr.an.drawingboard.model.shapedef.obj.CompositePathElementsObj;
+import fr.an.drawingboard.model.shapedef.obj.PathElementObj;
+import fr.an.drawingboard.model.shapedef.obj.CompositePathElementsObj.PtAtPathElementObj;
 import fr.an.drawingboard.model.shapedef.PtExpr;
-import fr.an.drawingboard.model.shapedef.ctxeval.CompositePathElementsCtxEval.PtAtPathElementCtxEval;
 import fr.an.drawingboard.util.LsUtils;
 import lombok.val;
 
-public class CompositePathElementsCtxEvalTest {
+public class CompositePathElementsObjTest {
 
 	@Test
-	public void testPointAtDistIterator() {
+	public void testPointAtParamIterator() {
 		// given
 		ExprBuilder b = ExprBuilder.INSTANCE;
 		Expr cst0 = b.lit0();
@@ -35,29 +39,34 @@ public class CompositePathElementsCtxEvalTest {
 		SegmentPathElementDef pathElt3 = new SegmentPathElementDef(pt3, pt4);
 
 		NumericEvalCtx ctx = new NumericEvalCtx();
-		PathElementCtxEval elt0 = PathElementCtxEval.create(pathElt0);
-		PathElementCtxEval elt1 = PathElementCtxEval.create(pathElt1);
-		PathElementCtxEval elt2 = PathElementCtxEval.create(pathElt2);
-		PathElementCtxEval elt3 = PathElementCtxEval.create(pathElt3);
+		PathElementObj elt0 = PathElementObj.create(pathElt0);
+		PathElementObj elt1 = PathElementObj.create(pathElt1);
+		PathElementObj elt2 = PathElementObj.create(pathElt2);
+		PathElementObj elt3 = PathElementObj.create(pathElt3);
 		elt0.update(ctx);
 		elt1.update(ctx);
 		elt2.update(ctx);
 		elt3.update(ctx);
 
-		CompositePathElementsCtxEval sut = new CompositePathElementsCtxEval(LsUtils.of(elt0, elt1, elt2, elt3));
-		val pointAtDistIterator = sut.pointAtDistIterator();
+		List<PathElementObj> elts = LsUtils.of(elt0, elt1, elt2, elt3);
+		val splitParams = CompositePathElementsObj.splitParamProportionalToDists(elts);
+		CompositePathElementsObj sut = new CompositePathElementsObj(splitParams, elts);
+		val pointAtDistIterator = sut.pointAtParamIterator();
 
-		PtAtPathElementCtxEval ptAtDist;
-		for(int i = 0; i < 50; i++) {
+		PtAtPathElementObj ptAtParam;
+		int N = 50;
+		double paramStep = 1.0/N;
+		double param = 0;
+		for(int i = 0; i < N; i++,param+=paramStep) {
 			// when
-			ptAtDist = pointAtDistIterator.nextPtAtDist(i);
+			ptAtParam = pointAtDistIterator.nextPtAtParam(param);
 			// then
-			assertPtx(i, ptAtDist.pt);
+			assertPtx(i, ptAtParam.pt);
 		}
 		// when
-		ptAtDist = pointAtDistIterator.nextPtAtDist(55);
+		ptAtParam = pointAtDistIterator.nextPtAtParam(1.1);
 		// then
-		assertPtx(50, ptAtDist.pt);
+		assertPtx(50, ptAtParam.pt);
 		
 	}
 	

@@ -9,8 +9,8 @@ import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.geom2d.WeightedPt2D;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.ShapeCtxEval;
+import fr.an.drawingboard.model.shapedef.obj.PathElementObj;
+import fr.an.drawingboard.model.shapedef.obj.ShapeObj;
 import fr.an.drawingboard.model.shapedef.paramdef.ParamCategoryRegistry;
 import fr.an.drawingboard.recognizer.initialParamEstimators.ParamEvalCtx;
 import fr.an.drawingboard.recognizer.shape.PtToSlotDefDynamicProgOptimizer.ProjToPathUpToIndex;
@@ -49,7 +49,7 @@ public class PtToSlotDefDynamicProgOptimizerTest {
 
 	@AllArgsConstructor
 	private static class PtToFragTestScenario {
-		ShapeCtxEval shape;
+		ShapeObj shape;
 		ParamEvalCtx ctx;
 		PtToSlotDefDynamicProgOptimizer sut;
 	}
@@ -68,9 +68,9 @@ public class PtToSlotDefDynamicProgOptimizerTest {
 		ctx.put(shapeDef.getParam("y"), 0);
 		ctx.put(shapeDef.getParam("h"), 0);
 		
-		ShapeCtxEval shape = new ShapeCtxEval(shapeDef);
+		ShapeObj shape = new ShapeObj(shapeDef);
 		shape.eval(ctx);
-		List<PathElementCtxEval> pathElts = shape.toPathElementCtxEvals();
+		List<PathElementObj> pathElts = shape.toPathElementCtxEvals();
 		PtToSlotDefDynamicProgOptimizer sut = new PtToSlotDefDynamicProgOptimizer(pathElts);
 
 		return new PtToFragTestScenario(shape, ctx, sut);

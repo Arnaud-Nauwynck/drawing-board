@@ -39,6 +39,5 @@ public class DoubleArrayUtils {
 		System.arraycopy(src, 0, res, 0, dim0);
 		return res;
 	}
-	
 
 }

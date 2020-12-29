@@ -31,7 +31,10 @@ public class TracePathElementBuilder {
 			TracePt last = lastPt(); 
 			pathAbsciss = last.getPathAbsciss() + TracePt.distRoundedPixel(last.x,  last.y, x, y);
 		}
-		TracePt pt = new TracePt(x, y, time, pressure, pathAbsciss);
+		TracePt pt = new TracePt(x, y);
+		pt.time = time;
+		pt.pressure = pressure;
+		pt.pathAbsciss = pathAbsciss;
 		tracePts.add(pt);
 		return pt;
 	}

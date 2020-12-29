@@ -1,4 +1,4 @@
-package fr.an.drawingboard.model.shapedef.ctxeval;
+package fr.an.drawingboard.model.shapedef.obj;
 
 import lombok.AllArgsConstructor;
 
@@ -10,7 +10,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class PathElementCtxEvalFragment {
 	
-	public final PathElementCtxEval pathElement;
+	public final PathElementObj pathElement;
 	public final double fromPathParam; // 0.0 for start
 	public final double toPathParam; // 1.0 for end
 

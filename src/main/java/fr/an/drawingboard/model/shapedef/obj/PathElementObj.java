@@ -1,4 +1,4 @@
-package fr.an.drawingboard.model.shapedef.ctxeval;
+package fr.an.drawingboard.model.shapedef.obj;
 
 import java.util.Arrays;
 
@@ -24,28 +24,28 @@ import lombok.val;
 /**
  * numerical object instance of a PathElementDef for evaluating on a NumericEvalCtx
  */
-public abstract class PathElementCtxEval {
+public abstract class PathElementObj {
 	
-	public static final PathElementDefFunc0<PathElementCtxEval> CREATE_FUNC = new PathElementDefFunc0<PathElementCtxEval>() {
+	public static final PathElementDefFunc0<PathElementObj> CREATE_FUNC = new PathElementDefFunc0<PathElementObj>() {
 		@Override
-		public PathElementCtxEval caseSegmentDef(SegmentPathElementDef def) {
+		public PathElementObj caseSegmentDef(SegmentPathElementDef def) {
 			return new SegmentPathElementCtxEval(def);
 		}
 		@Override
-		public PathElementCtxEval caseDiscretePointsDef(DiscretePointsPathElementDef def) {
+		public PathElementObj caseDiscretePointsDef(DiscretePointsPathElementDef def) {
 			return new DiscretePointsPathElementCtxEval(def);
 		}
 		@Override
-		public PathElementCtxEval caseQuadBezierDef(QuadBezierPathElementDef def) {
+		public PathElementObj caseQuadBezierDef(QuadBezierPathElementDef def) {
 			return new QuadBezierPathElementCtxEval(def);
 		}
 		@Override
-		public PathElementCtxEval caseCubicBezierDef(CubicBezierPathElementDef def) {
+		public PathElementObj caseCubicBezierDef(CubicBezierPathElementDef def) {
 			return new CubicBezierPathElementCtxEval(def);
 		}
 	};
 
-	public static PathElementCtxEval create(PathElementDef def) {
+	public static PathElementObj create(PathElementDef def) {
 		return def.accept(CREATE_FUNC);
 	}
 
@@ -103,7 +103,7 @@ public abstract class PathElementCtxEval {
 	/**
 	 * numerical object instance of a SegmentPathElementDef for evaluating on a NumericEvalCtx
 	 */
-	public static class SegmentPathElementCtxEval extends PathElementCtxEval {
+	public static class SegmentPathElementCtxEval extends PathElementObj {
 		public final SegmentPathElementDef def;
 		public final Pt2D startPt = new Pt2D();
 		public final Pt2D endPt = new Pt2D();
@@ -162,7 +162,7 @@ public abstract class PathElementCtxEval {
 	/**
 	 * numerical object instance of a DiscretePointsPathElementDef for evaluating on a NumericEvalCtx
 	 */
-	public static class DiscretePointsPathElementCtxEval extends PathElementCtxEval {
+	public static class DiscretePointsPathElementCtxEval extends PathElementObj {
 		public final DiscretePointsPathElementDef def;
 		public final Pt2D[] pts;
 		public final double[] ptsDist;
@@ -287,7 +287,7 @@ public abstract class PathElementCtxEval {
 	/**
 	 * numerical object instance of a QuadBezierPathElementDef for evaluating on a NumericEvalCtx
 	 */
-	public static class QuadBezierPathElementCtxEval extends PathElementCtxEval {
+	public static class QuadBezierPathElementCtxEval extends PathElementObj {
 		public final QuadBezierPathElementDef def;
 		public final QuadBezier2D bezier = new QuadBezier2D();
 		private BoundingRect2D boundingRect;
@@ -349,7 +349,7 @@ public abstract class PathElementCtxEval {
 	/**
 	 * numerical object instance of a CubicBezierPathElementDef for evaluating on a NumericEvalCtx
 	 */
-	public static class CubicBezierPathElementCtxEval extends PathElementCtxEval {
+	public static class CubicBezierPathElementCtxEval extends PathElementObj {
 		public final CubicBezierPathElementDef def;
 		public final CubicBezier2D bezier = new CubicBezier2D();
 		private BoundingRect2D boundingRect;

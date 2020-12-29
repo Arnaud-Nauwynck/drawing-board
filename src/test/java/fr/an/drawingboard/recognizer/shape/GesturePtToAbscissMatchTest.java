@@ -26,9 +26,9 @@ public class GesturePtToAbscissMatchTest {
 		TraceGesture gesture = new TraceGesture();
 		val path = new TracePath();
 		gesture.addPath(path);
-		TracePt startPt = new TracePt(0, 0, 0, 0, 0);
+		TracePt startPt = new TracePt(0, 0);
 		final int endX = 100, endY = 200;
-		TracePt endPt = new TracePt(endX, endY, 0, 0, 0);
+		TracePt endPt = new TracePt(endX, endY);
 		SegmentTracePathElement pathElement = new SegmentTracePathElement(startPt, endPt);
 		path.addPathElement(pathElement);
 		

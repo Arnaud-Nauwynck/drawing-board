@@ -1,4 +1,4 @@
-package fr.an.drawingboard.model.shapedef.ctxeval;
+package fr.an.drawingboard.model.shapedef.obj;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,19 +14,19 @@ import lombok.val;
 /**
  * numerical objects instance of a GesturePathesDef for evaluating on a NumericEvalCtx
  */
-public class GesturePathesCtxEval {
+public class GesturePathesObj {
 
 	public final GesturePathesDef def;
 	
-	public final ImmutableList<PathCtxEval> pathes;
+	public final ImmutableList<PathObj> pathes;
 	public BoundingRect2D boundingRect;
 
-	public GesturePathesCtxEval(GesturePathesDef def) {
+	public GesturePathesObj(GesturePathesDef def) {
 		this.def = def;
-		this.pathes = ImmutableList.copyOf(LsUtils.map(def.pathes, x -> new PathCtxEval(x)));
+		this.pathes = ImmutableList.copyOf(LsUtils.map(def.pathes, x -> new PathObj(x)));
 	}
 
-	public Iterable<PathCtxEval> pathes() {
+	public Iterable<PathObj> pathes() {
 		return pathes;
 	}
 
@@ -39,8 +39,8 @@ public class GesturePathesCtxEval {
 		this.boundingRect = boundingRectBuilder.build();
 	}
 
-	public List<PathElementCtxEval> toPathElementCtxEvals() {
-		List<PathElementCtxEval> res = new ArrayList<>();
+	public List<PathElementObj> toPathElementCtxEvals() {
+		List<PathElementObj> res = new ArrayList<>();
 		for(val path: pathes()) {
 			for (val pathElt: path.pathElements) {
 				res.add(pathElt);

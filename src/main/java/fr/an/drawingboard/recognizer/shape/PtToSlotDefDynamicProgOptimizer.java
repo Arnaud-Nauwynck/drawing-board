@@ -5,8 +5,8 @@ import java.util.List;
 
 import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.geom2d.WeightedPt2D;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEvalFragment;
+import fr.an.drawingboard.model.shapedef.obj.PathElementCtxEvalFragment;
+import fr.an.drawingboard.model.shapedef.obj.PathElementObj;
 import fr.an.drawingboard.recognizer.shape.PtToPathElementLoweringDistUtils.PtToPathElementLoweringDistResult;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -78,7 +78,7 @@ public class PtToSlotDefDynamicProgOptimizer {
 
 	// ------------------------------------------------------------------------
 	
-	public PtToSlotDefDynamicProgOptimizer(List<PathElementCtxEval> pathElements) {
+	public PtToSlotDefDynamicProgOptimizer(List<PathElementObj> pathElements) {
 		int fragIndex = 0;
 		for(val pathElement : pathElements) {
 			val frag = new PathElementCtxEvalFragment(pathElement, 0.0, 1.0);
@@ -104,7 +104,7 @@ public class PtToSlotDefDynamicProgOptimizer {
 			// first pt
 			for(int p = 0; p < fragCount; p++) {
 				PathElementCtxEvalFragment projToFrag = defFragments.get(p);
-				PathElementCtxEval projTo = projToFrag.pathElement; // TODO fragment dist NOT IMPLEMENTED YET... 
+				PathElementObj projTo = projToFrag.pathElement; // TODO fragment dist NOT IMPLEMENTED YET... 
 
 				PtToPathElementLoweringDistUtils.evalMinDistIfLowerThan(resDist, pt, projTo, Double.MAX_VALUE);
 				double distPtProj = resDist.resultDist;
@@ -124,7 +124,7 @@ public class PtToSlotDefDynamicProgOptimizer {
 				Pt2D bestProjPt = null;
 				for(int projIndex = 0; projIndex <= p; projIndex++) {
 					PathElementCtxEvalFragment projToFrag = defFragments.get(projIndex);
-					PathElementCtxEval projTo = projToFrag.pathElement; // TODO fragment dist NOT IMPLEMENTED YET... 
+					PathElementObj projTo = projToFrag.pathElement; // TODO fragment dist NOT IMPLEMENTED YET... 
 					
 					ProjToPathUpToIndex prevMin_ToProjIndex = currProjToPathUpToIndexes.get(projIndex);
 					double prevCost = prevMin_ToProjIndex.minCostValue;

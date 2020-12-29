@@ -18,7 +18,7 @@ public class ShapeDefRegistryBuilder {
 	
 	public void addStdShapes() {
 		addLineDef();
-		addLine2Def();
+		// addLine2Def();
 		addRectangleDef();
 		addVCrossDef();
 		addHCrossDef();
@@ -31,6 +31,7 @@ public class ShapeDefRegistryBuilder {
 		addCDef();
 		addCUpDef();
 		addInvCDef();
+		addRightDownDef();
 	}
 
 	public void addLineDef() {
@@ -230,6 +231,20 @@ public class ShapeDefRegistryBuilder {
 		dest.addShapeDef(shapeDef);
 	}
 
+	public void addRightDownDef() {
+		ShapeDef shapeDef = new ShapeDef("right,down", paramCategories);
+		RectExpr r = shapeDef.getCoordRectExpr();
+		// gesture
+		//  PtUL----->PtUR
+		//             |             
+		//             |       
+		//            \/              
+		//  PtDL      PtDR
+		InitialParamForShapeEstimator paramEstimator = rectParamEstimator();
+		shapeDef.addGesture_Segments(paramEstimator, r.ptUL, r.ptUR, r.ptDR);
+		dest.addShapeDef(shapeDef);
+	}
+	
 	private InitialParamForShapeEstimator rectParamEstimator() {
 		return StdInitialParamEstimators.rectParamEstimator();
 	}

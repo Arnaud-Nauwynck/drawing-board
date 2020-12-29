@@ -1,15 +1,15 @@
 package fr.an.drawingboard.recognizer.shape;
 
 import fr.an.drawingboard.geom2d.Pt2D;
-import fr.an.drawingboard.model.shapedef.ctxeval.GesturePathesCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.ShapeCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval.CubicBezierPathElementCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval.DiscretePointsPathElementCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval.PathElementCtxEvalVisitor;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval.QuadBezierPathElementCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval.SegmentPathElementCtxEval;
+import fr.an.drawingboard.model.shapedef.obj.GesturePathesObj;
+import fr.an.drawingboard.model.shapedef.obj.PathElementObj;
+import fr.an.drawingboard.model.shapedef.obj.PathObj;
+import fr.an.drawingboard.model.shapedef.obj.ShapeObj;
+import fr.an.drawingboard.model.shapedef.obj.PathElementObj.CubicBezierPathElementCtxEval;
+import fr.an.drawingboard.model.shapedef.obj.PathElementObj.DiscretePointsPathElementCtxEval;
+import fr.an.drawingboard.model.shapedef.obj.PathElementObj.PathElementCtxEvalVisitor;
+import fr.an.drawingboard.model.shapedef.obj.PathElementObj.QuadBezierPathElementCtxEval;
+import fr.an.drawingboard.model.shapedef.obj.PathElementObj.SegmentPathElementCtxEval;
 import fr.an.drawingboard.util.DrawingValidationUtils;
 import lombok.val;
 
@@ -27,7 +27,7 @@ public class PtToPathElementLoweringDistUtils {
 	}
 
 	public static boolean evalMinDistIfLowerThan(PtToPathElementLoweringDistResult resDist, 
-			Pt2D from, ShapeCtxEval to, double ifLowerThan) {
+			Pt2D from, ShapeObj to, double ifLowerThan) {
 		boolean res = false;
 		double boundRectDist = to.boundingRect.outerDistOr0ToPt(from);
 		if (boundRectDist > ifLowerThan) {
@@ -44,7 +44,7 @@ public class PtToPathElementLoweringDistUtils {
 	}
 
 	public static boolean evalMinDistIfLowerThan(PtToPathElementLoweringDistResult resDist, 
-			Pt2D from, GesturePathesCtxEval to, double ifLowerThan) {
+			Pt2D from, GesturePathesObj to, double ifLowerThan) {
 		boolean res = false;
 		double boundRectDist = to.boundingRect.outerDistOr0ToPt(from);
 		if (boundRectDist > ifLowerThan) {
@@ -61,7 +61,7 @@ public class PtToPathElementLoweringDistUtils {
 	}
 	
 	public static boolean evalMinDistIfLowerThan(PtToPathElementLoweringDistResult resDist, 
-			Pt2D from, PathCtxEval to, double ifLowerThan) {
+			Pt2D from, PathObj to, double ifLowerThan) {
 		boolean res = false;
 		double boundRectDist = to.boundingRect.outerDistOr0ToPt(from);
 		if (boundRectDist > ifLowerThan) {
@@ -77,14 +77,14 @@ public class PtToPathElementLoweringDistUtils {
 		return res;
 	}
 	
-	public static double evalMinDist(Pt2D from, PathElementCtxEval to) {
+	public static double evalMinDist(Pt2D from, PathElementObj to) {
 		val resDist = new PtToPathElementLoweringDistResult();
 		evalMinDistIfLowerThan(resDist, from, to, Double.MAX_VALUE);
 		return resDist.resultDist;
 	}
 
 	public static boolean evalMinDistIfLowerThan(PtToPathElementLoweringDistResult resDist, 
-			Pt2D from, PathElementCtxEval to, double ifLowerThan) {
+			Pt2D from, PathElementObj to, double ifLowerThan) {
 		boolean[] res = new boolean[1];
 		to.accept(new PathElementCtxEvalVisitor() {
 			@Override

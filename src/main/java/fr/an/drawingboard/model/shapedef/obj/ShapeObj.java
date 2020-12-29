@@ -1,4 +1,4 @@
-package fr.an.drawingboard.model.shapedef.ctxeval;
+package fr.an.drawingboard.model.shapedef.obj;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,16 +15,16 @@ import lombok.val;
 /**
  * numerical object instance of a ShapeDef for evaluating on a NumericEvalCtx
  */
-public class ShapeCtxEval {
+public class ShapeObj {
 
 	public final ShapeDef def;
 
-	public final ImmutableList<GesturePathesCtxEval> gestures;
+	public final ImmutableList<GesturePathesObj> gestures;
 	public BoundingRect2D boundingRect;
 
-	public ShapeCtxEval(ShapeDef def) {
+	public ShapeObj(ShapeDef def) {
 		this.def = def;
-		this.gestures = ImmutableList.copyOf(LsUtils.map(def.gestures, x -> new GesturePathesCtxEval(x)));
+		this.gestures = ImmutableList.copyOf(LsUtils.map(def.gestures, x -> new GesturePathesObj(x)));
 	}
 
 	public void eval(ParamEvalCtx paramCtx) {
@@ -42,8 +42,8 @@ public class ShapeCtxEval {
 		this.boundingRect = boundingRectBuilder.build();
 	}
 
-	public List<PathElementCtxEval> toPathElementCtxEvals() {
-		List<PathElementCtxEval> res = new ArrayList<>();
+	public List<PathElementObj> toPathElementCtxEvals() {
+		List<PathElementObj> res = new ArrayList<>();
 		for(val gesture: gestures) {
 			for(val path: gesture.pathes()) {
 				for (val pathElt: path.pathElements) {

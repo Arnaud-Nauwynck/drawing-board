@@ -5,7 +5,7 @@ import java.util.Map;
 
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
-import fr.an.drawingboard.model.shapedef.ctxeval.ShapeCtxEval;
+import fr.an.drawingboard.model.shapedef.obj.ShapeObj;
 import fr.an.drawingboard.model.shapedef.paramdef.ParamDef;
 import fr.an.drawingboard.model.varctx.DrawingCtxTreeNode;
 import fr.an.drawingboard.model.varctx.DrawingVarDef;
@@ -18,7 +18,7 @@ public class ShapeDrawingElement extends DrawingElement {
 	@Getter
 	private final ShapeDef shapeDef;
 	@Getter
-	private final ShapeCtxEval shapeCtxEval;
+	private final ShapeObj shapeCtxEval;
 
 	private final Map<ParamDef,DrawingVarDef> paramBindings;
 	
@@ -27,7 +27,7 @@ public class ShapeDrawingElement extends DrawingElement {
 	public ShapeDrawingElement(DrawingCtxTreeNode ctxNode, ShapeDef shapeDef, Map<ParamDef,DrawingVarDef> paramBindings) {
 		super(ctxNode);
 		this.shapeDef = shapeDef;
-		this.shapeCtxEval = new ShapeCtxEval(shapeDef);
+		this.shapeCtxEval = new ShapeObj(shapeDef);
 		// this.evalCtx = new NumericEvalCtx();
 		this.paramBindings = new LinkedHashMap<ParamDef,DrawingVarDef>(paramBindings); 
 		// check params are bound, and no extra params 

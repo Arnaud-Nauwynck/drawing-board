@@ -11,10 +11,11 @@ public class TracePt {
 	public final double x;
 	public final double y;
 	
-	public final long time;
-	public final int pressure;
-		
-	public final double pathAbsciss;
+	public long time;
+	public int pressure;
+	
+	// TODO @Deprecated
+	public double pathAbsciss;
 	
 	boolean isStopPoint;
 	boolean isMergeStopPoint;

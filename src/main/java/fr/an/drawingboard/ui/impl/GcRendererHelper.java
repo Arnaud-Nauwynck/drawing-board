@@ -10,15 +10,15 @@ import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.geom2d.QuadBezier2D;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.PtExpr;
-import fr.an.drawingboard.model.shapedef.ctxeval.GesturePathesCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval.CubicBezierPathElementCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval.DiscretePointsPathElementCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval.PathElementCtxEvalVisitor;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval.QuadBezierPathElementCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.PathElementCtxEval.SegmentPathElementCtxEval;
-import fr.an.drawingboard.model.shapedef.ctxeval.ShapeCtxEval;
+import fr.an.drawingboard.model.shapedef.obj.GesturePathesObj;
+import fr.an.drawingboard.model.shapedef.obj.PathElementObj;
+import fr.an.drawingboard.model.shapedef.obj.PathObj;
+import fr.an.drawingboard.model.shapedef.obj.ShapeObj;
+import fr.an.drawingboard.model.shapedef.obj.PathElementObj.CubicBezierPathElementCtxEval;
+import fr.an.drawingboard.model.shapedef.obj.PathElementObj.DiscretePointsPathElementCtxEval;
+import fr.an.drawingboard.model.shapedef.obj.PathElementObj.PathElementCtxEvalVisitor;
+import fr.an.drawingboard.model.shapedef.obj.PathElementObj.QuadBezierPathElementCtxEval;
+import fr.an.drawingboard.model.shapedef.obj.PathElementObj.SegmentPathElementCtxEval;
 import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePath;
 import fr.an.drawingboard.model.trace.TracePathElement;
@@ -53,33 +53,33 @@ public class GcRendererHelper {
 		}
 	}
 
-	public void draw(ShapeCtxEval shape) {
+	public void draw(ShapeObj shape) {
 		for(val gesture : shape.gestures) {
 			draw(gesture);
 		}
 	}
 
-	public void draw(GesturePathesCtxEval gesture) {
+	public void draw(GesturePathesObj gesture) {
 		for(val path : gesture.pathes()) {
 			draw(path);
 		}
 	}
 
 
-	public void draw(Paint paint, GesturePathesCtxEval gesture) {
+	public void draw(Paint paint, GesturePathesObj gesture) {
 		Paint prevStroke = gc.getStroke();
 		gc.setStroke(paint);
 		draw(gesture);
 		gc.setStroke(prevStroke);
 	}
 
-	public void draw(PathCtxEval path) {
+	public void draw(PathObj path) {
 		for(val pathElement : path.pathElements) {
 			draw(pathElement);
 		}
 	}
 
-	public void draw(PathElementCtxEval pathElement) {
+	public void draw(PathElementObj pathElement) {
 		pathElement.accept(new PathElementCtxEvalVisitor() {
 			@Override
 			public void caseSegment(SegmentPathElementCtxEval segment) {

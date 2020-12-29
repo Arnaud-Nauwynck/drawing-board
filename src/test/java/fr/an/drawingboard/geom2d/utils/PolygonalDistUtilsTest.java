@@ -21,7 +21,7 @@ public class PolygonalDistUtilsTest {
 		Pt2D p0 = new Pt2D(0, 0), p1 = new Pt2D(1, 0), p2 = new Pt2D(2, 0), p3 = new Pt2D(3, 0);
 		List<Pt2D> pts = ImmutableList.of(p0, p1, p2, p3);
 		// when
-		List<ParamWeightedPt2D> res = PolygonalDistUtils.ptsParamWeightedPts_polygonalDistance(pts);
+		List<ParamWeightedPt2D> res = PolygonalDistUtils.ptsParamWeightedPts_polygonalDistance(pts).pts;
 		// then
 		Assert.assertEquals(4, res.size());
 		ParamWeightedPt2D wp0 = res.get(0), wp1 = res.get(1), wp2 = res.get(2), wp3 = res.get(3);
@@ -46,7 +46,7 @@ public class PolygonalDistUtilsTest {
 		Pt2D p0 = new Pt2D(0, 0), p1 = new Pt2D(1, 0), p2 = new Pt2D(9, 0), p3 = new Pt2D(10, 0);
 		List<Pt2D> pts = ImmutableList.of(p0, p1, p2, p3);
 		// when
-		List<ParamWeightedPt2D> res = PolygonalDistUtils.ptsParamWeightedPts_polygonalDistance(pts);
+		List<ParamWeightedPt2D> res = PolygonalDistUtils.ptsParamWeightedPts_polygonalDistance(pts).pts;
 		// then
 		Assert.assertEquals(4, res.size());
 		ParamWeightedPt2D wp0 = res.get(0), wp1 = res.get(1), wp2 = res.get(2), wp3 = res.get(3);
