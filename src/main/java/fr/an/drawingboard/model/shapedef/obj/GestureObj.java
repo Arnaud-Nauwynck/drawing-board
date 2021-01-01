@@ -7,21 +7,21 @@ import com.google.common.collect.ImmutableList;
 
 import fr.an.drawingboard.geom2d.BoundingRect2D;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
-import fr.an.drawingboard.model.shapedef.GesturePathesDef;
+import fr.an.drawingboard.model.shapedef.GestureDef;
 import fr.an.drawingboard.util.LsUtils;
 import lombok.val;
 
 /**
  * numerical objects instance of a GesturePathesDef for evaluating on a NumericEvalCtx
  */
-public class GesturePathesObj {
+public class GestureObj {
 
-	public final GesturePathesDef def;
+	public final GestureDef def;
 	
 	public final ImmutableList<PathObj> pathes;
 	public BoundingRect2D boundingRect;
 
-	public GesturePathesObj(GesturePathesDef def) {
+	public GestureObj(GestureDef def) {
 		this.def = def;
 		this.pathes = ImmutableList.copyOf(LsUtils.map(def.pathes, x -> new PathObj(x)));
 	}
@@ -45,6 +45,14 @@ public class GesturePathesObj {
 			for (val pathElt: path.pathElements) {
 				res.add(pathElt);
 			}
+		}
+		return res;
+	}
+
+	public double getDist() {
+		double res = 0.0;
+		for(val path: pathes()) {
+			res += path.getDist();
 		}
 		return res;
 	}

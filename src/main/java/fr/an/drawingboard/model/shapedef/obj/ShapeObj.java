@@ -19,12 +19,12 @@ public class ShapeObj {
 
 	public final ShapeDef def;
 
-	public final ImmutableList<GesturePathesObj> gestures;
+	public final ImmutableList<GestureObj> gestures;
 	public BoundingRect2D boundingRect;
 
 	public ShapeObj(ShapeDef def) {
 		this.def = def;
-		this.gestures = ImmutableList.copyOf(LsUtils.map(def.gestures, x -> new GesturePathesObj(x)));
+		this.gestures = ImmutableList.copyOf(LsUtils.map(def.gestures, x -> new GestureObj(x)));
 	}
 
 	public void eval(ParamEvalCtx paramCtx) {

@@ -14,13 +14,36 @@ public class StdTraceBuilder {
 	/**
 	 * <PRE>
 	 * 
-	 * +--------
+	 * +--------+
 	 *          |
 	 *          |
-	 *          |
+	 *          +
 	 * </PRE>
 	 */
-	public static TraceGesture traceDownRight() {
+	public static TraceGesture traceDownRight_3pts() {
+		TraceGesture res = new TraceGesture ();
+		TracePath path = new TracePath();
+		List<TracePt> pts = new ArrayList<>();
+		pts.add(new TracePt(50, 100));
+		pts.add(new TracePt(400, 100));
+		pts.add(new TracePt(400, 450));
+		TracePathElement elt0 = new DiscretePointsTracePathElement(pts);
+		path.addPathElement(elt0);
+		res.addPath(path);
+		return res;
+	}
+	
+	/**
+	 * <PRE>
+	 * 
+	 * +-+-+-+-+
+	 *          |
+	 *          +
+	 *          |
+	 *          +
+	 * </PRE>
+	 */
+	public static TraceGesture traceDownRight_15pts() {
 		TraceGesture res = new TraceGesture ();
 		TracePath path = new TracePath();
 		List<TracePt> pts = new ArrayList<>();
@@ -58,7 +81,7 @@ public class StdTraceBuilder {
 	 *              |
 	 * </PRE>
 	 */
-	public static TraceGesture traceDownRight_1Path() {
+	public static TraceGesture traceDownRight_rounded() {
 		TraceGesture res = new TraceGesture ();
 		TracePath path = new TracePath();
 		List<TracePt> pts = new ArrayList<>();

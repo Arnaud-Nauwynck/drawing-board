@@ -100,6 +100,9 @@ public class ExprBuilder {
 			if (e instanceof LiteralDoubleExpr) {
 				double eDouble = ((LiteralDoubleExpr) e).value;
 				resultLiteral += eDouble;
+			} else if (e instanceof SumExpr) {
+				// flattern .. TODO recurse
+				remainingExprs.addAll(((SumExpr)e).exprs);
 			} else {
 				remainingExprs.add(e);
 			}
@@ -109,6 +112,9 @@ public class ExprBuilder {
 		}
 		if (remainingExprs.isEmpty()) {
 			return lit0();
+		}
+		if (remainingExprs.size() == 1) {
+			return remainingExprs.get(0);
 		}
 		return new SumExpr(remainingExprs);
 	}
@@ -192,6 +198,9 @@ public class ExprBuilder {
 						return lit0(); // 0 *x*y ... = 0 !!
 					}
 					resultCoef *= eDouble;
+				} else if (e instanceof MultExpr) {
+					// flatten .. TODO recurse
+					remainingExprs.addAll(((MultExpr)e).exprs);
 				} else {
 					remainingExprs.add(e);
 				}
@@ -200,6 +209,9 @@ public class ExprBuilder {
 				remainingExprs.add(lit(resultCoef));
 			} else if (remainingExprs.isEmpty()) {
 				return lit(resultCoef);
+			}
+			if (remainingExprs.size() == 1) {
+				return remainingExprs.get(0);
 			}
 			return new MultExpr(remainingExprs);
 		}

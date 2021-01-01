@@ -4,8 +4,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import fr.an.drawingboard.geom2d.Pt2D;
-import fr.an.drawingboard.model.shapedef.GesturePathesDef;
-import fr.an.drawingboard.model.shapedef.GesturePathesDef.PathElementDefEntry;
+import fr.an.drawingboard.model.shapedef.GestureDef;
+import fr.an.drawingboard.model.shapedef.GestureDef.PathElementDefEntry;
 import fr.an.drawingboard.model.shapedef.PathElementDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef.DiscretePointsPathElementDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef.SegmentPathElementDef;
@@ -20,7 +20,7 @@ import fr.an.drawingboard.recognizer.trace.WeightedDiscretizationPathPtsBuilder.
 public class TraceGestureDefMatchingBuilder {
 
 	public static TraceGestureDefMatching match(
-			GesturePathesDef gestureDef,
+			GestureDef gestureDef,
 			TraceGesture gesture, 
 			int discretizationPrecision, 
 			ParamEvalCtx currMatchParamCtx

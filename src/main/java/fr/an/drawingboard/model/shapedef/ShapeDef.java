@@ -14,7 +14,7 @@ public class ShapeDef extends ParametrizableEltDef {
 
 	public final String name;
 	
-	public final List<GesturePathesDef> gestures = new ArrayList<>();
+	public final List<GestureDef> gestures = new ArrayList<>();
 
 	// --------------------------------------------------------------------------------------------
 
@@ -28,18 +28,18 @@ public class ShapeDef extends ParametrizableEltDef {
 
 	// --------------------------------------------------------------------------------------------
 	
-	public GesturePathesDef addGesture(InitialParamForShapeEstimator initalParamEstimator) {
-		GesturePathesDef res = new GesturePathesDef(this, initalParamEstimator);
+	public GestureDef addGesture(InitialParamForShapeEstimator initalParamEstimator) {
+		GestureDef res = new GestureDef(this, initalParamEstimator);
 		gestures.add(res);
 		return res;
 	}
 
-	public GesturePathesDef addGesture_Segments(InitialParamForShapeEstimator initalParamEstimator, PtExpr... pts) {
+	public GestureDef addGesture_Segments(InitialParamForShapeEstimator initalParamEstimator, PtExpr... pts) {
 		return addGesture_Segments(initalParamEstimator, Arrays.asList(pts));
 	}
 	
-	public GesturePathesDef addGesture_Segments(InitialParamForShapeEstimator initalParamEstimator, List<PtExpr> pts) {
-		GesturePathesDef res = addGesture(initalParamEstimator);
+	public GestureDef addGesture_Segments(InitialParamForShapeEstimator initalParamEstimator, List<PtExpr> pts) {
+		GestureDef res = addGesture(initalParamEstimator);
 		PtExpr prevPt = pts.get(0);
 		for(int i = 1; i < pts.size(); i++) {
 			PtExpr pt = pts.get(i);

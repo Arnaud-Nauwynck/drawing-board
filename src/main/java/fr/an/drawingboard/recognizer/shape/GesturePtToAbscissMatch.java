@@ -9,8 +9,8 @@ import fr.an.drawingboard.math.expr.Expr;
 import fr.an.drawingboard.math.expr.Expr.VariableExpr;
 import fr.an.drawingboard.math.expr.ExprBuilder;
 import fr.an.drawingboard.math.expr.VarDef;
-import fr.an.drawingboard.model.shapedef.GesturePathesDef;
-import fr.an.drawingboard.model.shapedef.GesturePathesDef.PathElementDefEntry;
+import fr.an.drawingboard.model.shapedef.GestureDef;
+import fr.an.drawingboard.model.shapedef.GestureDef.PathElementDefEntry;
 import fr.an.drawingboard.model.shapedef.PathDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef;
 import fr.an.drawingboard.model.shapedef.PtExpr;
@@ -29,7 +29,7 @@ import lombok.val;
 public class GesturePtToAbscissMatch {
 
 	public final TraceGesture gesture;
-	public final GesturePathesDef gestureDef;
+	public final GestureDef gestureDef;
 
 	/**
 	 * expanded all pts for Gesture -> * TracePath -> TracePathElt -> .. for each
@@ -60,7 +60,7 @@ public class GesturePtToAbscissMatch {
 	// --------------------------------------------------------------------------------------------
 
 	// TODO does not work yet ...
-	public GesturePtToAbscissMatch(TraceGesture gesture, GesturePathesDef gestureDef, //
+	public GesturePtToAbscissMatch(TraceGesture gesture, GestureDef gestureDef, //
 			int discretizationPrecision, //
 			ParamEvalCtx currInitialParamCtx) {
 		this.gesture = gesture;

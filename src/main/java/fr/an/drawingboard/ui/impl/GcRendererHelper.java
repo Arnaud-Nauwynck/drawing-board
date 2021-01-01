@@ -10,7 +10,7 @@ import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.geom2d.QuadBezier2D;
 import fr.an.drawingboard.math.numeric.NumericEvalCtx;
 import fr.an.drawingboard.model.shapedef.PtExpr;
-import fr.an.drawingboard.model.shapedef.obj.GesturePathesObj;
+import fr.an.drawingboard.model.shapedef.obj.GestureObj;
 import fr.an.drawingboard.model.shapedef.obj.PathElementObj;
 import fr.an.drawingboard.model.shapedef.obj.PathObj;
 import fr.an.drawingboard.model.shapedef.obj.ShapeObj;
@@ -59,14 +59,14 @@ public class GcRendererHelper {
 		}
 	}
 
-	public void draw(GesturePathesObj gesture) {
+	public void draw(GestureObj gesture) {
 		for(val path : gesture.pathes()) {
 			draw(path);
 		}
 	}
 
 
-	public void draw(Paint paint, GesturePathesObj gesture) {
+	public void draw(Paint paint, GestureObj gesture) {
 		Paint prevStroke = gc.getStroke();
 		gc.setStroke(paint);
 		draw(gesture);

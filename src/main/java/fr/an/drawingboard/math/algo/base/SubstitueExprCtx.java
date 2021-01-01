@@ -1,7 +1,6 @@
 package fr.an.drawingboard.math.algo.base;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -12,22 +11,21 @@ import fr.an.drawingboard.math.expr.Expr.SumExpr;
 import fr.an.drawingboard.math.expr.Expr.VariableExpr;
 import fr.an.drawingboard.math.expr.ExprFunc1;
 import fr.an.drawingboard.math.expr.VarDef;
+import lombok.AllArgsConstructor;
 import lombok.val;
 
+@AllArgsConstructor
 public class SubstitueExprCtx {
 
-	/** for VariableExpr */
-	public final Map<VarDef, Expr> varExprs = new HashMap<>();
-
-	/** for VarDefExpr */
-	public final Map<VarDef, Expr> paramExprs = new HashMap<>();
+	public final Map<VarDef, Expr> varExprs;
 
 	public Expr varExpr(VarDef varDef) {
 		return varExprs.get(varDef);
 	}
 
-	public Expr paramExpr(VarDef VarDef) {
-		return paramExprs.get(VarDef);
+	public static Expr substituteExpr(Expr expr, Map<VarDef,Expr> substituteVarExprs) {
+		val substitute = new SubstitueExprCtx(substituteVarExprs);
+		return substitute.substituteExpr(expr);
 	}
 
 	public Expr substituteExpr(Expr expr) {

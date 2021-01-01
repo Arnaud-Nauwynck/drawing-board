@@ -3,7 +3,7 @@ package fr.an.drawingboard.recognizer.shape;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.an.drawingboard.model.shapedef.GesturePathesDef;
+import fr.an.drawingboard.model.shapedef.GestureDef;
 import fr.an.drawingboard.model.shapedef.PathDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef.CubicBezierPathElementDef;
@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TraceGestureDefMatching {
 
-	public final GesturePathesDef gestureDef;
+	public final GestureDef gestureDef;
 	
 	// InterpolatedTracePt startInterpolTracePt; // = pathes.get(0).startInterpolTracePt;
 	// InterpolatedTracePt endInterpolTracePt; // = pathes.get(pathes.size()-1).endInterpolTracePt;

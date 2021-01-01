@@ -5,18 +5,18 @@ import java.util.Iterator;
 import org.junit.Assert;
 import org.junit.Test;
 
-import fr.an.drawingboard.model.shapedef.GesturePathesDef.PathElementDefEntry;
+import fr.an.drawingboard.model.shapedef.GestureDef.PathElementDefEntry;
 import fr.an.drawingboard.model.shapedef.paramdef.ParamCategoryRegistry;
 import fr.an.drawingboard.stddefs.shapedef.ShapeDefRegistryBuilder;
 
-public class GesturePathesDefTest {
+public class GestureDefTest {
 
 	@Test
 	public void testIteratorPath() {
 		ShapeDefRegistry reg = new ShapeDefRegistry();
 		new ShapeDefRegistryBuilder(reg, ParamCategoryRegistry.INSTANCE).addStdShapes();
 		ShapeDef shapeDef = reg.getShapeDef("rectangle");
-		GesturePathesDef gestureDef = shapeDef.gestures.get(0);
+		GestureDef gestureDef = shapeDef.gestures.get(0);
 		PathDef path0 = gestureDef.pathes.get(0);
 		PathElementDef elt0_0 = path0.pathElements.get(0);
 		PathDef path1 = gestureDef.pathes.get(1);

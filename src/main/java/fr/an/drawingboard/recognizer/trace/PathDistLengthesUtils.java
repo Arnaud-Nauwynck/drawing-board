@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 import fr.an.drawingboard.geom2d.Pt2D;
-import fr.an.drawingboard.model.shapedef.GesturePathesDef;
+import fr.an.drawingboard.model.shapedef.GestureDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef.CubicBezierPathElementDef;
 import fr.an.drawingboard.model.shapedef.PathElementDef.DiscretePointsPathElementDef;
@@ -66,7 +66,7 @@ public class PathDistLengthesUtils {
 	}
 
 	public static List<Double> evalEstimateDistLengthes(
-			GesturePathesDef gestureDef, 
+			GestureDef gestureDef, 
 			ParamEvalCtx evalCtx) {
 		List<Double> res = new ArrayList<>();
 		for(val pathDef: gestureDef.pathes()) {

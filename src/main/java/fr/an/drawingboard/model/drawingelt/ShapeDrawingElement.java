@@ -18,7 +18,7 @@ public class ShapeDrawingElement extends DrawingElement {
 	@Getter
 	private final ShapeDef shapeDef;
 	@Getter
-	private final ShapeObj shapeCtxEval;
+	private final ShapeObj shapeObj;
 
 	private final Map<ParamDef,DrawingVarDef> paramBindings;
 	
@@ -27,8 +27,7 @@ public class ShapeDrawingElement extends DrawingElement {
 	public ShapeDrawingElement(DrawingCtxTreeNode ctxNode, ShapeDef shapeDef, Map<ParamDef,DrawingVarDef> paramBindings) {
 		super(ctxNode);
 		this.shapeDef = shapeDef;
-		this.shapeCtxEval = new ShapeObj(shapeDef);
-		// this.evalCtx = new NumericEvalCtx();
+		this.shapeObj = new ShapeObj(shapeDef);
 		this.paramBindings = new LinkedHashMap<ParamDef,DrawingVarDef>(paramBindings); 
 		// check params are bound, and no extra params 
 		for(ParamDef paramDef: shapeDef.getParams().values()) {
@@ -61,12 +60,12 @@ public class ShapeDrawingElement extends DrawingElement {
 			DrawingVarDef varDef = e.getValue();
 			evalCtx.put(param.varDef, varDef.getCurrValue());
 		}
-		shapeCtxEval.eval(evalCtx);
+		shapeObj.eval(evalCtx);
 	}
 
 	@Override
 	public void draw(GcRendererHelper gc) {
-		gc.draw(shapeCtxEval);
+		gc.draw(shapeObj);
 	}
 	
 	

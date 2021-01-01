@@ -57,6 +57,7 @@ public class NumericQuadExtractOtherwiseDeriveQuad1DOptimizeStep {
 		final DoubleCtxFunc func;
 		final double a; // quadForm.quadTermLiteral
 		final double b; // final QuadraticForm1D quadForm;
+		final double c;
 		final DoubleCtxFunc derivOtherNonQuadTermFunc;
 		final DoubleCtxFunc deriv2OtherNonQuadTermFunc;
 	}
@@ -74,7 +75,8 @@ public class NumericQuadExtractOtherwiseDeriveQuad1DOptimizeStep {
 			derivOtherNonQuadTermFunc = DoubleCtxFunc.funcFor(derivExpr);
 			deriv2OtherNonQuadTermFunc = DoubleCtxFunc.funcFor(deriv2Expr);
 		}
-		return new PrepareNumericQuadExtractOtherwiseDeriveQuad1DOptimize(func, quadForm.quadTermLiteral, quadForm.linTermLiteral, 
+		return new PrepareNumericQuadExtractOtherwiseDeriveQuad1DOptimize(func, 
+				quadForm.quadTermLiteral, quadForm.linTermLiteral, quadForm.constTermLiteral, 
 				derivOtherNonQuadTermFunc, deriv2OtherNonQuadTermFunc);
 	}
 
@@ -82,11 +84,23 @@ public class NumericQuadExtractOtherwiseDeriveQuad1DOptimizeStep {
 		// assert double prevResValue = ctx.evalExpr(prepare.expr);
 		final double prevVarValue = ctx.getEval(stepVarDef);
 		if (prepare.derivOtherNonQuadTermFunc == null) {
-			// pure quadratic
-			double varValue = -0.5 * prepare.b / prepare.a;
+			double nextResValue;
+			// pure quadratic: a x^2 + b x + c
+			if (prepare.a != 0.0) {
+				double varValue = -0.5 * prepare.b / prepare.a;
+				ctx.put(stepVarDef, varValue);
+			} else {
+				// a == 0.. linear: b x + c
+				if (prepare.b != 0.0) {
+					double varValue = - prepare.c / prepare.b;
+					ctx.put(stepVarDef, varValue);
+				} else {
+					// a=0, b=0 !
+					return prevResValue;
+				}
+			}
 
-			ctx.put(stepVarDef, varValue);
-			double nextResValue = prepare.func.eval(ctx);
+			nextResValue = prepare.func.eval(ctx);
 			// CHECK consistent?
 			if (nextResValue > prevResValue) {
 				// should not occur

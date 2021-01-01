@@ -7,7 +7,7 @@ import fr.an.drawingboard.geom2d.BoundingRect2D.BoundingRect2DBuilder;
 import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.geom2d.WeightedPt2D;
 import fr.an.drawingboard.geom2d.utils.PolygonalDistUtils;
-import fr.an.drawingboard.model.shapedef.GesturePathesDef;
+import fr.an.drawingboard.model.shapedef.GestureDef;
 import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePath;
 import fr.an.drawingboard.model.trace.TracePathElement;
@@ -35,7 +35,7 @@ public class StdInitialParamEstimators {
 
 	public static void estimateLineInitialParamsFor( //
 			TraceGesture gesture,
-			GesturePathesDef gestureDef,
+			GestureDef gestureDef,
 			ParamEvalCtx res) {
 		double estimX, estimY, estimW, estimH;
 		if (! gesture.isEmpty()) {
@@ -64,7 +64,7 @@ public class StdInitialParamEstimators {
 
 	public static void estimateLine2InitialParamsFor( //
 			TraceGesture gesture,
-			GesturePathesDef gestureDef,
+			GestureDef gestureDef,
 			ParamEvalCtx res) {
 		estimateLineInitialParamsFor(gesture, gestureDef, res);
 		// estimate mid point
@@ -86,7 +86,7 @@ public class StdInitialParamEstimators {
 	
 	private static void fillRectParam(
 			ParamEvalCtx res, // 
-			GesturePathesDef gestureDef, //  
+			GestureDef gestureDef, //  
 			double estimX, double estimY, double estimW, double estimH) {
 		val paramX = gestureDef.getParam("x");
 		val paramY = gestureDef.getParam("y");
@@ -121,7 +121,7 @@ public class StdInitialParamEstimators {
 	
 	public static void estimateRectInitialParamsFor( //
 			TraceGesture gesture,
-			GesturePathesDef gestureDef,
+			GestureDef gestureDef,
 			ParamEvalCtx res) {
 		// ensure coefs per points are computed
 		val discretization = new TraceDiscretisationPtsBuilder();

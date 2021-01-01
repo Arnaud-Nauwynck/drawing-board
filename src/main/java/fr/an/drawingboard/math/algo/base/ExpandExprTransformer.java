@@ -10,6 +10,7 @@ import fr.an.drawingboard.math.expr.Expr.MultExpr;
 import fr.an.drawingboard.math.expr.Expr.SumExpr;
 import fr.an.drawingboard.math.expr.ExprBuilder;
 import fr.an.drawingboard.math.expr.ExprFunc0.DefaultExprTransformer;
+import lombok.val;
 
 /**
  * Expand expr transformer: 
@@ -30,6 +31,18 @@ public class ExpandExprTransformer {
 		return res;
 	}
 
+	public static Expr repeatExpandExpr(Expr expr) {
+		Expr res = expr;
+		for(int i = 0; i < 100; i++) {
+			Expr tmp = expandExpr(res);
+			if (tmp == res) {
+				break;
+			}
+			res = tmp;
+		}
+		return res;
+	}
+	
 	/**
 	 *
 	 */
@@ -48,11 +61,40 @@ public class ExpandExprTransformer {
 		}
 
 		@Override
+		public Expr caseSum(SumExpr expr) {
+			List<Expr> childExprs = new ArrayList<>(expr.exprs.size());
+			int modified = 0;
+			for(val child : expr.exprs) {
+				// ** recurse **
+				Expr childRes = expand(child);
+				if (childRes != child) {
+					modified++;
+				}
+				childExprs.add(childRes);
+			}
+			if (modified == 0) {
+				return expr;
+			}
+			return b.sum(childExprs);
+		}
+
+		@Override
 		public Expr caseMult(MultExpr expr) {
-			// collect sum child eprs, and non sum exprs
+			List<Expr> childMultExprs = new ArrayList<>(expr.exprs.size());
+			int modified = 0;
+			for(val child : expr.exprs) {
+				// ** recurse **
+				Expr childRes = expand(child);
+				if (childRes != child) {
+					modified++;
+				}
+				childMultExprs.add(childRes);
+			}
+			
+			// collect sum child exprs, and non sum exprs
 			List<SumExpr> childSumExprs = new ArrayList<>();
 			List<Expr> childNotSumExprs = new ArrayList<>();
-			for(Expr e : expr.exprs) {
+			for(Expr e : childMultExprs) {
 				if (e instanceof SumExpr) {
 					childSumExprs.add((SumExpr) e);
 				} else {
@@ -61,7 +103,10 @@ public class ExpandExprTransformer {
 			}
 			if (childSumExprs.isEmpty()) {
 				// nothing to expand
-				return expr;
+				if (modified == 0) {
+					return expr;
+				}
+				return b.mult(childMultExprs);
 			}
 			List<Expr> expandSumExprs = new ArrayList<>();
 			if (childSumExprs.size() == 1) {

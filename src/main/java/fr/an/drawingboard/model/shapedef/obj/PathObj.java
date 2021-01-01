@@ -44,4 +44,12 @@ public class PathObj {
 		return res;
 	}
 
+	public double getDist() {
+		double res = 0.0;
+		for(val e: pathElements) {
+			res += e.getDist();
+		}
+		return res;
+	}
+
 }

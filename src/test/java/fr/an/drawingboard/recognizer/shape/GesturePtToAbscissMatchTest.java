@@ -5,7 +5,7 @@ import org.junit.Test;
 import com.google.common.collect.ImmutableList;
 
 import fr.an.drawingboard.geom2d.Pt2D;
-import fr.an.drawingboard.model.shapedef.GesturePathesDef;
+import fr.an.drawingboard.model.shapedef.GestureDef;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
 import fr.an.drawingboard.model.shapedef.paramdef.ParamCategoryRegistry;
@@ -36,7 +36,7 @@ public class GesturePtToAbscissMatchTest {
 		ShapeDefRegistry reg = new ShapeDefRegistry();
 		new ShapeDefRegistryBuilder(reg, ParamCategoryRegistry.INSTANCE).addStdShapes();
 		ShapeDef shapeDef = reg.getShapeDef("line");
-		GesturePathesDef gestureDef = shapeDef.gestures.get(0);
+		GestureDef gestureDef = shapeDef.gestures.get(0);
 		
 		
 		ParamEvalCtx paramCtx = new ParamEvalCtx();

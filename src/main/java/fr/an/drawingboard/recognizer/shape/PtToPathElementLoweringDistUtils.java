@@ -1,7 +1,7 @@
 package fr.an.drawingboard.recognizer.shape;
 
 import fr.an.drawingboard.geom2d.Pt2D;
-import fr.an.drawingboard.model.shapedef.obj.GesturePathesObj;
+import fr.an.drawingboard.model.shapedef.obj.GestureObj;
 import fr.an.drawingboard.model.shapedef.obj.PathElementObj;
 import fr.an.drawingboard.model.shapedef.obj.PathObj;
 import fr.an.drawingboard.model.shapedef.obj.ShapeObj;
@@ -44,7 +44,7 @@ public class PtToPathElementLoweringDistUtils {
 	}
 
 	public static boolean evalMinDistIfLowerThan(PtToPathElementLoweringDistResult resDist, 
-			Pt2D from, GesturePathesObj to, double ifLowerThan) {
+			Pt2D from, GestureObj to, double ifLowerThan) {
 		boolean res = false;
 		double boundRectDist = to.boundingRect.outerDistOr0ToPt(from);
 		if (boundRectDist > ifLowerThan) {

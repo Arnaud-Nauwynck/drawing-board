@@ -7,6 +7,7 @@ import java.util.List;
 import fr.an.drawingboard.geom2d.ParamWeightedPt2D;
 import fr.an.drawingboard.geom2d.Pt2D;
 import fr.an.drawingboard.geom2d.utils.PolygonalDistUtils;
+import fr.an.drawingboard.model.shapedef.PtExpr;
 import fr.an.drawingboard.util.LsUtils;
 import lombok.AllArgsConstructor;
 import lombok.val;
@@ -111,11 +112,13 @@ public class CompositePathElementsObj {
 		return elements[n];
 	}
 	
-	@AllArgsConstructor
-	public static class PtAtPathElementObj {
-		public Pt2D pt;
-		public PathElementObj element;
-		public double elementParam;
+	
+	public double getDist() {
+		double sum = 0.0;
+		for(val e : elements) {
+			sum += e.getDist();
+		}
+		return sum;
 	}
 
 	public Pt2D startPt() {
@@ -126,6 +129,23 @@ public class CompositePathElementsObj {
 	public Pt2D endPt() {
 		if (elements.length == 0) return null;
 		return elements[elements.length-1].getEndPt();
+	}
+
+	public PtExpr startPtExpr() {
+		if (elements.length == 0) return null;
+		return elements[0].getStartPtExpr();
+	}
+
+	public PtExpr endPtExpr() {
+		if (elements.length == 0) return null;
+		return elements[elements.length-1].getEndPtExpr();
+	}
+
+	@AllArgsConstructor
+	public static class PtAtPathElementObj {
+		public Pt2D pt;
+		public PathElementObj element;
+		public double elementParam;
 	}
 
 	public PtAtPathElementObj pointAtParam(double param) {
@@ -193,6 +213,14 @@ public class CompositePathElementsObj {
 		return res;
 	}
 
+
+	@AllArgsConstructor
+	public static class PtExprAtPathElementObj {
+		public PtExpr pt;
+		public PathElementObj element;
+		public double elementParam;
+	}
+
 	public interface PtAtParamIterator {
 		public PtAtPathElementObj nextPtAtParam(double param);
 	}
@@ -244,12 +272,56 @@ public class CompositePathElementsObj {
 		}
 	}
 
-	public double getDist() {
-		double sum = 0.0;
-		for(val e : elements) {
-			sum += e.getDist();
-		}
-		return sum;
+	public interface PtExprAtParamIterator {
+		public PtExprAtPathElementObj nextPtAtParam(double param);
 	}
+	public PtExprAtParamIterator pointExprAtParamIterator() {
+		return new InnerPtExprAtParamIterator();
+	}
+	
+	private class InnerPtExprAtParamIterator implements PtExprAtParamIterator {
+		// CompositePathElementsCtxEval composite;
+		PtExprAtPathElementObj entry = new PtExprAtPathElementObj(null, null, 0.0);
+		// double currParam;
+		double currParam = 0.0;
+		int currElementIndex = 0;
+		PathElementObj currElement; // = elements[currElementIndex];
+		double currElementStartParam = 0.0;
+		double currElementEndParam; // = splitParams[currElementIndex];
+		
+		
+		public InnerPtExprAtParamIterator() {
+			currElementIndex = 0;
+			entry.element = currElement = elements[currElementIndex];
+			currElementStartParam = 0.0;
+			currElementEndParam = splitParams[currElementIndex];
+		}
+
+		@Override
+		public PtExprAtPathElementObj nextPtAtParam(double param) {
+			if (param < currParam) {
+				throw new IllegalArgumentException();
+			}
+			currParam = param;
+			while(currElementEndParam < currParam && currElementIndex < elements.length) {
+				currElementIndex++;
+				if (currElementIndex < elements.length) {
+					currElement = elements[currElementIndex];
+					currElementStartParam = currElementEndParam;
+					currElementEndParam = splitParams[currElementIndex];
+					entry.element = currElement;
+				}
+			}
+			if (currElementIndex >= elements.length) {
+				entry.pt = currElement.getEndPtExpr();
+				entry.elementParam = 1.0;
+				return entry;
+			}
+			double elementParam = entry.elementParam = (currParam - currElementStartParam) / (currElementEndParam - currElementStartParam);
+			entry.pt = currElement.pointExprAtParam(elementParam);
+			return entry;
+		}
+	}
+
 	
 }

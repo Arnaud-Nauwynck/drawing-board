@@ -1,5 +1,6 @@
 package fr.an.drawingboard.model.shapedef;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -13,6 +14,10 @@ public class ShapeDefRegistry {
 
 	public ShapeDef getShapeDef(String name) {
 		return shapeDefs.get(name);
+	}
+
+	public Collection<ShapeDef> getShapeDefs() {
+		return shapeDefs.values();
 	}
 
 }

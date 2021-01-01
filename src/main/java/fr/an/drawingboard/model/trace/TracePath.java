@@ -3,8 +3,6 @@ package fr.an.drawingboard.model.trace;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.an.drawingboard.geom2d.Pt2D;
-import fr.an.drawingboard.geom2d.utils.DistinctPt2DListBuilder;
 import lombok.val;
 
 public class TracePath {

@@ -201,7 +201,8 @@ public class DrawingCtxTreeNode {
 		if (bestVarDef == null) {
 			// define new VarDef
 			// TODO define on parent??? (promote var to be reusable) 
-			res = parent.addVarDef_GenerateNameFor(paramDef.name, category, value);
+			val target = (parent != null)? parent : this;
+			res = target.addVarDef_GenerateNameFor(paramDef.name, category, value);
 		} else {
 			// reuse existing similar
 			res = bestVarDef;

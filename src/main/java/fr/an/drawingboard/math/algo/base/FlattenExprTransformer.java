@@ -31,6 +31,22 @@ public class FlattenExprTransformer {
 		return res;
 	}
 
+	public static Expr repeatFlattenExpr(Expr expr) {
+		Expr res = expr;
+		for(int i = 0; i < 3; i++) {
+			Expr tmp = flattenExpr(res);
+			if (tmp == res) {
+				break;
+			}
+			res = tmp;
+			if (i+1 == 3) {
+				break; // should not occur
+			}
+		}
+		return res;
+	}
+
+	
 	/**
 	 *
 	 */

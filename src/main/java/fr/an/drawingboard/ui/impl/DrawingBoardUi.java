@@ -1,6 +1,7 @@
 package fr.an.drawingboard.ui.impl;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -18,14 +19,25 @@ import fr.an.drawingboard.geom2d.bezier.PtToBezierDistanceMinSolver;
 import fr.an.drawingboard.geom2d.bezier.PtToBezierDistanceMinSolver.PtToCurveDistanceMinSolverResult;
 import fr.an.drawingboard.geom2d.bezier.RaiseLowerBezierDegreeUtil;
 import fr.an.drawingboard.geom2d.utils.PolygonalDistUtils;
+import fr.an.drawingboard.math.algo.base.ConstantFoldingExprTransformer;
+import fr.an.drawingboard.math.algo.base.ExpandExprTransformer;
+import fr.an.drawingboard.math.algo.base.FlattenExprTransformer;
+import fr.an.drawingboard.math.algo.base.SimplifyExpandExprUtils;
+import fr.an.drawingboard.math.algo.base.SubstitueExprCtx;
+import fr.an.drawingboard.math.expr.Expr;
+import fr.an.drawingboard.math.expr.ExprBuilder;
+import fr.an.drawingboard.math.expr.VarDef;
+import fr.an.drawingboard.math.numeric.optim.NumericQuadExtractOtherwiseDeriveQuad1DOptimizeStep;
+import fr.an.drawingboard.math.numeric.optim.NumericQuadExtractOtherwiseDeriveQuad1DOptimizeStep.PrepareNumericQuadExtractOtherwiseDeriveQuad1DOptimize;
 import fr.an.drawingboard.model.drawingelt.DrawingElement;
 import fr.an.drawingboard.model.drawingelt.TraceDrawingElement;
-import fr.an.drawingboard.model.shapedef.GesturePathesDef;
+import fr.an.drawingboard.model.shapedef.GestureDef;
 import fr.an.drawingboard.model.shapedef.ShapeDef;
 import fr.an.drawingboard.model.shapedef.ShapeDefRegistry;
-import fr.an.drawingboard.model.shapedef.obj.GesturePathesObj;
+import fr.an.drawingboard.model.shapedef.obj.GestureObj;
 import fr.an.drawingboard.model.shapedef.paramdef.ParamCategoryRegistry;
 import fr.an.drawingboard.model.shapedef.paramdef.ParamDef;
+import fr.an.drawingboard.model.shapedef.paramdef.ParamTypeDef.RangeDoubleParamTypeDef;
 import fr.an.drawingboard.model.trace.TraceGesture;
 import fr.an.drawingboard.model.trace.TracePath;
 import fr.an.drawingboard.model.trace.TracePathElement;
@@ -39,7 +51,7 @@ import fr.an.drawingboard.model.varctx.DrawingVarDef;
 import fr.an.drawingboard.recognizer.initialParamEstimators.ParamEvalCtx;
 import fr.an.drawingboard.recognizer.shape.MatchShapeToCostExprBuilder;
 import fr.an.drawingboard.recognizer.shape.TraceSymbolLevenshteinEditOptimizer;
-import fr.an.drawingboard.recognizer.shape.TraceSymbolLevenshteinEditOptimizer.PathCtxEvalSymbol;
+import fr.an.drawingboard.recognizer.shape.TraceSymbolLevenshteinEditOptimizer.PathObjSymbol;
 import fr.an.drawingboard.recognizer.shape.TraceSymbolLevenshteinEditOptimizer.TracePathSymbol;
 import fr.an.drawingboard.recognizer.shape.TraceSymbolLevenshteinEditOptimizer.TraceSymbolLevensteinDist;
 import fr.an.drawingboard.recognizer.shape.TraceSymbolMatchCostFunction;
@@ -51,6 +63,7 @@ import fr.an.drawingboard.recognizer.trace.TracePathElementDetector;
 import fr.an.drawingboard.stddefs.shapedef.ShapeDefRegistryBuilder;
 import fr.an.drawingboard.stddefs.trace.StdTraceBuilder;
 import fr.an.drawingboard.util.LsUtils;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -249,13 +262,35 @@ public class DrawingBoardUi {
 				
 				ToggleGroup group = new ToggleGroup();
 				addParamCtxTransformer(paramShifterMenu, group, ".", null);
-				addParamCtxTransformer(paramShifterMenu, group, "->", 
+				addParamCtxTransformer(paramShifterMenu, group, "x+=50", 
 						ctx -> {
 							val xDef = ctx.paramByName("x");
 							ctx.put(xDef, ctx.get(xDef) + 50);
 							return ctx;
 						});
-				addParamCtxTransformer(paramShifterMenu, group, "x2", 
+				addParamCtxTransformer(paramShifterMenu, group, "y+=50", 
+						ctx -> {
+							val yDef = ctx.paramByName("y");
+							ctx.put(yDef, ctx.get(yDef) + 50);
+							return ctx;
+						});
+				addParamCtxTransformer(paramShifterMenu, group, "x+=50,y-=50", 
+						ctx -> {
+							val xDef = ctx.paramByName("x");
+							ctx.put(xDef, ctx.get(xDef) + 50);
+							val yDef = ctx.paramByName("y");
+							ctx.put(yDef, ctx.get(yDef) - 50);
+							return ctx;
+						});
+				addParamCtxTransformer(paramShifterMenu, group, "x+=50,y+=50", 
+						ctx -> {
+							val xDef = ctx.paramByName("x");
+							ctx.put(xDef, ctx.get(xDef) + 50);
+							val yDef = ctx.paramByName("y");
+							ctx.put(yDef, ctx.get(yDef) + 50);
+							return ctx;
+						});
+				addParamCtxTransformer(paramShifterMenu, group, "w*=2,h*=2", 
 						ctx -> {
 							val wDef = ctx.paramByName("w");
 							double wValue = ctx.get(wDef);
@@ -322,14 +357,42 @@ public class DrawingBoardUi {
 			MenuButton menu = new MenuButton("Draw");
 			toolbarItems.add(menu);
 			List<MenuItem> menuItems = menu.getItems();
-			addMenuItem(menuItems, "Down-Right", () -> {
-				currGesture = StdTraceBuilder.traceDownRight();
+			addMenuItem(menuItems, "Down-Right simple(3 pts)", () -> {
+				currGesture = StdTraceBuilder.traceDownRight_3pts();
+				paintCanvas();
+			});
+			addMenuItem(menuItems, "Down-Right (15 pts)", () -> {
+				currGesture = StdTraceBuilder.traceDownRight_15pts();
 				paintCanvas();
 			});
 			addMenuItem(menuItems, "Down-Right rounded", () -> {
-				currGesture = StdTraceBuilder.traceDownRight_1Path();
+				currGesture = StdTraceBuilder.traceDownRight_rounded();
 				paintCanvas();
 			});
+			for(val shapeDef: shapeDefRegistry.getShapeDefs()) {
+				String name = shapeDef.name;
+				addMenuItem(menuItems, name, () -> {
+					Map<String, ParamDef> shapeParams = shapeDef.getParams();
+					Map<ParamDef, DrawingVarDef> paramBindings = new LinkedHashMap<ParamDef, DrawingVarDef>();
+					DrawingCtxTreeNode node = drawingRootNode.addChildCtx_GenerateNameFor(name);
+					val ancestorNodes = node.ancestorNodes();
+					for(val p: shapeParams.values()) {
+						val paramType = p.paramCategory.getType();
+						double value = 200.0; 
+						// ?? TODO ..
+						if (paramType instanceof RangeDoubleParamTypeDef) {
+							val paramType2 = (RangeDoubleParamTypeDef) paramType;
+							// value = 0.5 * (paramType2.minValue + paramType2.maxValue);
+						}
+						DrawingVarDef paramBinding = drawingRootNode.resolveSimilarOrDefineVar(value, p, ancestorNodes, 
+								varCostFunc, 10, 10);
+						paramBindings.put(p, paramBinding);
+					}
+					node.addDrawingElementShape(shapeDef, paramBindings);
+
+					paintCanvas();
+				});
+			}
 		}
 		
 		{ // recognized shapes menu
@@ -338,29 +401,28 @@ public class DrawingBoardUi {
 			List<MenuItem> recognizeItems = recognizeShapeMenu.getItems();
 			
 			addMenuItem(recognizeItems, "Reset", () -> onClickClearMatchShapeDef());
-			addMatchShapeItem(recognizeItems, "Line", "line", 0);
-			addMatchShapeItem(recognizeItems, "Line2", "line2", 0);
-			addMatchShapeItem(recognizeItems, "Rect", "rectangle", 0);
-			addMatchShapeItem(recognizeItems, "Rect(DL->UR..)", "rectangle", 1);
-			addMatchShapeItem(recognizeItems, "HCross", "hcross", 0);
-			addMatchShapeItem(recognizeItems, "VCross", "vcross", 0);
-			addMatchShapeItem(recognizeItems, "Z", "z", 0);
-			addMatchShapeItem(recognizeItems, "inv Z", "inv z", 0);
-			addMatchShapeItem(recognizeItems, "U", "u", 0);
-			addMatchShapeItem(recognizeItems, "N", "n", 0);
-			addMatchShapeItem(recognizeItems, "inv N", "inv n", 0);
-			addMatchShapeItem(recognizeItems, "C", "c", 0);
-			addMatchShapeItem(recognizeItems, "C(DR->DL..)", "c up", 0);
-			addMatchShapeItem(recognizeItems, "inv C", "inv c", 0);
+			for(val shapeDef: shapeDefRegistry.getShapeDefs()) {
+				String name = shapeDef.name;
+				addMatchShapeItem(recognizeItems, name, name, 0);
+			}
 		}
 		
 		toolbarItems.add(createButton("clear match", () -> clearMatch()));
 		toolbarItems.add(createMatchShapeButton("Rect", "rectangle", 0));
 		toolbarItems.add(createMatchShapeButton("Z", "z", 0));
 		toolbarItems.add(createMatchShapeButton("right,down", "right,down", 0));
+
 		toolbarItems.add(createButton("match best", () -> tryMatchBestShape()));
-		toolbarItems.add(createButton("dump match", () -> dumpMatch(currMatchToShapeDef)));
 		
+		toolbarItems.add(createButton("dump match", () -> dumpMatch(currMatchToShapeDef)));
+
+		toolbarItems.add(createButton("optim match param", () -> {
+			if (currMatchToShapeDef != null) {
+				optimizeMatchParam(currMatchToShapeDef);
+				paintCanvas();
+			}
+		}));
+
 		if (debugDistPt) {
 			MenuButton menu = new MenuButton("Debug Dist Pt");
 			toolbarItems.add(menu);
@@ -437,7 +499,7 @@ public class DrawingBoardUi {
 
 	private MenuItem addMenuItem(List<MenuItem> parent, String label, Runnable action) {
 		MenuItem res = new MenuItem(label);
-		res.setOnAction(e -> action.run());
+		res.setOnAction(e -> Platform.runLater(() -> action.run()));
 		parent.add(res);
 		return res;
 	}
@@ -445,21 +507,21 @@ public class DrawingBoardUi {
 	private CheckMenuItem addCheckMenuItem(List<MenuItem> parent, String label, Runnable action) {
 		CheckMenuItem res = new CheckMenuItem(label);
 		res.setSelected(false);
-		res.setOnAction(e -> action.run());
+		res.setOnAction(e -> Platform.runLater(() -> action.run()));
 		parent.add(res);
 		return res;
 	}
 	
 	private Button createButton(String label, Runnable action) {
 		Button but = new Button(label);
-		but.setOnAction(e -> action.run());
+		but.setOnAction(e -> Platform.runLater(() -> action.run()));
 		return but;
 	}
 
 	private RadioMenuItem addRadioMenuItem(List<MenuItem> parent, ToggleGroup group, String label, Runnable action) {
 		RadioMenuItem res = new RadioMenuItem(label);
 		res.setToggleGroup(group);
-		res.setOnAction(e -> action.run());
+		res.setOnAction(e -> Platform.runLater(() -> action.run()));
 		parent.add(res);
 		return res;
 	}
@@ -672,11 +734,14 @@ public class DrawingBoardUi {
 	
 	@AllArgsConstructor
 	public static class MatchToShapeDef {
+		TraceGesture traceGesture;
+		List<TracePathSymbol> sourceSymbols;
+
 		ShapeDef shapeDef;
-		GesturePathesDef gestureDef;
+		GestureDef gestureDef;
 		
 		ParamEvalCtx matchParamCtx;
-		GesturePathesObj shapeCtxEval;
+		GestureObj shapeObj;
 		TraceSymbolLevenshteinEditOptimizer matchOptimizer;
 		List<TraceSymbolLevensteinDist> resultEditPath;
 		
@@ -699,7 +764,7 @@ public class DrawingBoardUi {
 		MatchToShapeDef bestMatchToShapeDef = null;
 		for(val shapeDef: shapeDefRegistry.shapeDefs.values()) {
 			for(val gestureDef: shapeDef.gestures) {
-				MatchToShapeDef matchToShapeDef = computeMatchTraceToDef(traceGesture, tracePathSymbols, 
+				MatchToShapeDef matchToShapeDef = computeInitMatchTraceToDef(traceGesture, tracePathSymbols, 
 						shapeDef, gestureDef);
 				double cost = matchToShapeDef.cost();
 				if (cost < bestCost) {
@@ -709,7 +774,14 @@ public class DrawingBoardUi {
 			}
 		}
 		this.currMatchToShapeDef = bestMatchToShapeDef;
-		System.out.println("best match: " + bestMatchToShapeDef.shapeDef.name + " cost:" + bestMatchToShapeDef.cost() + " avgDist:" + Math.sqrt(bestMatchToShapeDef.cost()));
+		double shapeObjDist = currMatchToShapeDef.shapeObj.getDist();
+		double costPerDist2 = bestMatchToShapeDef.cost() / (shapeObjDist*shapeObjDist);
+		System.out.println("best match: " + bestMatchToShapeDef.shapeDef.name 
+				+ " cost:" + bestMatchToShapeDef.cost() 
+				+ " dist:" + shapeObjDist
+				+ " cost/dist^2:" + costPerDist2
+				+ " avgDist=sqrt(cost)/dist^2=" + Math.sqrt(costPerDist2)
+				);
 		
 		paintCanvas();
 	}
@@ -721,11 +793,11 @@ public class DrawingBoardUi {
 		if (traceGesture == null) {
 			return;
 		}
-		GesturePathesDef gestureDef = currMatchShapeDef.gestures.get(gestureIndex);
+		GestureDef gestureDef = currMatchShapeDef.gestures.get(gestureIndex);
 
 		List<TracePathSymbol> tracePathSymbols = TracePathSymbol.traceGestureToSourceSymbols(traceGesture, traceDiscretisationPtsBuilder);
 		
-		MatchToShapeDef matchToShapeDef = computeMatchTraceToDef(traceGesture, tracePathSymbols, 
+		MatchToShapeDef matchToShapeDef = computeInitMatchTraceToDef(traceGesture, tracePathSymbols, 
 				currMatchShapeDef, gestureDef);
 		
 		
@@ -744,11 +816,11 @@ public class DrawingBoardUi {
 		paintCanvas();
 	}
 
-	private MatchToShapeDef computeMatchTraceToDef(
+	private MatchToShapeDef computeInitMatchTraceToDef(
 			TraceGesture traceGesture,
 			List<TracePathSymbol> sourceSymbols,
 			ShapeDef shapeDef, 
-			GesturePathesDef gestureDef
+			GestureDef gestureDef
 			) {
 		// initial param estimation
 		ParamEvalCtx matchParamCtx = new ParamEvalCtx();
@@ -759,24 +831,94 @@ public class DrawingBoardUi {
 			matchParamCtx = paramCtxInitTransformer.apply(matchParamCtx);
 		}
 
+		return computeMatchTraceToDef(traceGesture, sourceSymbols, shapeDef, gestureDef, matchParamCtx);
+	}
+
+	private MatchToShapeDef computeMatchTraceToDef(
+			TraceGesture traceGesture, 
+			List<TracePathSymbol> sourceSymbols,
+			ShapeDef shapeDef, GestureDef gestureDef, 
+			ParamEvalCtx matchParamCtx) {
 		// eval gestureDef for param
-		GesturePathesObj gestureCtxEval = new GesturePathesObj(gestureDef); 
+		GestureObj gestureCtxEval = new GestureObj(gestureDef); 
 		gestureCtxEval.update(matchParamCtx.evalCtx);
 
 		// pathElements between stop points as 'symbol' (to match on traceSymbols)
-		List<PathCtxEvalSymbol> targetSymbols = PathCtxEvalSymbol.gestureCtxToTargetSymbols(gestureCtxEval);
+		List<PathObjSymbol> targetSymbols = PathObjSymbol.gestureCtxToTargetSymbols(gestureCtxEval);
 		
 		// compute Levenstein edit distance bewteen source traceSymbols and target shapeDef Symbols
 		TraceSymbolLevenshteinEditOptimizer matchOptimizer = 
 				TraceSymbolLevenshteinEditOptimizer.computeMatch(traceSymbolMatchCostFunc, sourceSymbols, targetSymbols);
 		
 		List<TraceSymbolLevensteinDist> resultEditPath = matchOptimizer.getResultEditPath();
-		return new MatchToShapeDef(shapeDef, gestureDef, matchParamCtx, gestureCtxEval, matchOptimizer, resultEditPath);
+		return new MatchToShapeDef(traceGesture, sourceSymbols, shapeDef, gestureDef, 
+				matchParamCtx, gestureCtxEval, matchOptimizer, resultEditPath);
 	}
 
+	private void optimizeMatchParam(MatchToShapeDef matchToShapeDef) {
+		Expr costExpr = matchToShapeDef.matchOptimizer.costExpr(traceSymbolMatchCostFunc, matchToShapeDef.resultEditPath);
+		
+		double costExprValue = matchToShapeDef.matchParamCtx.evalExpr(costExpr);
+		double currOptimCost = matchToShapeDef.cost();
+		{ // check expr
+			double checkCostDiffRatio = Math.abs(currOptimCost - costExprValue) / costExprValue;
+			if (checkCostDiffRatio > 1e-2) {
+				System.out.println("error cost:" + currOptimCost + " <> costExpr:" + costExprValue + " (" + checkCostDiffRatio + ")");
+			}
+		}
+		
+		Map<ParamDef, Double> initParamValues = matchToShapeDef.matchParamCtx.getParamValuesCopy();
+		for(int i = 0; i < 4; i++) {
+			val prevIterOptimCost = currOptimCost;
+			for(ParamDef paramDef: initParamValues.keySet()) {
+				// partial optim for param
+				Map<VarDef,Expr> substituteVarExprs = new HashMap<>();
+				val b = ExprBuilder.INSTANCE;
+				for(val initParamValueEntry: initParamValues.entrySet()) {
+					ParamDef initParamDef = initParamValueEntry.getKey();
+					if (initParamDef != paramDef) {
+						substituteVarExprs.put(initParamDef.varDef, b.lit(
+								matchToShapeDef.matchParamCtx.evalCtx.getEval(initParamDef.varDef)));
+					}
+				}
+				Expr partialCostExpr = SimplifyExpandExprUtils.simplifyExpand(
+						SubstitueExprCtx.substituteExpr(costExpr, substituteVarExprs));
+	
+				val optimByParamStep = new NumericQuadExtractOtherwiseDeriveQuad1DOptimizeStep(paramDef.varDef);
+				val prepareOptimStep = optimByParamStep.prepareOptimStep(partialCostExpr);
+				currOptimCost = optimByParamStep.optimStep(prepareOptimStep, matchToShapeDef.matchParamCtx.evalCtx, currOptimCost);
+				double optimVarValue = matchToShapeDef.matchParamCtx.evalCtx.getEval(paramDef.varDef);
+				matchToShapeDef.matchParamCtx.put(paramDef, optimVarValue);
+			}
+			if ((prevIterOptimCost - currOptimCost) < 1e-3) {
+				break;
+			}
+		}
+		matchToShapeDef.shapeObj.update(matchToShapeDef.matchParamCtx.evalCtx);
+		// recompute match?
+		MatchToShapeDef nextMatchDef = computeMatchTraceToDef(
+				matchToShapeDef.traceGesture,
+				matchToShapeDef.sourceSymbols,
+				matchToShapeDef.shapeDef, 
+				matchToShapeDef.gestureDef,
+				matchToShapeDef.matchParamCtx);
+		matchToShapeDef.matchOptimizer = nextMatchDef.matchOptimizer;
+		matchToShapeDef.resultEditPath = nextMatchDef.resultEditPath;
+		matchToShapeDef.shapeObj.update(matchToShapeDef.matchParamCtx.evalCtx);
+		// matchToShapeDef.matchParamCtx = nextMatchDef.matchParamCtx;
+	}
+
+	
 	public void dumpMatch(MatchToShapeDef matchToShapeDef) {
-		TraceSymbolLevenshteinEditOptimizer matchOptimizer = matchToShapeDef.matchOptimizer;
-		System.out.println("match: " + matchToShapeDef.shapeDef.name + " cost:" + matchToShapeDef.cost() + " avgDist:" + Math.sqrt(matchToShapeDef.cost()));
+		double shapeObjDist = matchToShapeDef.shapeObj.getDist();
+		double costPerDist2 = matchToShapeDef.cost() / (shapeObjDist*shapeObjDist);
+		System.out.println("match: " + matchToShapeDef.shapeDef.name 
+				+ " cost:" + matchToShapeDef.cost() 
+				+ " dist:" + shapeObjDist
+				+ " cost/dist^2:" + costPerDist2
+				+ " avgDist=sqrt(cost)/dist^2=" + Math.sqrt(costPerDist2)
+				);
+
 		List<TraceSymbolLevensteinDist> editPath = matchToShapeDef.resultEditPath;
 		for(val edit: editPath) {
 			System.out.println("op:" + edit.editOp + "  cost:" + edit.cost + " editCost:" + edit.editCost);
@@ -909,9 +1051,13 @@ public class DrawingBoardUi {
 
 		if (debugFittingBezier) {
 			if (showFittingQuadBezier.get() || showFittingCubicBezier.get()) {
-				TracePath lastTrace = currPath;
+				TraceGesture traceGesture = lastTraceGesture();
+				TracePath lastTrace = (traceGesture != null)? traceGesture.getLast() : null;
 				TracePathElement lastPathElt = (lastTrace != null)? lastTrace.getLastPathElement() : null;
 				if (lastPathElt instanceof DiscretePointsTracePathElement) {
+					val prevStroke = gc.getStroke();
+					gc.setStroke(Color.GREEN);
+
 					List<TracePt> lastTracePts = ((DiscretePointsTracePathElement) lastPathElt).tracePts;
 					List<Pt2D> lastPts = LsUtils.map(lastTracePts, tracePt -> new Pt2D(tracePt.x, tracePt.y));
 					List<WeightedPt2D> wpts = PolygonalDistUtils.ptsToWeightedPts_polygonalDistance(lastPts);
@@ -925,6 +1071,8 @@ public class DrawingBoardUi {
 						BezierPtsFittting.fitControlPts_CubicBezier(debugCurrTraceFittingCubicBezier, wpts);
 						gcRenderer.drawBezier(debugCurrTraceFittingCubicBezier);
 					}
+			
+					gc.setStroke(prevStroke);
 				}
 			}
 		}
@@ -1000,7 +1148,7 @@ public class DrawingBoardUi {
 		}
 
 		if (this.currMatchToShapeDef != null) {
-			gcRenderer.draw(Color.GRAY, currMatchToShapeDef.shapeCtxEval);
+			gcRenderer.draw(Color.GRAY, currMatchToShapeDef.shapeObj);
 			
 			Paint prevStroke = gc.getStroke();
 			gc.setStroke(Color.BLUE);

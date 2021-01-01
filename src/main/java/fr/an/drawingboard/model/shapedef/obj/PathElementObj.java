@@ -57,6 +57,9 @@ public abstract class PathElementObj {
 	public abstract Pt2D getStartPt();
 	public abstract Pt2D getEndPt();
 
+	public abstract PtExpr getStartPtExpr();
+	public abstract PtExpr getEndPtExpr();
+
 	public void update(NumericEvalCtx ctx) {
 		doUpdate(ctx);
 		dirtyDist = true;
@@ -126,6 +129,17 @@ public abstract class PathElementObj {
 		@Override
 		public void pointAtParam(Pt2D res, double s) {
 			res.setLinear(1-s, startPt, s, endPt);
+		}
+
+		
+		@Override
+		public PtExpr getStartPtExpr() {
+			return def.startPt;
+		}
+
+		@Override
+		public PtExpr getEndPtExpr() {
+			return def.endPt;
 		}
 
 		@Override
@@ -220,14 +234,28 @@ public abstract class PathElementObj {
 				} else {
 					// found between pts
 					int indexBefore = -(foundIndex+1);
-					double distBefore = ptsDist[indexBefore];
-					double distAfter = ptsDist[indexBefore+1];
-					double inv = 1.0 / (distAfter - distBefore);
-					double c0 = (targetDist-distBefore)*inv;
-					double c1 = (distAfter-targetDist)*inv;
-					res.setLinear(c0, pts[indexBefore], c1, pts[indexBefore+1]);
+					if (indexBefore + 1 < pts.length) {
+						double distBefore = ptsDist[indexBefore];
+						double distAfter = ptsDist[indexBefore+1];
+						double inv = 1.0 / (distAfter - distBefore);
+						double c0 = (targetDist-distBefore)*inv;
+						double c1 = (distAfter-targetDist)*inv;
+						res.setLinear(c0, pts[indexBefore], c1, pts[indexBefore+1]);
+					} else {
+						res.set(pts[indexBefore]);
+					}
 				}
 			}
+		}
+
+		@Override
+		public PtExpr getStartPtExpr() {
+			return def.startPt;
+		}
+
+		@Override
+		public PtExpr getEndPtExpr() {
+			return def.endPt;
 		}
 
 		@Override
@@ -246,14 +274,20 @@ public abstract class PathElementObj {
 					return def.ptExpr(foundIndex);
 				} else {
 					// found between pts
-					int indexBefore = -(foundIndex+1);
-					double distBefore = ptsDist[indexBefore];
-					double distAfter = ptsDist[indexBefore+1];
+					int indexAfter = -(foundIndex+1);
+					if (indexAfter == 0) {
+						return def.startPt;
+					}
+					if (indexAfter >= pts.length) {
+						return def.endPt; // should not occur
+					}
+					double distBefore = ptsDist[indexAfter-1];
+					double distAfter = ptsDist[indexAfter];
 					double inv = 1.0 / (distAfter - distBefore);
 					double c0 = (targetDist-distBefore)*inv;
 					double c1 = (distAfter-targetDist)*inv;
-					PtExpr ptBefore = def.ptExpr(indexBefore);
-					PtExpr ptAfter = def.ptExpr(indexBefore+1);
+					PtExpr ptBefore = def.ptExpr(indexAfter-1);
+					PtExpr ptAfter = def.ptExpr(indexAfter);
 					Expr x = b.linear(c0, ptBefore.x, c1, ptAfter.x);
 					Expr y = b.linear(c0, ptBefore.y, c1, ptAfter.y);
 					return new PtExpr(x, y);
@@ -313,6 +347,17 @@ public abstract class PathElementObj {
 		@Override
 		public void pointAtParam(Pt2D res, double param) {
 			bezier.eval(res, param);
+		}
+
+
+		@Override
+		public PtExpr getStartPtExpr() {
+			return def.startPt;
+		}
+
+		@Override
+		public PtExpr getEndPtExpr() {
+			return def.endPt;
 		}
 
 		@Override
@@ -376,6 +421,16 @@ public abstract class PathElementObj {
 		@Override
 		public void pointAtParam(Pt2D res, double param) {
 			bezier.eval(res, param);
+		}
+
+		@Override
+		public PtExpr getStartPtExpr() {
+			return def.startPt;
+		}
+
+		@Override
+		public PtExpr getEndPtExpr() {
+			return def.endPt;
 		}
 
 		@Override

@@ -17,7 +17,7 @@ import fr.an.drawingboard.util.DrawingValidationUtils;
  * a multipath is a definiton (algebric expr) of a single gesture, 
  * containing pathes separated by stop points
  */
-public class GesturePathesDef extends ParametrizableEltDef {
+public class GestureDef extends ParametrizableEltDef {
 
 	public List<PathDef> pathes = new ArrayList<>();
 
@@ -25,7 +25,7 @@ public class GesturePathesDef extends ParametrizableEltDef {
 	
 	// --------------------------------------------------------------------------------------------
 
-	public GesturePathesDef(ParametrizableEltDef parent,
+	public GestureDef(ParametrizableEltDef parent,
 			InitialParamForShapeEstimator initalParamEstimator) {
 		super(parent);
 		this.initalParamEstimator = initalParamEstimator;
